@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // Ubah ke "postgresql" jika menggunakan PostgreSQL
+  url      = env("DATABASE_URL")
+}
+
+enum BusClass {
+  EXECUTIVE_2_2
+  SLEEPER_2_1
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentMethod {
+  VIRTUAL_ACCOUNT
+  QRIS
+  E_WALLET
+  CREDIT_CARD
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  phone          String?
+  name           String
+  role           String           @default("USER")
+  createdAt      DateTime         @default(now())
+  bookings       Booking[]
+  savedPassports SavedPassenger[]
+}
+
+// Fitur "Isi otomatis dari penumpang tersimpan"
+model SavedPassenger {
+  id        String   @id @default(uuid())
+  userId    String
+  fullName  String
+  idCardNo  String   @db.VarChar(16) // Validasi 16 digit KTP
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Bus {
+  id          String     @id @default(uuid())
+  name        String
+  busClass    BusClass
+  totalSeats  Int
+  facilities  Json       // Array string seperti ["AC", "Colokan", "Bagasi 20 kg"]
+  schedules   Schedule[]
+}
+
+model Schedule {
+  id              String      @id @default(uuid())
+  busId           String
+  originCity      String
+  destinationCity String
+  departureTime   DateTime
+  arrivalTime     DateTime
+  price           Decimal     @db.Decimal(10, 2)
+  isFull          Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  bus             Bus         @relation(fields: [busId], references: [id])
+  seats           Seat[]
+  seatHolds       SeatHold[]
+  bookings        Booking[]
+
+  @@index([originCity, destinationCity, departureTime])
+}
+
+model Seat {
+  id           String        @id @default(uuid())
+  scheduleId   String
+  seatNumber   String        // Contoh: "5A", "5B"
+  isBlocked    Boolean       @default(false) // Untuk status "Tidak dijual/Tidak tersedia"
+
+  schedule     Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  seatHolds    SeatHold[]
+  bookingSeats BookingSeat[]
+
+  @@unique([scheduleId, seatNumber])
+}
+
+// Tabel kritikal untuk menangani Timer 10 Menit & Edge Case
+model SeatHold {
+  id            String    @id @default(uuid())
+  scheduleId    String
+  seatId        String
+  sessionId     String    // Mengikat ke sesi browser pengguna agar tidak bentrok
+  userId        String?
+  expiresAt     DateTime  // Waktu kadaluarsa (now + 10 menit)
+  extendedCount Int       @default(0) // Untuk membatasi perpanjangan hanya 1x
+  createdAt     DateTime  @default(now())
+
+  schedule      Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  seat          Seat      @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, seatId]) // Memastikan 1 kursi hanya ditahan oleh 1 sesi pada satu waktu
+  @@index([sessionId])
+  @@index([expiresAt])
+}
+
+model Booking {
+  id            String         @id @default(uuid())
+  bookingCode   String         @unique // Format UI: "RK-7Q4M2X"
+  userId        String?
+  scheduleId    String
+  status        BookingStatus  @default(PENDING_PAYMENT)
+  
+  // Kontak Pemesan untuk pengiriman e-tiket
+  contactName   String
+  contactEmail  String
+  contactPhone  String
+
+  // Rincian Harga & Pembayaran
+  totalAmount   Decimal        @db.Decimal(10, 2)
+  paymentMethod PaymentMethod?
+  vaNumber      String?
+  paidAt        DateTime?
+  cancelledAt   DateTime?
+  refundAmount  Decimal?       @db.Decimal(10, 2) // Info refund saat dibatalkan
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user          User?          @relation(fields: [userId], references: [id])
+  schedule      Schedule       @relation(fields: [scheduleId], references: [id])
+  bookingSeats  BookingSeat[]
+  passengers    Passenger[]
+}
+
+model BookingSeat {
+  id        String   @id @default(uuid())
+  bookingId String
+  seatId    String
+
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seat      Seat     @relation(fields: [seatId], references: [id])
+
+  @@unique([bookingId, seatId])
+}
+
+// Satu formulir identitas per kursi
+model Passenger {
+  id         String   @id @default(uuid())
+  bookingId  String
+  fullName   String
+  idCardNo   String   @db.VarChar(16) // Validasi KTP 16 digit
+  seatNumber String   
+
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
