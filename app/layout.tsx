@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, DM_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -30,8 +31,14 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${jakarta.variable} ${mono.variable}`}>
       <body className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+        <Suspense fallback={<div className="h-16 bg-white border-b border-borderCol" />}>
+          <Navbar />
+        </Suspense>
+        <main className="flex-1">
+          <Suspense fallback={<div className="p-8 text-center text-muted">Memuat halaman...</div>}>
+            {children}
+          </Suspense>
+        </main>
       </body>
     </html>
   );
