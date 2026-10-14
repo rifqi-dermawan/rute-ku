@@ -143,7 +143,7 @@ export default function HistoryPage() {
                         <Check size={12} strokeWidth={3} /> Terbayar
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-info/10 text-info border border-info/30 text-xs font-bold">
                         <Clock size={12} /> Menunggu bayar
                       </span>
                     )}
@@ -200,7 +200,7 @@ export default function HistoryPage() {
                   <p className="text-xs text-muted mt-1">Kamis, 1 Okt 2026 · 05:30 · Kursi 2A · RK-1B99AA</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-muted border border-borderCol text-xs font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-surface text-muted border border-borderCol text-xs font-bold">
                     Selesai
                   </span>
                   <span className="text-base font-bold text-ink">Rp 105.000</span>

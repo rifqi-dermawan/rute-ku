@@ -143,7 +143,7 @@ function PaymentContent({
             <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-base font-bold text-ink">Transfer ke Virtual Account</h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info/10 text-info border border-info/30 text-xs font-semibold">
                   <Info size={13} />
                   <span>Menunggu pembayaran</span>
                 </span>

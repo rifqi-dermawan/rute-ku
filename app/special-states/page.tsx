@@ -77,10 +77,10 @@ export default function SpecialStatesPage() {
                 <div className="space-y-2">
                   {/* Row 4 */}
                   <div className="flex items-center gap-2 text-xs font-bold">
-                    <div className="w-8 h-8 rounded-lg bg-pink-100 border border-pink-300 text-pink-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center">
                       <Clock size={12} />
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-pink-100 border border-pink-300 text-pink-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center">
                       <Clock size={12} />
                     </div>
                     <span className="w-5 text-center text-muted font-normal text-[11px]">4</span>
@@ -98,7 +98,7 @@ export default function SpecialStatesPage() {
                       <Check size={10} strokeWidth={3} />
                       <span className="text-[9px]">5A</span>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-pink-100 border-2 border-red-500 text-red-600 flex items-center justify-center ring-2 ring-red-200 animate-pulse">
+                    <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border-2 border-error text-error flex items-center justify-center ring-2 ring-error/20 animate-pulse">
                       <Clock size={12} />
                     </div>
                     <span className="w-5 text-center text-muted font-normal text-[11px]">5</span>
@@ -122,7 +122,7 @@ export default function SpecialStatesPage() {
                     <div className="w-8 h-8 rounded-lg bg-white border border-borderCol text-ink flex items-center justify-center">
                       6C
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-pink-100 border border-pink-300 text-pink-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center">
                       <Clock size={12} />
                     </div>
                   </div>
@@ -143,9 +143,9 @@ export default function SpecialStatesPage() {
               </span>
 
               {/* Modal Card Representation */}
-              <div className="p-6 bg-slate-700/90 rounded-2xl flex items-center justify-center">
+              <div className="p-6 bg-secondary rounded-2xl flex items-center justify-center">
                 <div className="bg-white rounded-xl p-5 w-full max-w-sm text-center shadow-lg space-y-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 text-[#93370D] flex items-center justify-center mx-auto">
+                  <div className="w-10 h-10 rounded-full bg-warning/10 text-warning flex items-center justify-center mx-auto">
                     <Clock size={20} />
                   </div>
                   <h3 className="font-black text-ink text-base">Waktu tahan kursi habis</h3>
@@ -184,7 +184,7 @@ export default function SpecialStatesPage() {
                 3 · KONEKSI TERPUTUS
               </span>
 
-              <div className="p-5 rounded-xl bg-sky-50/70 border border-sky-200 text-ink space-y-3">
+              <div className="p-5 rounded-xl bg-info/10 border border-info/30 text-ink space-y-3">
                 <div className="flex items-start gap-3">
                   <WifiOff size={22} className="text-primary flex-shrink-0 mt-0.5" />
                   <div>

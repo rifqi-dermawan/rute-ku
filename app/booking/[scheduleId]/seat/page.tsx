@@ -46,11 +46,11 @@ function seatClass(status: SeatStatus, isSelected: boolean): string {
     case 'available':
       return 'bg-white border-borderCol text-ink hover:border-primary hover:bg-primary-tint/40 cursor-pointer transition-all'
     case 'held':
-      return 'bg-pink-100 border-pink-300 text-pink-600 cursor-not-allowed'
+      return 'bg-[#FDF2FA] border-[#EDADD6] text-[#C11574] cursor-not-allowed'
     case 'booked':
-      return 'bg-[#0F2A33] border-[#0F2A33] text-white cursor-not-allowed'
+      return 'bg-ink border-ink text-white cursor-not-allowed'
     case 'blocked':
-      return 'bg-slate-100 border-dashed border-borderCol text-slate-400 cursor-not-allowed'
+      return 'bg-surface border-dashed border-borderCol text-muted cursor-not-allowed'
     default:
       return 'bg-white border-borderCol'
   }
@@ -60,7 +60,7 @@ function SeatIcon({ status, isSelected }: { status: SeatStatus; isSelected: bool
   if (isSelected) return <Check size={11} strokeWidth={3} className="text-white" />
   if (status === 'held') return <Clock size={11} className="text-pink-600" />
   if (status === 'booked') return <span className="text-[9px] font-black leading-none">✕</span>
-  if (status === 'blocked') return <Ban size={10} className="text-slate-400" />
+  if (status === 'blocked') return <Ban size={10} className="text-muted" />
   return null
 }
 
@@ -312,7 +312,7 @@ function SeatContent({
 
                   {/* Ditahan orang lain */}
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-pink-100 border border-pink-300 text-pink-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center flex-shrink-0">
                       <Clock size={14} />
                     </div>
                     <div>
@@ -334,7 +334,7 @@ function SeatContent({
 
                   {/* Tidak tersedia */}
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-slate-100 border border-dashed border-borderCol text-slate-400 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center flex-shrink-0">
                       <Ban size={13} />
                     </div>
                     <div>
@@ -398,7 +398,7 @@ function SeatContent({
                         key={id}
                         type="button"
                         onClick={() => toggleSeat(id)}
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#4F46E5] bg-indigo-50/50 text-[#4F46E5] text-xs font-bold hover:bg-red-50 hover:border-red-400 hover:text-error transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary bg-primary-tint/50 text-primary text-xs font-bold hover:bg-red-50 hover:border-red-300 hover:text-error transition-all"
                       >
                         <Check size={11} strokeWidth={3} />
                         <span>{id}</span>
@@ -468,7 +468,7 @@ function SeatContent({
           </button>
           <Link
             href="/special-states"
-            className="text-xs font-bold text-indigo-600 hover:underline px-2 py-1 bg-indigo-50 border border-indigo-200 rounded-md"
+            className="text-xs font-bold text-primary hover:underline px-2 py-1 bg-primary-tint border border-primary/30 rounded-md"
           >
             ✦ Layar 10: State Khusus
           </Link>

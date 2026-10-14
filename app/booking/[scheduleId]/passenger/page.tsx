@@ -161,7 +161,7 @@ function PassengerContent({
                       <span className="font-bold text-ink text-base">
                         Penumpang {index + 1} · Kursi
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-purple-50 text-indigo-700 border border-indigo-200 text-xs font-bold font-mono">
+                      <span className="px-2 py-0.5 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                         {passenger.seat}
                       </span>
                     </div>

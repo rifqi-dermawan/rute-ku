@@ -170,7 +170,7 @@ function ReviewContent({
                     key={p.seat}
                     className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
                   >
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-indigo-700 border border-indigo-200 text-xs font-bold font-mono">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                       <Check size={12} strokeWidth={3} />
                       <span>{p.seat}</span>
                     </div>

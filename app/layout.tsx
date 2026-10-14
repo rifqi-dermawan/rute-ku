@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${jakarta.variable} ${mono.variable}`}>
-      <body className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col">
+      <body className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col selection:bg-primary-tint selection:text-primary">
         <Suspense fallback={<div className="h-16 bg-white border-b border-borderCol" />}>
           <Navbar />
         </Suspense>

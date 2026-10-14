@@ -43,7 +43,7 @@ const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
 function seatBadge(left: number) {
   if (left === 0) return { label: '✕  Penuh', bg: 'bg-red-50 text-error border-red-200' }
-  if (left <= 5)  return { label: `⚠ Hampir penuh · sisa ${left}`, bg: 'bg-amber-50 text-warning border-amber-200' }
+  if (left <= 5)  return { label: `⚠ Hampir penuh · sisa ${left}`, bg: 'bg-warning/10 text-warning border-warning/30' }
   return { label: `Sisa ${left} kursi`, bg: 'bg-green-50 text-success border-green-200' }
 }
 

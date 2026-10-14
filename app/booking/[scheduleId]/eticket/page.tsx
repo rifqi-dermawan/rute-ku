@@ -112,14 +112,14 @@ function ETicketContent({
                 {/* Passenger list */}
                 <div className="space-y-2 pt-2">
                   <div className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl">
-                    <span className="px-2.5 py-1 rounded-md bg-purple-50 text-indigo-700 border border-indigo-200 text-xs font-bold font-mono">
+                    <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                       5A
                     </span>
                     <span className="text-sm font-bold text-ink">Dini Sartika</span>
                   </div>
 
                   <div className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl">
-                    <span className="px-2.5 py-1 rounded-md bg-purple-50 text-indigo-700 border border-indigo-200 text-xs font-bold font-mono">
+                    <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                       5B
                     </span>
                     <span className="text-sm font-bold text-ink">Rina Putri</span>

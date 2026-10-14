@@ -85,7 +85,7 @@ export default function HelpPage() {
             </div>
 
             {/* Dipilih */}
-            <div className="flex items-start gap-3 p-3 rounded-xl border border-[#4F46E5]/30 bg-indigo-50/40">
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/30 bg-primary-tint/40">
               <div className="w-8 h-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
                 <Check size={14} strokeWidth={3} />
               </div>
@@ -95,8 +95,8 @@ export default function HelpPage() {
             </div>
 
             {/* Ditahan */}
-            <div className="flex items-start gap-3 p-3 rounded-xl border border-pink-200 bg-pink-50/50">
-              <div className="w-8 h-8 rounded-lg bg-pink-100 border border-pink-300 text-pink-600 flex items-center justify-center flex-shrink-0">
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-[#EDADD6] bg-[#FDF2FA]/60">
+              <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center flex-shrink-0">
                 <Clock size={14} />
               </div>
               <p className="text-xs text-ink leading-snug">
@@ -116,7 +116,7 @@ export default function HelpPage() {
 
             {/* Tidak tersedia */}
             <div className="flex items-start gap-3 p-3 rounded-xl border border-dashed border-borderCol bg-white">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 border border-dashed border-borderCol text-slate-400 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center flex-shrink-0">
                 <Ban size={14} />
               </div>
               <p className="text-xs text-ink leading-snug">
@@ -187,7 +187,7 @@ export default function HelpPage() {
             </div>
 
             <div className="p-4 rounded-xl border border-borderCol flex items-start gap-3 hover:border-primary transition-colors cursor-pointer">
-              <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-info/10 text-info border border-info/30 flex items-center justify-center flex-shrink-0">
                 <Mail size={18} />
               </div>
               <div>
