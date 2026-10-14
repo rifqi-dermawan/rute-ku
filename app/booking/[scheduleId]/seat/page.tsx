@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, Clock, Ban } from 'lucide-react'
 
@@ -465,6 +466,12 @@ function SeatContent({
           >
             Simulasikan: timer habis
           </button>
+          <Link
+            href="/special-states"
+            className="text-xs font-bold text-indigo-600 hover:underline px-2 py-1 bg-indigo-50 border border-indigo-200 rounded-md"
+          >
+            ✦ Layar 10: State Khusus
+          </Link>
           <button
             type="button"
             onClick={resetDemo}
