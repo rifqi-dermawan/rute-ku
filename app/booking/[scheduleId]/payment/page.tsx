@@ -26,6 +26,12 @@ function PaymentContent({
     email?: string
     phone?: string
     total?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -36,6 +42,27 @@ function PaymentContent({
   const dateStr = sp.date ?? 'Sab, 10 Okt 2026'
   const seatsParam = sp.seats ?? '5A, 5B'
   const total = sp.total ?? '250000'
+  const dep = sp.dep ?? '08:00'
+  const arr = sp.arr ?? '11:30'
+  const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
+  const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
+
+  let passengerNames = 'Penumpang'
+  try {
+    let raw = sp.passengersData
+    if (typeof window !== 'undefined' && !raw) {
+      raw = sessionStorage.getItem('ruteku_passengers') ?? ''
+    }
+    if (raw) {
+      if (raw.includes('%')) {
+        try { raw = decodeURIComponent(raw) } catch {}
+      }
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        passengerNames = parsed.map((p: any) => p.name).filter(Boolean).join(', ')
+      }
+    }
+  } catch {}
 
   const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState('va')
@@ -76,11 +103,11 @@ function PaymentContent({
       } catch {}
 
       router.push(
-        `/booking/${scheduleId}/eticket?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
+        `/booking/${scheduleId}/eticket?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
           dateStr
         )}&passengersData=${encodeURIComponent(rawPassengers)}&email=${encodeURIComponent(
           sp.email ?? 'dini@contoh.id'
-        )}&phone=${encodeURIComponent(sp.phone ?? '0812-3456-7890')}&total=${total}`
+        )}&phone=${encodeURIComponent(sp.phone ?? '0812-3456-7890')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
       )
     }, 700)
   }
@@ -210,7 +237,7 @@ function PaymentContent({
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-muted">3.</span>
-                  <span>Bayar tepat Rp 250.000. Status di halaman ini berubah otomatis (dicek tiap 5 detik).</span>
+                  <span>Bayar tepat Rp {parseInt(total).toLocaleString('id-ID')}. Status di halaman ini berubah otomatis (dicek tiap 5 detik).</span>
                 </li>
               </ol>
             </div>
@@ -256,9 +283,10 @@ function PaymentContent({
                   {from} → {to}
                 </h3>
                 <p className="text-xs text-muted mt-1">
-                  {dateStr} · 08:00 – 11:30
+                  {dateStr} · {dep} – {arr}
                 </p>
-                <p className="text-xs text-muted">Kursi {seatsParam} · Dini Sartika, Rina Putri</p>
+                <p className="text-xs text-muted">{bus} ({cls})</p>
+                <p className="text-xs text-muted">Kursi {seatsParam} · {passengerNames}</p>
               </div>
 
               <div className="pt-3 border-t border-borderCol flex items-center justify-between">
@@ -294,6 +322,12 @@ export default function PaymentPage(props: {
     email?: string
     phone?: string
     total?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   return (

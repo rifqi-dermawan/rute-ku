@@ -19,6 +19,12 @@ function ETicketContent({
     email?: string
     phone?: string
     total?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -27,6 +33,11 @@ function ETicketContent({
   const from = sp.from ?? 'Jakarta'
   const to = sp.to ?? 'Bandung'
   const dateStr = sp.date ?? 'Sabtu, 10 Okt 2026'
+  const dep = sp.dep ?? '08:00'
+  const arr = sp.arr ?? '11:30'
+  const dur = sp.dur ?? '3j 30m'
+  const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
+  const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
   const bookingCode = 'RK-7Q4M2X'
   const email = sp.email ?? 'dini@contoh.id'
 
@@ -76,7 +87,11 @@ function ETicketContent({
           scheduleId,
           from,
           to,
-          date: `${dateStr} · 08:00`,
+          date: `${dateStr} · ${dep}`,
+          dep,
+          arr,
+          bus,
+          cls,
           seats: passengers.map(p => p.seat).join(', '),
           passengers: passengers.map(p => p.name).join(', '),
           price: sp.total ? parseInt(sp.total) : 250000,
@@ -85,7 +100,7 @@ function ETicketContent({
         localStorage.setItem('ruteku_last_booking', JSON.stringify(newBooking))
       } catch {}
     }
-  }, [bookingCode, scheduleId, from, to, dateStr, passengers, sp.total])
+  }, [bookingCode, scheduleId, from, to, dateStr, dep, arr, bus, cls, passengers, sp.total])
 
   return (
     <div className="min-h-screen bg-surface pb-20">
@@ -132,12 +147,12 @@ function ETicketContent({
                 {/* Route & Times */}
                 <div className="flex items-center gap-4 max-w-sm">
                   <div>
-                    <span className="text-2xl font-black text-ink">08:00</span>
+                    <span className="text-2xl font-black text-ink">{dep}</span>
                     <span className="block text-xs text-muted mt-0.5">{from}</span>
                   </div>
 
                   <div className="flex-1 flex flex-col items-center px-2">
-                    <span className="text-[11px] text-muted font-medium mb-1">3j 30m</span>
+                    <span className="text-[11px] text-muted font-medium mb-1">{dur}</span>
                     <div className="w-full h-px bg-borderCol relative flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-borderCol absolute -left-1" />
                       <div className="w-2 h-2 rounded-full bg-borderCol absolute -right-1" />
@@ -145,7 +160,7 @@ function ETicketContent({
                   </div>
 
                   <div>
-                    <span className="text-2xl font-black text-ink">11:30</span>
+                    <span className="text-2xl font-black text-ink">{arr}</span>
                     <span className="block text-xs text-muted mt-0.5">{to}</span>
                   </div>
                 </div>
@@ -162,7 +177,7 @@ function ETicketContent({
                     <span className="block text-muted font-semibold uppercase tracking-wider text-[10px] mb-0.5">
                       BUS
                     </span>
-                    <span className="font-bold text-ink text-sm">Nusa Trans · Executive 2–2</span>
+                    <span className="font-bold text-ink text-sm">{bus} · {cls}</span>
                   </div>
                 </div>
 
@@ -309,6 +324,12 @@ export default function ETicketPage(props: {
     email?: string
     phone?: string
     total?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   return (

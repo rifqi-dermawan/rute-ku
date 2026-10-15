@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ArrowLeftRight, Clock, RotateCcw } from 'lucide-react'
 
@@ -19,12 +19,28 @@ const HOW_STEPS = [
   { n: 3, bold: 'Bayar, e-tiket langsung terbit.', rest: 'Kursi jadi milikmu begitu pembayaran berhasil.' },
 ]
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter()
-  const [from, setFrom] = useState('Jakarta')
-  const [to, setTo] = useState('Bandung')
-  const [date, setDate] = useState('2026-10-10')
-  const [passengers, setPassengers] = useState(2)
+  const searchParams = useSearchParams()
+
+  const [from, setFrom] = useState(searchParams.get('from') || 'Jakarta')
+  const [to, setTo] = useState(searchParams.get('to') || 'Bandung')
+  const [date, setDate] = useState(searchParams.get('date') || '2026-10-10')
+  const [passengers, setPassengers] = useState(
+    searchParams.get('passengers') ? Number(searchParams.get('passengers')) : 2
+  )
+
+  useEffect(() => {
+    const qFrom = searchParams.get('from')
+    const qTo = searchParams.get('to')
+    const qDate = searchParams.get('date')
+    const qPassengers = searchParams.get('passengers')
+
+    if (qFrom) setFrom(qFrom)
+    if (qTo) setTo(qTo)
+    if (qDate) setDate(qDate)
+    if (qPassengers) setPassengers(Number(qPassengers))
+  }, [searchParams])
 
   const handleSwap = () => {
     setFrom(to)
@@ -255,5 +271,13 @@ export default function Home() {
         </div>
       </section>
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+      <HomeContent />
+    </Suspense>
   )
 }

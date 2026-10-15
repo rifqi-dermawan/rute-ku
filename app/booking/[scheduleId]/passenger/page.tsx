@@ -31,6 +31,12 @@ function PassengerContent({
     passengersData?: string
     email?: string
     phone?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -41,6 +47,12 @@ function PassengerContent({
   const dateStr = sp.date ?? 'Sab, 10 Okt 2026'
   const seatsParam = sp.seats ?? '5A,5B'
   const seatsList = seatsParam.split(',').filter(Boolean)
+
+  const dep = sp.dep ?? '08:00'
+  const arr = sp.arr ?? '11:30'
+  const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
+  const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
+  const pricePerSeat = sp.price ? parseInt(sp.price) : 125000
 
   const router = useRouter()
 
@@ -134,7 +146,6 @@ function PassengerContent({
   }
 
   // Price calculations
-  const pricePerSeat = 125000
   const totalPrice = seatsList.length * pricePerSeat
 
   const handleProceed = () => {
@@ -154,9 +165,9 @@ function PassengerContent({
 
     const encodedPassengers = encodeURIComponent(JSON.stringify(cleanPassengers))
     router.push(
-      `/booking/${scheduleId}/review?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
+      `/booking/${scheduleId}/review?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
         dateStr
-      )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`
+      )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`
     )
   }
 
@@ -366,9 +377,9 @@ function PassengerContent({
                   {from} → {to}
                 </h3>
                 <p className="text-xs text-muted mt-1">
-                  {dateStr} · 08:00 – 11:30
+                  {dateStr} · {dep} – {arr}
                 </p>
-                <p className="text-xs text-muted">Nusa Trans · Executive 2–2</p>
+                <p className="text-xs text-muted">{bus} · {cls}</p>
               </div>
 
               <div className="pt-3 border-t border-borderCol flex items-center justify-between">
@@ -376,7 +387,7 @@ function PassengerContent({
                   Kursi <span className="font-bold text-ink">{seatsList.join(', ')}</span>
                 </div>
                 <Link
-                  href={`/booking/${scheduleId}/seat?from=${from}&to=${to}&passengers=${seatsList.length}`}
+                  href={`/booking/${scheduleId}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(dateStr)}&passengers=${seatsList.length}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`}
                   className="text-xs font-semibold text-primary hover:underline"
                 >
                   Ubah kursi
@@ -412,6 +423,12 @@ export default function PassengerPage(props: {
     passengersData?: string
     email?: string
     phone?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   return (

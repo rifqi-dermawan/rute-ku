@@ -1,9 +1,11 @@
 'use client'
 
-import { use, useState, Suspense } from 'react'
+import { use, useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Stepper from '@/components/Stepper'
-import { ArrowRight, SlidersHorizontal } from 'lucide-react'
+import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X } from 'lucide-react'
+
+const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
 /* ─── Mock Data ──────────────────────────────────────────────── */
 const SCHEDULES = [
@@ -11,31 +13,31 @@ const SCHEDULES = [
     id: 'sch-001', dep: '05:30', arr: '09:00', dur: '3j30m',
     bus: 'Lintas Rasa', cls: 'Executive 2–2',
     fac: ['AC', 'Colokan', 'Bagasi 20 kg'],
-    left: 14, price: 105000, highlighted: false,
+    left: 14, price: 105000,
   },
   {
     id: 'sch-002', dep: '08:00', arr: '11:30', dur: '3j30m',
     bus: 'Nusa Trans', cls: 'Executive 2–2',
     fac: ['AC', 'Colokan', 'Bagasi 20 kg'],
-    left: 21, price: 125000, highlighted: true,
+    left: 21, price: 125000,
   },
   {
     id: 'sch-003', dep: '11:30', arr: '15:00', dur: '3j30m',
     bus: 'Cipta Wisata', cls: 'Executive 2–2',
     fac: ['AC', 'Colokan', 'Bagasi 20 kg'],
-    left: 3, price: 125000, highlighted: false,
+    left: 3, price: 125000,
   },
   {
     id: 'sch-004', dep: '14:00', arr: '17:30', dur: '3j30m',
     bus: 'Nusa Trans', cls: 'Executive 2–2',
     fac: ['AC', 'Colokan'],
-    left: 0, price: 125000, highlighted: false,
+    left: 0, price: 125000,
   },
   {
     id: 'sch-005', dep: '19:00', arr: '22:30', dur: '3j30m',
     bus: 'Lintas Rasa', cls: 'Sleeper 2–1',
     fac: ['AC', 'Colokan', 'Selimut'],
-    left: 12, price: 165000, highlighted: false,
+    left: 12, price: 165000,
   },
 ]
 
@@ -61,6 +63,30 @@ function SchedulesContent({
 
   const router = useRouter()
 
+  // Track which schedule was chosen (not permanently locked)
+  const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('ruteku_last_schedule_id')
+      if (stored) setActiveScheduleId(stored)
+    }
+  }, [])
+
+  // Inline search modification panel
+  const [isEditingSearch, setIsEditingSearch] = useState(false)
+  const [editFrom, setEditFrom] = useState(from)
+  const [editTo, setEditTo] = useState(to)
+  const [editDate, setEditDate] = useState(date)
+  const [editPassengers, setEditPassengers] = useState(passengers)
+
+  useEffect(() => {
+    setEditFrom(from)
+    setEditTo(to)
+    setEditDate(date)
+    setEditPassengers(passengers)
+  }, [from, to, date, passengers])
+
   // Filter state
   const [fPagi,    setFPagi]    = useState(false)
   const [fSiang,   setFSiang]   = useState(false)
@@ -74,6 +100,14 @@ function SchedulesContent({
     try {
       return new Date(d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })
     } catch { return d }
+  }
+
+  const handleApplyNewSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsEditingSearch(false)
+    router.push(
+      `/schedules?from=${encodeURIComponent(editFrom)}&to=${encodeURIComponent(editTo)}&date=${editDate}&passengers=${editPassengers}`
+    )
   }
 
   const filtered = SCHEDULES.filter(s => {
@@ -111,12 +145,111 @@ function SchedulesContent({
           </p>
         </div>
         <button
-          onClick={() => router.push('/')}
-          className="flex-shrink-0 px-4 py-2 text-sm font-semibold border border-borderCol rounded-full text-ink hover:border-primary hover:text-primary transition-all"
+          onClick={() => setIsEditingSearch(!isEditingSearch)}
+          className={`flex-shrink-0 px-4 py-2 text-sm font-semibold rounded-full transition-all border ${
+            isEditingSearch
+              ? 'bg-ink text-white border-ink'
+              : 'border-primary text-primary hover:bg-primary-tint/40'
+          }`}
         >
-          Ubah pencarian
+          {isEditingSearch ? '✕ Tutup form' : 'Ubah pencarian'}
         </button>
       </div>
+
+      {/* ── Inline Search Editor Panel ───────────────────────── */}
+      {isEditingSearch && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+          <form
+            onSubmit={handleApplyNewSearch}
+            className="bg-white border-2 border-primary/40 rounded-2xl p-5 shadow-sm space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-borderCol pb-2.5">
+              <span className="font-bold text-sm text-ink flex items-center gap-2">
+                <Search size={16} className="text-primary" />
+                Ubah Kota Asal, Tujuan, Tanggal, &amp; Penumpang
+              </span>
+              <span className="text-xs text-muted">Hasil jadwal akan diperbarui otomatis</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1">Dari</label>
+                <select
+                  value={editFrom}
+                  onChange={e => setEditFrom(e.target.value)}
+                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                >
+                  {CITIES.map(c => (
+                    <option key={c} value={c} disabled={c === editTo}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1">Ke</label>
+                <select
+                  value={editTo}
+                  onChange={e => setEditTo(e.target.value)}
+                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                >
+                  {CITIES.map(c => (
+                    <option key={c} value={c} disabled={c === editFrom}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1">Tanggal</label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={e => setEditDate(e.target.value)}
+                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1">Penumpang</label>
+                <select
+                  value={editPassengers}
+                  onChange={e => setEditPassengers(e.target.value)}
+                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                >
+                  <option value="1">1 orang</option>
+                  <option value="2">2 orang</option>
+                  <option value="3">3 orang</option>
+                  <option value="4">4 orang</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-borderCol">
+              <button
+                type="button"
+                onClick={() => router.push(`/?from=${encodeURIComponent(editFrom)}&to=${encodeURIComponent(editTo)}&date=${editDate}&passengers=${editPassengers}`)}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                ← Buka form lengkap di Beranda
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingSearch(false)}
+                  className="px-4 py-2 border border-borderCol rounded-xl text-xs font-semibold text-muted hover:text-ink transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl shadow-xs transition"
+                >
+                  Terapkan Jadwal Baru
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8 flex gap-5 items-start">
         {/* ── Filter sidebar ───────────────────────────────── */}
@@ -181,18 +314,34 @@ function SchedulesContent({
             {filtered.map(s => {
               const badge  = seatBadge(s.left)
               const isFull = s.left === 0
+              const isHighlighted = activeScheduleId ? activeScheduleId === s.id : false
               return (
                 <div
                   key={s.id}
                   className={`bg-white border rounded-card p-4 sm:p-5 transition-all
-                    ${s.highlighted
+                    ${isHighlighted
                       ? 'border-primary shadow-sm ring-1 ring-primary/20'
                       : 'border-borderCol hover:border-primary/40 hover:shadow-sm'}
                     ${isFull ? 'opacity-60' : ''}
                   `}
                 >
-                  {s.highlighted && (
-                    <p className="text-xs font-semibold text-primary mb-2">✦ Dipilih di pencarian terakhir</p>
+                  {isHighlighted && (
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-primary">✦ Dipilih di pencarian terakhir</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setActiveScheduleId(null)
+                          if (typeof window !== 'undefined') {
+                            try { localStorage.removeItem('ruteku_last_schedule_id') } catch {}
+                          }
+                        }}
+                        className="text-[11px] text-muted hover:text-ink hover:underline cursor-pointer"
+                      >
+                        Batal tandai
+                      </button>
+                    </div>
                   )}
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
@@ -225,13 +374,32 @@ function SchedulesContent({
                           <button disabled className="px-4 py-2 text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed">
                             Penuh
                           </button>
-                          <button className="text-sm font-semibold text-primary hover:underline">
+                          <button
+                            onClick={() => {
+                              // Focus on earliest available
+                              const avail = SCHEDULES.find(x => x.left > 0)
+                              if (avail) {
+                                router.push(`/booking/${avail.id}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${passengers}&dep=${encodeURIComponent(avail.dep)}&arr=${encodeURIComponent(avail.arr)}&bus=${encodeURIComponent(avail.bus)}&cls=${encodeURIComponent(avail.cls)}&price=${avail.price}`)
+                              }
+                            }}
+                            className="text-sm font-semibold text-primary hover:underline"
+                          >
                             Lihat jadwal lain
                           </button>
                         </div>
                       ) : (
                         <button
-                          onClick={() => router.push(`/booking/${s.id}/seat?from=${from}&to=${to}&date=${date}&passengers=${passengers}`)}
+                          onClick={() => {
+                            setActiveScheduleId(s.id)
+                            if (typeof window !== 'undefined') {
+                              try {
+                                localStorage.setItem('ruteku_last_schedule_id', s.id)
+                              } catch {}
+                            }
+                            router.push(
+                              `/booking/${s.id}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${passengers}&dep=${encodeURIComponent(s.dep)}&arr=${encodeURIComponent(s.arr)}&dur=${encodeURIComponent(s.dur)}&bus=${encodeURIComponent(s.bus)}&cls=${encodeURIComponent(s.cls)}&price=${s.price}`
+                            )
+                          }}
                           className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-sm rounded-input transition-colors"
                         >
                           Pilih

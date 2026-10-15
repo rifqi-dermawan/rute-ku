@@ -26,15 +26,18 @@ const INITIAL_MAP: Record<string, SeatStatus> = {
 const ROWS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const COLS: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D']
 
-const SCHEDULE_INFO = {
-  from: 'Jakarta',
-  to: 'Bandung',
-  date: 'Sab, 10 Okt 2026',
-  dep: '08:00',
-  arr: '11:30',
-  bus: 'Nusa Trans',
-  cls: 'Executive 2–2',
-  price: 125000,
+const SCHEDULE_PRESETS: Record<string, {
+  dep: string
+  arr: string
+  bus: string
+  cls: string
+  price: number
+}> = {
+  'sch-001': { dep: '05:30', arr: '09:00', bus: 'Lintas Rasa', cls: 'Executive 2–2', price: 105000 },
+  'sch-002': { dep: '08:00', arr: '11:30', bus: 'Nusa Trans', cls: 'Executive 2–2', price: 125000 },
+  'sch-003': { dep: '11:30', arr: '15:00', bus: 'Cipta Wisata', cls: 'Executive 2–2', price: 125000 },
+  'sch-004': { dep: '14:00', arr: '17:30', bus: 'Nusa Trans', cls: 'Executive 2–2', price: 125000 },
+  'sch-005': { dep: '19:00', arr: '22:30', bus: 'Lintas Rasa', cls: 'Sleeper 2–1', price: 165000 },
 }
 
 /* ─── Seat button styles ─────────────────────────────────────── */
@@ -70,13 +73,32 @@ function SeatContent({
   searchParams,
 }: {
   params: Promise<{ scheduleId: string }>
-  searchParams: Promise<{ passengers?: string; from?: string; to?: string; date?: string }>
+  searchParams: Promise<{
+    passengers?: string
+    from?: string
+    to?: string
+    date?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
+  }>
 }) {
   const { scheduleId } = use(params)
   const sp = use(searchParams)
   const maxSelect = parseInt(sp.passengers ?? '2')
-  const from = sp.from ?? SCHEDULE_INFO.from
-  const to = sp.to ?? SCHEDULE_INFO.to
+  const from = sp.from ?? 'Jakarta'
+  const to = sp.to ?? 'Bandung'
+
+  const preset = SCHEDULE_PRESETS[scheduleId] || SCHEDULE_PRESETS['sch-002']
+  const depTime = sp.dep ?? preset.dep
+  const arrTime = sp.arr ?? preset.arr
+  const busName = sp.bus ? decodeURIComponent(sp.bus) : preset.bus
+  const busClass = sp.cls ? decodeURIComponent(sp.cls) : preset.cls
+  const pricePerSeat = sp.price ? parseInt(sp.price) : preset.price
+  const tripDate = sp.date ? decodeURIComponent(sp.date) : 'Sab, 10 Okt 2026'
 
   const router = useRouter()
 
@@ -206,11 +228,11 @@ function SeatContent({
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-ink">Pilih kursi</h1>
           <p className="text-xs sm:text-sm text-muted mt-0.5">
-            {from} → {to} · {SCHEDULE_INFO.date} · {SCHEDULE_INFO.dep} · {SCHEDULE_INFO.bus} {SCHEDULE_INFO.cls} · {maxSelect} penumpang
+            {from} → {to} · {tripDate} · {depTime} · {busName} {busClass} · {maxSelect} penumpang
           </p>
         </div>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push(`/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(tripDate)}&passengers=${maxSelect}`)}
           className="flex-shrink-0 px-4 py-2 text-xs sm:text-sm font-bold border border-primary text-primary hover:bg-primary-tint/30 rounded-input transition-all"
         >
           Ganti jadwal
@@ -422,9 +444,9 @@ function SeatContent({
             <div>
               <h3 className="font-black text-ink text-base">{from} → {to}</h3>
               <p className="text-xs text-muted mt-1">
-                {SCHEDULE_INFO.date} · {SCHEDULE_INFO.dep} – {SCHEDULE_INFO.arr}
+                {tripDate} · {depTime} – {arrTime}
               </p>
-              <p className="text-xs text-muted">{SCHEDULE_INFO.bus} · {SCHEDULE_INFO.cls}</p>
+              <p className="text-xs text-muted">{busName} · {busClass}</p>
             </div>
 
             {selected.length > 0 && (
@@ -451,13 +473,13 @@ function SeatContent({
 
                 <div className="pt-3 border-t border-borderCol space-y-1.5">
                   <div className="flex items-center justify-between text-xs text-muted">
-                    <span>{selected.length} kursi × {fmt(SCHEDULE_INFO.price)}</span>
-                    <span className="font-semibold text-ink">{fmt(selected.length * SCHEDULE_INFO.price)}</span>
+                    <span>{selected.length} kursi × {fmt(pricePerSeat)}</span>
+                    <span className="font-semibold text-ink">{fmt(selected.length * pricePerSeat)}</span>
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-sm font-bold text-ink">Total</span>
                     <span className="text-xl font-black text-ink">
-                      {fmt(selected.length * SCHEDULE_INFO.price)}
+                      {fmt(selected.length * pricePerSeat)}
                     </span>
                   </div>
                 </div>
@@ -471,7 +493,7 @@ function SeatContent({
                 router.push(
                   `/booking/${scheduleId}/passenger?seats=${selected.join(
                     ','
-                  )}&from=${from}&to=${to}&passengers=${maxSelect}`
+                  )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
                 )
               }
               className="w-full py-3 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-input transition-colors text-sm shadow-sm"
@@ -548,7 +570,7 @@ function SeatContent({
               Total · {selected.length} kursi
             </span>
             <span className="text-xl font-black text-ink">
-              {fmt(selected.length * SCHEDULE_INFO.price)}
+              {fmt(selected.length * pricePerSeat)}
             </span>
           </div>
         </div>
@@ -561,7 +583,7 @@ function SeatContent({
             router.push(
               `/booking/${scheduleId}/passenger?seats=${selected.join(
                 ','
-              )}&from=${from}&to=${to}&passengers=${maxSelect}`
+              )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
             )
           }
           className="w-full h-12 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base shadow-sm flex items-center justify-center"
@@ -577,7 +599,18 @@ function SeatContent({
 
 export default function SeatPage(props: {
   params: Promise<{ scheduleId: string }>
-  searchParams: Promise<{ passengers?: string; from?: string; to?: string; date?: string }>
+  searchParams: Promise<{
+    passengers?: string
+    from?: string
+    to?: string
+    date?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
+  }>
 }) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-surface p-8 text-center text-muted">Memuat denah kursi...</div>}>

@@ -25,6 +25,12 @@ function ReviewContent({
     passengersData?: string
     email?: string
     phone?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -37,6 +43,12 @@ function ReviewContent({
   const seatsList = seatsParam.split(',').filter(Boolean)
   const email = sp.email ?? 'dini@contoh.id'
   const phone = sp.phone ?? '0812-3456-7890'
+
+  const dep = sp.dep ?? '08:00'
+  const arr = sp.arr ?? '11:30'
+  const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
+  const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
+  const pricePerSeat = sp.price ? parseInt(sp.price) : 125000
 
   const router = useRouter()
 
@@ -88,7 +100,6 @@ function ReviewContent({
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
-  const pricePerSeat = 125000
   const totalPrice = seatsList.length * pricePerSeat
 
   // Mask KTP for privacy: KTP •••• •••• •••• 0001
@@ -108,11 +119,11 @@ function ReviewContent({
     }
     const encodedPassengers = encodeURIComponent(JSON.stringify(passengers))
     router.push(
-      `/booking/${scheduleId}/payment?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
+      `/booking/${scheduleId}/payment?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
         dateStr
       )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(
         phone
-      )}&total=${totalPrice}`
+      )}&total=${totalPrice}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
     )
   }
 
@@ -140,7 +151,7 @@ function ReviewContent({
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-ink">Jadwal</h2>
                 <Link
-                  href={`/booking/${scheduleId}/seat?from=${from}&to=${to}`}
+                  href={`/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(dateStr)}&passengers=${seatsList.length}`}
                   className="text-xs font-semibold text-primary hover:underline"
                 >
                   Ubah
@@ -158,13 +169,13 @@ function ReviewContent({
                   <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                     BERANGKAT
                   </span>
-                  <span className="text-sm font-bold text-ink">{dateStr} · 08:00</span>
+                  <span className="text-sm font-bold text-ink">{dateStr} · {dep}</span>
                 </div>
                 <div>
                   <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                     TIBA
                   </span>
-                  <span className="text-sm font-bold text-ink">11:30</span>
+                  <span className="text-sm font-bold text-ink">{arr}</span>
                 </div>
               </div>
 
@@ -172,7 +183,7 @@ function ReviewContent({
                 <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                   BUS
                 </span>
-                <span className="text-sm font-bold text-ink">Nusa Trans · Executive 2–2</span>
+                <span className="text-sm font-bold text-ink">{bus} · {cls}</span>
               </div>
             </div>
 
@@ -181,11 +192,11 @@ function ReviewContent({
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-ink">Kursi &amp; penumpang</h2>
                 <Link
-                  href={`/booking/${scheduleId}/passenger?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
+                  href={`/booking/${scheduleId}/passenger?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
                     dateStr
                   )}&passengersData=${encodeURIComponent(JSON.stringify(passengers))}&email=${encodeURIComponent(
                     email
-                  )}&phone=${encodeURIComponent(phone)}`}
+                  )}&phone=${encodeURIComponent(phone)}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`}
                   className="text-xs font-semibold text-primary hover:underline"
                 >
                   Ubah
@@ -300,8 +311,9 @@ function ReviewContent({
                   {from} → {to}
                 </h3>
                 <p className="text-xs text-muted mt-1">
-                  {dateStr} · 08:00 – 11:30
+                  {dateStr} · {dep} – {arr}
                 </p>
+                <p className="text-xs text-muted">{bus} ({cls})</p>
                 <p className="text-xs text-muted">Kursi {seatsList.join(', ')} · {seatsList.length} penumpang</p>
               </div>
 
@@ -337,6 +349,12 @@ export default function ReviewPage(props: {
     passengersData?: string
     email?: string
     phone?: string
+    dep?: string
+    arr?: string
+    dur?: string
+    bus?: string
+    cls?: string
+    price?: string
   }>
 }) {
   return (
