@@ -9,6 +9,9 @@ export default function Navbar() {
   const pathname = usePathname()
   const isBookingFlow = pathname?.includes('/booking/')
   const isPaymentStep = pathname?.includes('/payment')
+  const isAdmin = pathname?.startsWith('/admin')
+
+  if (isAdmin) return null
 
   const [timeLeft, setTimeLeft] = useState(108) // 01:48 for payment, or 517 for hold
 
@@ -71,6 +74,18 @@ export default function Navbar() {
               }`}
             >
               Riwayat booking
+            </Link>
+            <Link
+              href="/admin"
+              className="hidden md:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-secondary hover:bg-secondary/10 transition-all border border-secondary/20"
+            >
+              Admin
+            </Link>
+            <Link
+              href="/mobile"
+              className="hidden lg:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-primary hover:bg-primary-tint transition-all border border-primary/30"
+            >
+              📱 Mobile (390px)
             </Link>
           </nav>
         </div>

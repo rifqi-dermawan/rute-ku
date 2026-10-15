@@ -161,8 +161,45 @@ function SeatContent({
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-16">
+    <div className="min-h-screen bg-surface pb-36 lg:pb-16">
       <Stepper currentStep={2} />
+
+      {/* ── Layar M Mobile Banner: Kursi Ditahan Timer ──────────────── */}
+      <div className="lg:hidden bg-primary-tint/60 border-y border-primary/20 px-4 py-2.5 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 font-mono text-ink">
+          <Clock size={15} className="text-primary flex-shrink-0" />
+          <span>Kursi ditahan <strong className="font-mono text-sm text-primary font-bold">{fmtTime(timeLeft)}</strong></span>
+        </div>
+        <Link href="/help" className="text-primary hover:underline text-xs font-bold">
+          Kenapa ada timer?
+        </Link>
+      </div>
+
+      {/* ── Layar M Mobile Horizontal Status Legends ────────────────── */}
+      <div className="lg:hidden px-4 py-3 bg-white border-b border-borderCol overflow-x-auto flex items-center gap-3 text-[11px] font-semibold text-ink whitespace-nowrap scrollbar-none">
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-md border border-borderCol bg-white flex-shrink-0" />
+          <span>Tersedia</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-md bg-[#4F46E5] text-white flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+          <span>Dipilih</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-md bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center text-[10px] flex-shrink-0">
+            <Clock size={10} />
+          </span>
+          <span>Ditahan orang lain</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-md bg-ink text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✕</span>
+          <span>Terisi</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded-md bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center text-[10px] flex-shrink-0">⊘</span>
+          <span>Tidak tersedia</span>
+        </div>
+      </div>
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-5 flex items-start sm:items-center justify-between gap-4">
@@ -221,75 +258,79 @@ function SeatContent({
               </div>
 
               {/* Column Labels */}
-              <div className="grid grid-cols-[1.5rem_2.2rem_2.2rem_0.8rem_2.2rem_2.2rem] gap-1 mb-2 text-center">
-                <div />
+              <div className="grid grid-cols-[minmax(42px,1fr)_minmax(42px,1fr)_28px_minmax(42px,1fr)_minmax(42px,1fr)] gap-2 mb-3 text-center">
                 {COLS.slice(0, 2).map(c => (
-                  <div key={c} className="text-[11px] font-bold text-muted">{c}</div>
+                  <div key={c} className="text-xs font-bold text-muted">{c}</div>
                 ))}
                 <div />
                 {COLS.slice(2).map(c => (
-                  <div key={c} className="text-[11px] font-bold text-muted">{c}</div>
+                  <div key={c} className="text-xs font-bold text-muted">{c}</div>
                 ))}
               </div>
 
               {/* Rows 1..10 */}
-              {ROWS.map(row => (
-                <div key={row} className="grid grid-cols-[1.5rem_2.2rem_2.2rem_0.8rem_2.2rem_2.2rem] gap-1 mb-2 items-center">
-                  <div className="text-[11px] text-muted text-center font-bold">{row}</div>
+              <div className="space-y-2.5">
+                {ROWS.map(row => (
+                  <div key={row} className="grid grid-cols-[minmax(42px,1fr)_minmax(42px,1fr)_28px_minmax(42px,1fr)_minmax(42px,1fr)] gap-2 items-center">
+                    {/* Seats A, B */}
+                    {(['A', 'B'] as const).map(col => {
+                      const id = `${row}${col}`
+                      const st = seatMap[id]
+                      const sel = selected.includes(id)
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => toggleSeat(id)}
+                          className={`w-full h-12 rounded-xl border text-xs font-bold flex items-center justify-center flex-col transition-all active:scale-95 ${seatClass(
+                            st,
+                            sel
+                          )}`}
+                          title={`Kursi ${id}`}
+                        >
+                          <SeatIcon status={st} isSelected={sel} />
+                          <span className="text-[10px] leading-none mt-0.5 font-mono font-bold">{id}</span>
+                        </button>
+                      )
+                    })}
 
-                  {/* Seats A, B */}
-                  {(['A', 'B'] as const).map(col => {
-                    const id = `${row}${col}`
-                    const st = seatMap[id]
-                    const sel = selected.includes(id)
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => toggleSeat(id)}
-                        className={`w-9 h-9 rounded-xl border text-xs font-bold flex items-center justify-center flex-col transition-all ${seatClass(
-                          st,
-                          sel
-                        )}`}
-                        title={`Kursi ${id}`}
-                      >
-                        <SeatIcon status={st} isSelected={sel} />
-                        <span className="text-[9px] leading-none mt-0.5 font-mono">{id}</span>
-                      </button>
-                    )
-                  })}
+                    {/* Aisle Row Number */}
+                    <div className="text-xs text-muted text-center font-bold font-mono">{row}</div>
 
-                  {/* Aisle */}
-                  <div className="w-2" />
-
-                  {/* Seats C, D */}
-                  {(['C', 'D'] as const).map(col => {
-                    const id = `${row}${col}`
-                    const st = seatMap[id]
-                    const sel = selected.includes(id)
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => toggleSeat(id)}
-                        className={`w-9 h-9 rounded-xl border text-xs font-bold flex items-center justify-center flex-col transition-all ${seatClass(
-                          st,
-                          sel
-                        )}`}
-                        title={`Kursi ${id}`}
-                      >
-                        <SeatIcon status={st} isSelected={sel} />
-                        <span className="text-[9px] leading-none mt-0.5 font-mono">{id}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              ))}
+                    {/* Seats C, D */}
+                    {(['C', 'D'] as const).map(col => {
+                      const id = `${row}${col}`
+                      const st = seatMap[id]
+                      const sel = selected.includes(id)
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => toggleSeat(id)}
+                          className={`w-full h-12 rounded-xl border text-xs font-bold flex items-center justify-center flex-col transition-all active:scale-95 ${seatClass(
+                            st,
+                            sel
+                          )}`}
+                          title={`Kursi ${id}`}
+                        >
+                          <SeatIcon status={st} isSelected={sel} />
+                          <span className="text-[10px] leading-none mt-0.5 font-mono font-bold">{id}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
 
               <p className="text-[10px] font-bold text-muted text-center mt-4 pt-2 border-t border-borderCol uppercase tracking-widest">
-                BELAKANG
+                BELAKANG BUS · TOILET
               </p>
             </div>
+
+            {/* Mobile Swipe Hint (Screenshot 4) */}
+            <p className="lg:hidden text-xs text-muted text-center w-full font-medium py-1">
+              Geser untuk melihat baris lainnya
+            </p>
 
             {/* Legend & Tips */}
             <div className="flex-1 w-full space-y-4">
@@ -480,6 +521,55 @@ function SeatContent({
             Reset demo
           </button>
         </div>
+      </div>
+
+      {/* ── Layar M: Mobile Sticky Bottom Summary Bar (Screenshot 4) ─── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-borderCol p-4 z-40 shadow-xl">
+        <div className="flex items-center justify-between mb-3">
+          {/* Selected Seat Chips */}
+          <div className="flex items-center gap-2">
+            {selected.length === 0 ? (
+              <span className="text-xs text-muted">Belum ada kursi dipilih</span>
+            ) : (
+              selected.map(id => (
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border-2 border-[#4F46E5] text-[#4F46E5] bg-white font-bold text-sm"
+                >
+                  <Check size={14} strokeWidth={3} /> {id}
+                </span>
+              ))
+            )}
+          </div>
+
+          {/* Price Summary */}
+          <div className="text-right">
+            <span className="text-[11px] text-muted block">
+              Total · {selected.length} kursi
+            </span>
+            <span className="text-xl font-black text-ink">
+              {fmt(selected.length * SCHEDULE_INFO.price)}
+            </span>
+          </div>
+        </div>
+
+        {/* Large Submit Button (48px height) */}
+        <button
+          type="button"
+          disabled={selected.length < maxSelect || expired}
+          onClick={() =>
+            router.push(
+              `/booking/${scheduleId}/passenger?seats=${selected.join(
+                ','
+              )}&from=${from}&to=${to}&passengers=${maxSelect}`
+            )
+          }
+          className="w-full h-12 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base shadow-sm flex items-center justify-center"
+        >
+          {selected.length < maxSelect
+            ? `Pilih ${maxSelect - selected.length} kursi lagi`
+            : 'Lanjut isi data penumpang'}
+        </button>
       </div>
     </div>
   )
