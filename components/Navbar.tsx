@@ -75,18 +75,6 @@ export default function Navbar() {
             >
               Riwayat booking
             </Link>
-            <Link
-              href="/admin"
-              className="hidden md:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-secondary hover:bg-secondary/10 transition-all border border-secondary/20"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/mobile"
-              className="hidden lg:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-primary hover:bg-primary-tint transition-all border border-primary/30"
-            >
-              📱 Mobile (390px)
-            </Link>
           </nav>
         </div>
 
@@ -120,10 +108,14 @@ export default function Navbar() {
             <span>Bantuan</span>
           </Link>
 
-          {/* User profile avatar badge */}
-          <div className="w-8 h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm cursor-pointer hover:opacity-90 transition-opacity">
+          {/* User profile avatar badge — akses rahasia ke /admin ("yang tau tau aja") */}
+          <Link
+            href="/admin"
+            className="w-8 h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm hover:opacity-90 transition-opacity"
+            title="Akun Petugas"
+          >
             DS
-          </div>
+          </Link>
         </div>
       </div>
     </header>
