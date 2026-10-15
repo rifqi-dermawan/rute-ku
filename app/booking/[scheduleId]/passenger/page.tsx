@@ -28,6 +28,9 @@ function PassengerContent({
     to?: string
     passengers?: string
     date?: string
+    passengersData?: string
+    email?: string
+    phone?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -41,8 +44,20 @@ function PassengerContent({
 
   const router = useRouter()
 
-  // Passenger state
+  // Passenger state: prioritize query param (from review or previous step) or sessionStorage
   const [passengers, setPassengers] = useState<Passenger[]>(() => {
+    if (sp.passengersData) {
+      try {
+        let raw = sp.passengersData
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+        }
+      } catch {}
+    }
     return seatsList.map((seat, idx) => {
       if (idx === 0) {
         return { seat, name: 'Dini Sartika', ktp: '3171020101990001' }
@@ -55,9 +70,28 @@ function PassengerContent({
   })
 
   // Contact person state
-  const [email, setEmail] = useState('dini@contoh.id')
-  const [phone, setPhone] = useState('0812-3456-7890')
+  const [email, setEmail] = useState(() => sp.email ?? 'dini@contoh.id')
+  const [phone, setPhone] = useState(() => sp.phone ?? '0812-3456-7890')
   const [savePassenger, setSavePassenger] = useState(true)
+
+  // Sync from sessionStorage on client-side mount if not in URL
+  useEffect(() => {
+    if (!sp.passengersData && typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('ruteku_passengers')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPassengers(parsed)
+          }
+        }
+        const storedEmail = sessionStorage.getItem('ruteku_email')
+        if (storedEmail) setEmail(storedEmail)
+        const storedPhone = sessionStorage.getItem('ruteku_phone')
+        if (storedPhone) setPhone(storedPhone)
+      } catch {}
+    }
+  }, [sp.passengersData])
 
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('14:03')
@@ -109,6 +143,14 @@ function PassengerContent({
       const ktp = rawKtp.length === 16 ? rawKtp : (rawKtp + '0000000000000000').slice(0, 16)
       return { ...p, ktp }
     })
+
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('ruteku_passengers', JSON.stringify(cleanPassengers))
+        sessionStorage.setItem('ruteku_email', email)
+        sessionStorage.setItem('ruteku_phone', phone)
+      } catch {}
+    }
 
     const encodedPassengers = encodeURIComponent(JSON.stringify(cleanPassengers))
     router.push(
@@ -367,6 +409,9 @@ export default function PassengerPage(props: {
     to?: string
     passengers?: string
     date?: string
+    passengersData?: string
+    email?: string
+    phone?: string
   }>
 }) {
   return (

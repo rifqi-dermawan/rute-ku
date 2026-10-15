@@ -44,10 +44,27 @@ function ReviewContent({
   const [passengers] = useState<PassengerData[]>(() => {
     if (sp.passengersData) {
       try {
-        return JSON.parse(decodeURIComponent(sp.passengersData))
+        let raw = sp.passengersData
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
       } catch {
         // Fallback
       }
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('ruteku_passengers')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        }
+      } catch {}
     }
     return [
       { seat: '5A', name: 'Dini Sartika', ktp: '3171020101990001' },
@@ -82,6 +99,13 @@ function ReviewContent({
   }
 
   const handleProceedPayment = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('ruteku_passengers', JSON.stringify(passengers))
+        sessionStorage.setItem('ruteku_email', email)
+        sessionStorage.setItem('ruteku_phone', phone)
+      } catch {}
+    }
     const encodedPassengers = encodeURIComponent(JSON.stringify(passengers))
     router.push(
       `/booking/${scheduleId}/payment?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
@@ -157,7 +181,11 @@ function ReviewContent({
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-ink">Kursi &amp; penumpang</h2>
                 <Link
-                  href={`/booking/${scheduleId}/passenger?seats=${seatsParam}&from=${from}&to=${to}`}
+                  href={`/booking/${scheduleId}/passenger?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
+                    dateStr
+                  )}&passengersData=${encodeURIComponent(JSON.stringify(passengers))}&email=${encodeURIComponent(
+                    email
+                  )}&phone=${encodeURIComponent(phone)}`}
                   className="text-xs font-semibold text-primary hover:underline"
                 >
                   Ubah

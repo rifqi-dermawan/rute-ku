@@ -64,10 +64,21 @@ function PaymentContent({
   const handleConfirmPaid = () => {
     setIsChecking(true)
     setTimeout(() => {
+      let rawPassengers = sp.passengersData ?? ''
+      if (typeof window !== 'undefined') {
+        const stored = sessionStorage.getItem('ruteku_passengers')
+        if (stored) rawPassengers = stored
+      }
+      try {
+        if (rawPassengers.includes('%')) {
+          rawPassengers = decodeURIComponent(rawPassengers)
+        }
+      } catch {}
+
       router.push(
         `/booking/${scheduleId}/eticket?seats=${seatsParam}&from=${from}&to=${to}&date=${encodeURIComponent(
           dateStr
-        )}&passengersData=${encodeURIComponent(sp.passengersData ?? '')}&email=${encodeURIComponent(
+        )}&passengersData=${encodeURIComponent(rawPassengers)}&email=${encodeURIComponent(
           sp.email ?? 'dini@contoh.id'
         )}&phone=${encodeURIComponent(sp.phone ?? '0812-3456-7890')}&total=${total}`
       )

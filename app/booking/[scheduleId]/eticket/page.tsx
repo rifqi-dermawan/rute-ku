@@ -1,6 +1,6 @@
 'use client'
 
-import { use, Suspense } from 'react'
+import { use, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, CheckCircle2 } from 'lucide-react'
@@ -21,7 +21,7 @@ function ETicketContent({
     total?: string
   }>
 }) {
-  use(params)
+  const { scheduleId } = use(params)
   const sp = use(searchParams)
 
   const from = sp.from ?? 'Jakarta'
@@ -30,19 +30,76 @@ function ETicketContent({
   const bookingCode = 'RK-7Q4M2X'
   const email = sp.email ?? 'dini@contoh.id'
 
+  // Parse dynamic passengers
+  interface PassengerData {
+    seat: string
+    name: string
+    ktp?: string
+  }
+
+  const passengers: PassengerData[] = (() => {
+    if (sp.passengersData) {
+      try {
+        let raw = sp.passengersData
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      } catch {}
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('ruteku_passengers')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        }
+      } catch {}
+    }
+    const seatsList = (sp.seats ?? '5A,5B').split(',').filter(Boolean)
+    return seatsList.map((seat, idx) => ({
+      seat,
+      name: idx === 0 ? 'Dini Sartika' : 'Rina Putri',
+    }))
+  })()
+
+  // Save completed booking with customized passenger names
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const newBooking = {
+          id: bookingCode,
+          scheduleId,
+          from,
+          to,
+          date: `${dateStr} · 08:00`,
+          seats: passengers.map(p => p.seat).join(', '),
+          passengers: passengers.map(p => p.name).join(', '),
+          price: sp.total ? parseInt(sp.total) : 250000,
+          status: 'paid',
+        }
+        localStorage.setItem('ruteku_last_booking', JSON.stringify(newBooking))
+      } catch {}
+    }
+  }, [bookingCode, scheduleId, from, to, dateStr, passengers, sp.total])
+
   return (
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={6} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
-        {/* Top Success Banner (Matches Image 2) */}
+        {/* Top Success Banner */}
         <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] border border-[#A6F4C5] flex items-start gap-3.5 shadow-2xs">
           <div className="w-8 h-8 rounded-full bg-[#12B76A] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Check size={18} strokeWidth={3} />
           </div>
           <div>
             <h1 className="text-base sm:text-lg font-bold text-[#027A48]">
-              Pembayaran berhasil. Kursi 5A dan 5B resmi milikmu.
+              Pembayaran berhasil. Kursi {passengers.map(p => p.seat).join(' dan ')} resmi milikmu.
             </h1>
             <p className="text-xs sm:text-sm text-[#027A48]/80 mt-0.5">
               E-tiket juga sudah dikirim ke {email} dan WhatsApp.
@@ -111,19 +168,17 @@ function ETicketContent({
 
                 {/* Passenger list */}
                 <div className="space-y-2 pt-2">
-                  <div className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl">
-                    <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
-                      5A
-                    </span>
-                    <span className="text-sm font-bold text-ink">Dini Sartika</span>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl">
-                    <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
-                      5B
-                    </span>
-                    <span className="text-sm font-bold text-ink">Rina Putri</span>
-                  </div>
+                  {passengers.map(p => (
+                    <div
+                      key={p.seat}
+                      className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
+                    >
+                      <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
+                        {p.seat}
+                      </span>
+                      <span className="text-sm font-bold text-ink">{p.name || 'Penumpang'}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Check, Clock, AlertCircle } from 'lucide-react'
 
@@ -15,6 +15,7 @@ const BOOKINGS = {
       to: 'Bandung',
       date: 'Sab, 10 Okt 2026 · 08:00',
       seats: '5A, 5B',
+      passengers: 'Dini Sartika, Rina Putri',
       price: 250000,
       status: 'paid',
     },
@@ -25,6 +26,7 @@ const BOOKINGS = {
       to: 'Malang',
       date: 'Minggu, 18 Okt 2026 · 06:30',
       seats: '3C',
+      passengers: 'Dini Sartika',
       price: 70000,
       status: 'waiting',
       holdUntil: '16:41',
@@ -38,6 +40,7 @@ const BOOKINGS = {
       to: 'Bandung',
       date: 'Kamis, 1 Okt 2026 · 05:30',
       seats: '2A',
+      passengers: 'Dini Sartika',
       price: 105000,
       status: 'completed',
     },
@@ -50,6 +53,7 @@ const BOOKINGS = {
       to: 'Yogyakarta',
       date: 'Jumat, 25 Sep 2026 · 19:00',
       seats: '1A',
+      passengers: 'Dini Sartika',
       price: 180000,
       status: 'cancelled',
     },
@@ -60,6 +64,26 @@ export default function HistoryPage() {
   const [tab, setTab] = useState<TabType>('active')
   const [activeList, setActiveList] = useState(BOOKINGS.active)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('ruteku_last_booking')
+        if (stored) {
+          const item = JSON.parse(stored)
+          setActiveList(prev => {
+            const index = prev.findIndex(b => b.id === item.id)
+            if (index !== -1) {
+              const updated = [...prev]
+              updated[index] = { ...updated[index], ...item }
+              return updated
+            }
+            return [item, ...prev]
+          })
+        }
+      } catch {}
+    }
+  }, [])
 
   const handleCancelBooking = (id: string) => {
     setActiveList(prev => prev.filter(b => b.id !== id))
@@ -133,7 +157,11 @@ export default function HistoryPage() {
                       {booking.from} → {booking.to}
                     </h2>
                     <p className="text-xs text-muted mt-1 font-medium">
-                      {booking.date} · Kursi {booking.seats} · {booking.id}
+                      {booking.date} · Kursi <strong className="text-ink">{booking.seats}</strong>
+                      {booking.passengers && (
+                        <span> · Penumpang: <strong className="text-ink">{booking.passengers}</strong></span>
+                      )}
+                      <span> · {booking.id}</span>
                     </p>
                   </div>
 
