@@ -39,7 +39,7 @@ function ETicketContent({
   const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
   const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
   const bookingCode = 'RK-7Q4M2X'
-  const email = sp.email ?? 'dini@contoh.id'
+  const email = sp.email ?? ''
 
   // Parse dynamic passengers
   interface PassengerData {
@@ -74,7 +74,7 @@ function ETicketContent({
     const seatsList = (sp.seats ?? '5A,5B').split(',').filter(Boolean)
     return seatsList.map((seat, idx) => ({
       seat,
-      name: idx === 0 ? 'Dini Sartika' : 'Rina Putri',
+      name: `Penumpang ${idx + 1}`,
     }))
   })()
 
@@ -108,15 +108,15 @@ function ETicketContent({
 
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
         {/* Top Success Banner */}
-        <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] border border-[#A6F4C5] flex items-start gap-3.5 shadow-2xs">
+        <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs">
           <div className="w-8 h-8 rounded-full bg-[#12B76A] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Check size={18} strokeWidth={3} />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-[#027A48]">
+            <h1 className="text-base sm:text-lg font-bold text-[#027A48] dark:text-[#6CE9A6]">
               Pembayaran berhasil. Kursi {passengers.map(p => p.seat).join(' dan ')} resmi milikmu.
             </h1>
-            <p className="text-xs sm:text-sm text-[#027A48]/80 mt-0.5">
+            <p className="text-xs sm:text-sm text-[#027A48]/80 dark:text-[#A6F4C5] mt-0.5">
               E-tiket juga sudah dikirim ke {email} dan WhatsApp.
             </p>
           </div>

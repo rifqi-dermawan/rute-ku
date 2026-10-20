@@ -88,7 +88,7 @@ function SeatContent({
 }) {
   const { scheduleId } = use(params)
   const sp = use(searchParams)
-  const maxSelect = parseInt(sp.passengers ?? '2')
+  const maxSelect = parseInt(sp.passengers || '1') || 1
   const from = sp.from ?? 'Jakarta'
   const to = sp.to ?? 'Bandung'
 
@@ -102,13 +102,17 @@ function SeatContent({
 
   const router = useRouter()
 
-  /* Seat state - default 5A and 5B preselected to match mockup */
+  /* Seat state - default preselection matches chosen passengers */
   const [seatMap, setSeatMap] = useState<Record<string, SeatStatus>>({ ...INITIAL_MAP })
-  const [selected, setSelected] = useState<string[]>(['5A', '5B'])
+  const [selected, setSelected] = useState<string[]>(() => {
+    const defaultSeats = ['5A', '5B', '6A', '6B']
+    return defaultSeats.slice(0, Math.min(Math.max(1, maxSelect), 4))
+  })
 
   /* Timer: 08:37 */
   const [timeLeft, setTimeLeft] = useState(517)
   const [expired, setExpired] = useState(false)
+  const [showTimerModal, setShowTimerModal] = useState(false)
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -147,14 +151,6 @@ function SeatContent({
     [seatMap, selected, maxSelect]
   )
 
-  /* Auto-select best available */
-  const autoSelect = () => {
-    const avail = Object.entries(seatMap)
-      .filter(([, s]) => s === 'available')
-      .map(([id]) => id)
-      .slice(0, maxSelect)
-    setSelected(avail)
-  }
 
   /* Demo controls */
   const simulateTaken = () => {
@@ -192,9 +188,13 @@ function SeatContent({
           <Clock size={15} className="text-primary flex-shrink-0" />
           <span>Kursi ditahan <strong className="font-mono text-sm text-primary font-bold">{fmtTime(timeLeft)}</strong></span>
         </div>
-        <Link href="/help" className="text-primary hover:underline text-xs font-bold">
+        <button
+          type="button"
+          onClick={() => setShowTimerModal(true)}
+          className="text-primary hover:underline text-xs font-bold cursor-pointer"
+        >
           Kenapa ada timer?
-        </Link>
+        </button>
       </div>
 
       {/* ── Layar M Mobile Horizontal Status Legends ────────────────── */}
@@ -242,25 +242,6 @@ function SeatContent({
       <div className="max-w-6xl mx-auto px-4 sm:px-8 flex flex-col lg:flex-row gap-6 items-start">
         {/* ── Seat Map Area (Left) ─────────────────────────────────── */}
         <div className="flex-1 w-full min-w-0">
-          {/* Banner: Auto-refresh & quick tools */}
-          <div className="bg-white border border-borderCol rounded-card p-3.5 mb-4 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-ink">
-              <span className="w-2.5 h-2.5 rounded-full bg-success inline-block animate-pulse" />
-              <span>Denah diperbarui otomatis tiap 5 detik</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={autoSelect}
-                className="text-xs font-bold text-primary border border-primary rounded-full px-3 py-1 hover:bg-primary-tint transition-colors flex items-center gap-1"
-              >
-                ✦ Pilih kursi otomatis (terbaik)
-              </button>
-              <button type="button" className="text-xs text-muted hover:text-primary transition-colors">
-                Pintasan keyboard (?)
-              </button>
-            </div>
-          </div>
 
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* Bus Grid Layout */}
@@ -425,7 +406,11 @@ function SeatContent({
           <div className="bg-primary-tint/50 border border-primary/20 rounded-card p-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-muted">Sisa waktu tahan kursi</span>
-              <button type="button" className="text-xs font-bold text-primary hover:underline">
+              <button
+                type="button"
+                onClick={() => setShowTimerModal(true)}
+                className="text-xs font-bold text-primary hover:underline cursor-pointer"
+              >
                 Kenapa ada timer?
               </button>
             </div>
@@ -586,13 +571,111 @@ function SeatContent({
               )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
             )
           }
-          className="w-full h-12 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base shadow-sm flex items-center justify-center"
+          className="w-full h-12 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base shadow-sm flex items-center justify-center cursor-pointer"
         >
           {selected.length < maxSelect
             ? `Pilih ${maxSelect - selected.length} kursi lagi`
             : 'Lanjut isi data penumpang'}
         </button>
       </div>
+
+      {/* ── Modal Penjelasan: Kenapa Ada Timer? ─────────────────────── */}
+      {showTimerModal && (
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTimerModal(false)
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-borderCol relative animate-in zoom-in-95 duration-200"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setShowTimerModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-borderCol/50 text-muted hover:text-ink flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Tutup modal"
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-xl bg-primary-tint border border-primary/20 text-primary flex items-center justify-center flex-shrink-0">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-ink text-base sm:text-lg">
+                  Kenapa Ada Timer?
+                </h3>
+                <p className="text-xs text-muted">
+                  Sistem perlindungan kursi RuteKu
+                </p>
+              </div>
+            </div>
+
+            {/* Content points */}
+            <div className="space-y-3 text-xs text-ink leading-relaxed">
+              <div className="p-3 rounded-xl bg-primary-tint/40 border border-primary/20 flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">
+                  1
+                </div>
+                <div>
+                  <strong className="text-ink font-bold block mb-0.5">Kursimu Aman Ditahan (Anti-Rebutan)</strong>
+                  <span className="text-muted">
+                    Saat kamu memilih kursi di denah, sistem menahan kursi tersebut secara eksklusif selama 10 menit. Orang lain tidak bisa mengambil kursi yang sedang kamu pesan.
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface border border-borderCol flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">
+                  2
+                </div>
+                <div>
+                  <strong className="text-ink font-bold block mb-0.5">Waktu Tenang untuk Membayar</strong>
+                  <span className="text-muted">
+                    Batas waktu 10 menit memberi kamu kesempatan yang cukup untuk mengisi data penumpang dan menyelesaikan pembayaran dengan tenang.
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-surface border border-borderCol flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-[10px] flex-shrink-0 mt-0.5">
+                  3
+                </div>
+                <div>
+                  <strong className="text-ink font-bold block mb-0.5">Adil Bagi Penumpang Lain</strong>
+                  <span className="text-muted">
+                    Jika transaksi tidak diselesaikan sampai timer habis, kursi otomatis dilepaskan kembali ke denah agar dapat dipesan oleh penumpang lain yang membutuhkan.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom button */}
+            <div className="mt-5 pt-4 border-t border-borderCol flex items-center justify-between gap-3">
+              <Link
+                href="/help"
+                target="_blank"
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                Pelajari di FAQ Bantuan →
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowTimerModal(false)}
+                className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                Mengerti, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, DM_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // Font sesuai Design System RuteKu
 const jakarta = Plus_Jakarta_Sans({
@@ -29,8 +30,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${jakarta.variable} ${mono.variable}`}>
-      <body className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col selection:bg-primary-tint selection:text-primary">
+    <html lang="id" className={`${jakarta.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head suppressHydrationWarning>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var t = localStorage.getItem('ruteku_theme');
+                if (t === 'dark') {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.setAttribute('data-theme', 'light');
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body
+        className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col selection:bg-primary-tint selection:text-primary"
+        suppressHydrationWarning
+      >
         <Suspense fallback={<div className="h-16 bg-white border-b border-borderCol" />}>
           <Navbar />
         </Suspense>
@@ -39,6 +62,9 @@ export default function RootLayout({
             {children}
           </Suspense>
         </main>
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </body>
     </html>
   );

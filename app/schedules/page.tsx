@@ -3,7 +3,7 @@
 import { use, useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Stepper from '@/components/Stepper'
-import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X } from 'lucide-react'
+import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X, AlertCircle } from 'lucide-react'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -56,45 +56,66 @@ function SchedulesContent({
   searchParams: Promise<{ from?: string; to?: string; date?: string; passengers?: string }>
 }) {
   const sp = use(searchParams)
-  const from       = sp.from       ?? 'Jakarta'
-  const to         = sp.to         ?? 'Bandung'
-  const date       = sp.date       ?? '2026-10-10'
-  const passengers = sp.passengers ?? '2'
+  const from       = sp.from       ?? ''
+  const to         = sp.to         ?? ''
+  const date       = sp.date       ?? ''
+  const passengers = sp.passengers ?? ''
 
   const router = useRouter()
 
-  // Track which schedule was chosen (not permanently locked)
-  const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('ruteku_last_schedule_id')
-      if (stored) setActiveScheduleId(stored)
+      try {
+        localStorage.removeItem('ruteku_last_schedule_id')
+      } catch {}
     }
   }, [])
 
   // Inline search modification panel
-  const [isEditingSearch, setIsEditingSearch] = useState(false)
+  const isSearchIncomplete = !from || !to || !date || !passengers
+  const [isEditingSearch, setIsEditingSearch] = useState(!from || !to || !date || !passengers)
   const [editFrom, setEditFrom] = useState(from)
   const [editTo, setEditTo] = useState(to)
   const [editDate, setEditDate] = useState(date)
   const [editPassengers, setEditPassengers] = useState(passengers)
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({})
+  const [validationWarning, setValidationWarning] = useState<string | null>(
+    !from || !to || !date || !passengers
+      ? 'Kota asal, tujuan, tanggal berangkat, dan jumlah penumpang wajib diisi terlebih dahulu sebelum memilih jadwal bus.'
+      : null
+  )
 
   useEffect(() => {
     setEditFrom(from)
     setEditTo(to)
     setEditDate(date)
     setEditPassengers(passengers)
+    if (!from || !to || !date || !passengers) {
+      setIsEditingSearch(true)
+      setValidationWarning('Kota asal, tujuan, tanggal berangkat, dan jumlah penumpang wajib diisi terlebih dahulu sebelum memilih jadwal bus.')
+    } else {
+      setValidationWarning(null)
+      setEditErrors({})
+    }
   }, [from, to, date, passengers])
 
   // Filter state
-  const [fPagi,    setFPagi]    = useState(false)
-  const [fSiang,   setFSiang]   = useState(false)
-  const [fSore,    setFSore]    = useState(false)
-  const [fExec,    setFExec]    = useState(false)
-  const [fSleep,   setFSleep]   = useState(false)
-  const [maxPrice, setMaxPrice] = useState(200000)
-  const [sort,     setSort]     = useState('earliest')
+  const [timeFilter,  setTimeFilter]  = useState<'pagi' | 'siang' | 'sore' | null>(null)
+  const [classFilter, setClassFilter] = useState<'exec' | 'sleep' | null>(null)
+  const [sort,        setSort]        = useState('earliest')
+
+  const handleTimeChange = (slot: 'pagi' | 'siang' | 'sore', checked: boolean) => {
+    // Hanya 1 jam berangkat yang bisa dicentang; jika memilih opsi lain berpindah ke yang terakhir diklik
+    setTimeFilter(checked ? slot : null)
+  }
+
+  const handleClassChange = (cls: 'exec' | 'sleep', checked: boolean) => {
+    // Hanya 1 kelas bus yang bisa dicentang; jika memilih opsi lain berpindah ke yang terakhir diklik
+    setClassFilter(checked ? cls : null)
+  }
 
   const fmtDate = (d: string) => {
     try {
@@ -104,20 +125,73 @@ function SchedulesContent({
 
   const handleApplyNewSearch = (e: React.FormEvent) => {
     e.preventDefault()
+
+    const errs: Record<string, string> = {}
+    if (!editFrom.trim()) errs['from'] = 'Kota asal wajib diisi terlebih dahulu'
+    if (!editTo.trim()) errs['to'] = 'Kota tujuan wajib diisi terlebih dahulu'
+    else if (editFrom && editTo && editFrom === editTo) {
+      errs['to'] = 'Kota asal dan tujuan tidak boleh sama'
+    }
+    if (!editDate.trim()) errs['date'] = 'Tanggal berangkat wajib diisi terlebih dahulu'
+    if (!editPassengers || String(editPassengers).trim() === '') {
+      errs['passengers'] = 'Jumlah penumpang wajib diisi terlebih dahulu'
+    }
+
+    setEditErrors(errs)
+
+    if (Object.keys(errs).length > 0) {
+      setValidationWarning('Kota asal, tujuan, tanggal berangkat, dan jumlah penumpang wajib diisi terlebih dahulu sebelum mencari jadwal bus.')
+      return
+    }
+
+    setEditErrors({})
+    setValidationWarning(null)
     setIsEditingSearch(false)
     router.push(
-      `/schedules?from=${encodeURIComponent(editFrom)}&to=${encodeURIComponent(editTo)}&date=${editDate}&passengers=${editPassengers}`
+      `/schedules?from=${encodeURIComponent(editFrom)}&to=${encodeURIComponent(editTo)}&date=${encodeURIComponent(editDate)}&passengers=${encodeURIComponent(editPassengers)}`
+    )
+  }
+
+  const handleSelectSchedule = (s: typeof SCHEDULES[0]) => {
+    if (s.left === 0) return
+
+    const isMissing = !from || !to || !date || !passengers
+    if (isMissing) {
+      const errs: Record<string, string> = {}
+      if (!editFrom.trim()) errs['from'] = 'Kota asal wajib diisi terlebih dahulu'
+      if (!editTo.trim()) errs['to'] = 'Kota tujuan wajib diisi terlebih dahulu'
+      else if (editFrom && editTo && editFrom === editTo) {
+        errs['to'] = 'Kota asal dan tujuan tidak boleh sama'
+      }
+      if (!editDate.trim()) errs['date'] = 'Tanggal berangkat wajib diisi terlebih dahulu'
+      if (!editPassengers || String(editPassengers).trim() === '') {
+        errs['passengers'] = 'Jumlah penumpang wajib diisi terlebih dahulu'
+      }
+
+      setEditErrors(errs)
+      setValidationWarning('Kota asal, tujuan, tanggal berangkat, dan jumlah penumpang wajib diisi terlebih dahulu sebelum memilih jadwal bus.')
+      setIsEditingSearch(true)
+      const banner = document.getElementById('schedules-validation-banner')
+      if (banner) {
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return // BLOCKS NAVIGATION
+    }
+
+    router.push(
+      `/booking/${s.id}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${encodeURIComponent(passengers)}&dep=${encodeURIComponent(s.dep)}&arr=${encodeURIComponent(s.arr)}&dur=${encodeURIComponent(s.dur)}&bus=${encodeURIComponent(s.bus)}&cls=${encodeURIComponent(s.cls)}&price=${s.price}`
     )
   }
 
   const filtered = SCHEDULES.filter(s => {
     const h = parseInt(s.dep)
-    if (fPagi  && !(h >= 5  && h < 11)) return false
-    if (fSiang && !(h >= 11 && h < 15)) return false
-    if (fSore  && !(h >= 15))           return false
-    if (fExec  && !s.cls.includes('Executive')) return false
-    if (fSleep && !s.cls.includes('Sleeper'))   return false
-    if (s.price > maxPrice) return false
+    if (timeFilter === 'pagi'  && !(h >= 5  && h < 11)) return false
+    if (timeFilter === 'siang' && !(h >= 11 && h < 15)) return false
+    if (timeFilter === 'sore'  && !(h >= 15))           return false
+    if (classFilter === 'exec'  && !s.cls.includes('Executive')) return false
+    if (classFilter === 'sleep' && !s.cls.includes('Sleeper'))   return false
     return true
   }).sort((a, b) => {
     if (sort === 'cheapest') return a.price - b.price
@@ -126,25 +200,51 @@ function SchedulesContent({
   })
 
   const resetFilter = () => {
-    setFPagi(false); setFSiang(false); setFSore(false)
-    setFExec(false); setFSleep(false); setMaxPrice(200000)
+    setTimeFilter(null)
+    setClassFilter(null)
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-surface pb-12" suppressHydrationWarning>
+        <Stepper currentStep={1} />
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 flex items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2 flex-wrap">
+              {from} <ArrowRight size={18} className="text-muted flex-shrink-0" /> {to}
+            </h1>
+            <p className="text-sm text-muted mt-0.5" suppressHydrationWarning>
+              {passengers} penumpang
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-12">
+    <div className="min-h-screen bg-surface pb-12" suppressHydrationWarning>
       <Stepper currentStep={1} />
 
       {/* ── Route header ─────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 flex items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2 flex-wrap">
-            {from} <ArrowRight size={18} className="text-muted flex-shrink-0" /> {to}
+            {from && to ? (
+              <>
+                {from} <ArrowRight size={18} className="text-muted flex-shrink-0" /> {to}
+              </>
+            ) : (
+              'Pilih Rute & Jadwal Bus'
+            )}
           </h1>
-          <p className="text-sm text-muted mt-0.5">
-            {fmtDate(date)} · {passengers} penumpang
+          <p className="text-sm text-muted mt-0.5" suppressHydrationWarning>
+            {date ? fmtDate(date) : 'Tanggal belum dipilih'} · {passengers ? `${passengers} penumpang` : 'Penumpang belum dipilih'}
           </p>
         </div>
         <button
+          type="button"
+          suppressHydrationWarning
           onClick={() => setIsEditingSearch(!isEditingSearch)}
           className={`flex-shrink-0 px-4 py-2 text-sm font-semibold rounded-full transition-all border ${
             isEditingSearch
@@ -155,6 +255,23 @@ function SchedulesContent({
           {isEditingSearch ? '✕ Tutup form' : 'Ubah pencarian'}
         </button>
       </div>
+
+      {/* ── Validation Warning Banner ────────────────────────── */}
+      {validationWarning && (
+        <div id="schedules-validation-banner" className="max-w-5xl mx-auto px-4 sm:px-8 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="p-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-900 shadow-2xs flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs space-y-1">
+              <p className="font-bold text-sm text-red-950">
+                Wajib Diisi Terlebih Dahulu
+              </p>
+              <p className="text-red-800 leading-relaxed">
+                {validationWarning}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Inline Search Editor Panel ───────────────────────── */}
       {isEditingSearch && (
@@ -171,55 +288,106 @@ function SchedulesContent({
               <span className="text-xs text-muted">Hasil jadwal akan diperbarui otomatis</span>
             </div>
 
+            {Object.keys(editErrors).length > 0 && (
+              <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-xs text-red-900 flex items-center gap-2">
+                <AlertCircle size={15} className="text-red-600 flex-shrink-0" />
+                <span className="font-semibold">Wajib diisi terlebih dahulu: Mohon lengkapi seluruh kolom yang ditandai merah.</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">Dari</label>
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Dari <span className="text-error">*</span>
+                </label>
                 <select
                   value={editFrom}
-                  onChange={e => setEditFrom(e.target.value)}
-                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                  onChange={e => {
+                    setEditFrom(e.target.value)
+                    if (editErrors['from']) setEditErrors(prev => ({ ...prev, from: '' }))
+                  }}
+                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                    editErrors['from'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
+                  }`}
                 >
+                  <option value="">Pilih kota asal</option>
                   {CITIES.map(c => (
                     <option key={c} value={c} disabled={c === editTo}>{c}</option>
                   ))}
                 </select>
+                {editErrors['from'] && (
+                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['from']}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">Ke</label>
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Ke <span className="text-error">*</span>
+                </label>
                 <select
                   value={editTo}
-                  onChange={e => setEditTo(e.target.value)}
-                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                  onChange={e => {
+                    setEditTo(e.target.value)
+                    if (editErrors['to']) setEditErrors(prev => ({ ...prev, to: '' }))
+                  }}
+                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                    editErrors['to'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
+                  }`}
                 >
+                  <option value="">Pilih kota tujuan</option>
                   {CITIES.map(c => (
                     <option key={c} value={c} disabled={c === editFrom}>{c}</option>
                   ))}
                 </select>
+                {editErrors['to'] && (
+                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['to']}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">Tanggal</label>
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Tanggal <span className="text-error">*</span>
+                </label>
                 <input
                   type="date"
                   value={editDate}
-                  onChange={e => setEditDate(e.target.value)}
-                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={e => {
+                    setEditDate(e.target.value)
+                    if (editErrors['date']) setEditErrors(prev => ({ ...prev, date: '' }))
+                  }}
+                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                    editErrors['date'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
+                  }`}
                 />
+                {editErrors['date'] && (
+                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['date']}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">Penumpang</label>
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Penumpang <span className="text-error">*</span>
+                </label>
                 <select
                   value={editPassengers}
-                  onChange={e => setEditPassengers(e.target.value)}
-                  className="w-full h-10 px-3 border border-borderCol rounded-xl bg-surface text-ink text-sm font-semibold outline-none focus:border-primary"
+                  onChange={e => {
+                    setEditPassengers(e.target.value)
+                    if (editErrors['passengers']) setEditErrors(prev => ({ ...prev, passengers: '' }))
+                  }}
+                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                    editErrors['passengers'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
+                  }`}
                 >
+                  <option value="">Pilih penumpang</option>
                   <option value="1">1 orang</option>
                   <option value="2">2 orang</option>
                   <option value="3">3 orang</option>
                   <option value="4">4 orang</option>
                 </select>
+                {editErrors['passengers'] && (
+                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['passengers']}</p>
+                )}
               </div>
             </div>
 
@@ -260,33 +428,39 @@ function SchedulesContent({
 
           <FilterGroup label="Jam berangkat">
             {[
-              ['Pagi (05:00–11:00)',       fPagi,  setFPagi],
-              ['Siang (11:00–15:00)',      fSiang, setFSiang],
-              ['Sore & malam (15:00–24:00)', fSore, setFSore],
-            ].map(([label, val, set]: any) => (
-              <CheckItem key={label} label={label} checked={val} onChange={set} />
+              { id: 'pagi',  label: 'Pagi (05:00–11:00)' },
+              { id: 'siang', label: 'Siang (11:00–15:00)' },
+              { id: 'sore',  label: 'Sore & malam (15:00–24:00)' },
+            ].map(({ id, label }) => (
+              <CheckItem
+                key={id}
+                label={label}
+                checked={timeFilter === id}
+                onChange={checked => handleTimeChange(id as 'pagi' | 'siang' | 'sore', checked)}
+              />
             ))}
           </FilterGroup>
 
           <FilterGroup label="Kelas bus">
             {[
-              ['Executive (2–2)', fExec,  setFExec],
-              ['Sleeper (2–1)',   fSleep, setFSleep],
-            ].map(([label, val, set]: any) => (
-              <CheckItem key={label} label={label} checked={val} onChange={set} />
+              { id: 'exec',  label: 'Executive (2–2)' },
+              { id: 'sleep', label: 'Sleeper (2–1)' },
+            ].map(({ id, label }) => (
+              <CheckItem
+                key={id}
+                label={label}
+                checked={classFilter === id}
+                onChange={checked => handleClassChange(id as 'exec' | 'sleep', checked)}
+              />
             ))}
           </FilterGroup>
 
-          <FilterGroup label="Harga maksimum">
-            <input
-              type="range" min={80000} max={200000} step={5000}
-              value={maxPrice} onChange={e => setMaxPrice(+e.target.value)}
-              className="w-full accent-primary"
-            />
-            <p className="text-xs text-muted mt-1">Rp 80.000 – {fmt(maxPrice)}</p>
-          </FilterGroup>
-
-          <button onClick={resetFilter} className="text-xs font-semibold text-primary hover:underline mt-1">
+          <button
+            type="button"
+            suppressHydrationWarning
+            onClick={resetFilter}
+            className="text-xs font-semibold text-primary hover:underline mt-1"
+          >
             Reset filter
           </button>
         </aside>
@@ -300,6 +474,7 @@ function SchedulesContent({
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted">Urutkan</span>
               <select
+                suppressHydrationWarning
                 value={sort} onChange={e => setSort(e.target.value)}
                 className="text-sm border border-borderCol rounded-input px-3 h-9 bg-white outline-none focus:border-primary"
               >
@@ -314,36 +489,18 @@ function SchedulesContent({
             {filtered.map(s => {
               const badge  = seatBadge(s.left)
               const isFull = s.left === 0
-              const isHighlighted = activeScheduleId ? activeScheduleId === s.id : false
               return (
                 <div
                   key={s.id}
-                  className={`bg-white border rounded-card p-4 sm:p-5 transition-all
-                    ${isHighlighted
-                      ? 'border-primary shadow-sm ring-1 ring-primary/20'
-                      : 'border-borderCol hover:border-primary/40 hover:shadow-sm'}
-                    ${isFull ? 'opacity-60' : ''}
-                  `}
+                  onClick={() => {
+                    if (!isFull) {
+                      handleSelectSchedule(s)
+                    }
+                  }}
+                  className={`bg-white border border-borderCol rounded-card p-4 sm:p-5 transition-all ${
+                    isFull ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
+                  }`}
                 >
-                  {isHighlighted && (
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-primary">✦ Dipilih di pencarian terakhir</p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setActiveScheduleId(null)
-                          if (typeof window !== 'undefined') {
-                            try { localStorage.removeItem('ruteku_last_schedule_id') } catch {}
-                          }
-                        }}
-                        className="text-[11px] text-muted hover:text-ink hover:underline cursor-pointer"
-                      >
-                        Batal tandai
-                      </button>
-                    </div>
-                  )}
-
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
                     {/* Time block */}
                     <div className="flex-shrink-0">
@@ -371,36 +528,39 @@ function SchedulesContent({
                       )}
                       {isFull ? (
                         <div className="flex gap-2 items-center">
-                          <button disabled className="px-4 py-2 text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed">
+                          <button
+                            type="button"
+                            disabled
+                            suppressHydrationWarning
+                            className="px-4 py-2 text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed"
+                          >
                             Penuh
                           </button>
                           <button
-                            onClick={() => {
+                            type="button"
+                            suppressHydrationWarning
+                            onClick={(e) => {
+                              e.stopPropagation()
                               // Focus on earliest available
                               const avail = SCHEDULES.find(x => x.left > 0)
                               if (avail) {
-                                router.push(`/booking/${avail.id}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${passengers}&dep=${encodeURIComponent(avail.dep)}&arr=${encodeURIComponent(avail.arr)}&bus=${encodeURIComponent(avail.bus)}&cls=${encodeURIComponent(avail.cls)}&price=${avail.price}`)
+                                handleSelectSchedule(avail)
                               }
                             }}
-                            className="text-sm font-semibold text-primary hover:underline"
+                            className="text-sm font-semibold text-primary hover:underline cursor-pointer"
                           >
                             Lihat jadwal lain
                           </button>
                         </div>
                       ) : (
                         <button
-                          onClick={() => {
-                            setActiveScheduleId(s.id)
-                            if (typeof window !== 'undefined') {
-                              try {
-                                localStorage.setItem('ruteku_last_schedule_id', s.id)
-                              } catch {}
-                            }
-                            router.push(
-                              `/booking/${s.id}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${passengers}&dep=${encodeURIComponent(s.dep)}&arr=${encodeURIComponent(s.arr)}&dur=${encodeURIComponent(s.dur)}&bus=${encodeURIComponent(s.bus)}&cls=${encodeURIComponent(s.cls)}&price=${s.price}`
-                            )
+                          type="button"
+                          suppressHydrationWarning
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSelectSchedule(s)
                           }}
-                          className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-sm rounded-input transition-colors"
+                          className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-sm rounded-input transition-colors cursor-pointer"
                         >
                           Pilih
                         </button>
@@ -441,7 +601,9 @@ function CheckItem({ label, checked, onChange }: { label: string; checked: boole
   return (
     <label className="flex items-start gap-2 text-sm text-ink mb-2 cursor-pointer leading-snug">
       <input
-        type="checkbox" checked={checked}
+        type="checkbox"
+        suppressHydrationWarning
+        checked={checked}
         onChange={e => onChange(e.target.checked)}
         className="mt-0.5 accent-primary"
       />

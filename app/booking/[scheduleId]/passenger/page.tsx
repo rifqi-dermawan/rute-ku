@@ -12,11 +12,6 @@ interface Passenger {
   ktp: string
 }
 
-const SAVED_PASSENGERS = [
-  { name: 'Dini Sartika', ktp: '3171020101990001', label: 'Dini Sartika (saya)' },
-  { name: 'Rina Putri',   ktp: '3171020101990002', label: 'Rina Putri' },
-]
-
 function PassengerContent({
   params,
   searchParams,
@@ -56,7 +51,7 @@ function PassengerContent({
 
   const router = useRouter()
 
-  // Passenger state: prioritize query param (from review or previous step) or sessionStorage
+  // Passenger state: start completely blank per seat (no fake prefilled names)
   const [passengers, setPassengers] = useState<Passenger[]>(() => {
     if (sp.passengersData) {
       try {
@@ -70,43 +65,48 @@ function PassengerContent({
         }
       } catch {}
     }
-    return seatsList.map((seat, idx) => {
-      if (idx === 0) {
-        return { seat, name: 'Dini Sartika', ktp: '3171020101990001' }
-      }
-      if (idx === 1) {
-        return { seat, name: 'Rina Putri', ktp: '31710245' } // Pre-populated to match mockup validation state
-      }
-      return { seat, name: '', ktp: '' }
-    })
+    return seatsList.map(seat => ({ seat, name: '', ktp: '' }))
   })
 
-  // Contact person state
-  const [email, setEmail] = useState(() => sp.email ?? 'dini@contoh.id')
-  const [phone, setPhone] = useState(() => sp.phone ?? '0812-3456-7890')
-  const [savePassenger, setSavePassenger] = useState(true)
+  // Contact person state: start blank unless passed in URL / session
+  const [email, setEmail] = useState(() => sp.email ?? '')
+  const [phone, setPhone] = useState(() => sp.phone ?? '')
 
-  // Sync from sessionStorage on client-side mount if not in URL
+  // Validation state
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Load sessionStorage on mount
   useEffect(() => {
-    if (!sp.passengersData && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       try {
-        const stored = sessionStorage.getItem('ruteku_passengers')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setPassengers(parsed)
+
+        if (!sp.passengersData) {
+          const stored = sessionStorage.getItem('ruteku_passengers')
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setPassengers(parsed)
+            }
           }
+          const storedEmail = sessionStorage.getItem('ruteku_email')
+          if (storedEmail) setEmail(storedEmail)
+          const storedPhone = sessionStorage.getItem('ruteku_phone')
+          if (storedPhone) setPhone(storedPhone)
         }
-        const storedEmail = sessionStorage.getItem('ruteku_email')
-        if (storedEmail) setEmail(storedEmail)
-        const storedPhone = sessionStorage.getItem('ruteku_phone')
-        if (storedPhone) setPhone(storedPhone)
       } catch {}
     }
   }, [sp.passengersData])
 
   // Auto-save timestamp state
-  const [savedTime, setSavedTime] = useState('14:03')
+  const [savedTime, setSavedTime] = useState('')
+
+  useEffect(() => {
+    const now = new Date()
+    const hh = String(now.getHours()).padStart(2, '0')
+    const mm = String(now.getMinutes()).padStart(2, '0')
+    setSavedTime(`${hh}:${mm}`)
+  }, [passengers, email, phone])
 
   // Timer countdown
   const [timeLeft, setTimeLeft] = useState(494) // 08:14
@@ -118,48 +118,106 @@ function PassengerContent({
     return () => clearInterval(t)
   }, [])
 
-  // Auto-save draft effect
-  useEffect(() => {
-    const now = new Date()
-    const hh = String(now.getHours()).padStart(2, '0')
-    const mm = String(now.getMinutes()).padStart(2, '0')
-    setSavedTime(`${hh}:${mm}`)
-  }, [passengers, email, phone])
-
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+
+  // Validation logic
+  const runValidation = (
+    currentPassengers = passengers,
+    currentEmail = email,
+    currentPhone = phone
+  ): Record<string, string> => {
+    const errs: Record<string, string> = {}
+
+    currentPassengers.forEach((p, idx) => {
+      const trimmedName = p.name.trim()
+      if (!trimmedName) {
+        errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi sesuai KTP.`
+      } else if (trimmedName.length < 2) {
+        errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} minimal 2 karakter.`
+      }
+
+      const digits = p.ktp.replace(/\D/g, '')
+      if (!p.ktp.trim()) {
+        errs[`ktp_${idx}`] = `Nomor KTP Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi 16 digit.`
+      } else if (digits.length !== 16) {
+        errs[`ktp_${idx}`] = `Nomor KTP harus tepat 16 digit angka (saat ini ${digits.length} digit).`
+      }
+    })
+
+    const trimmedEmail = currentEmail.trim()
+    if (!trimmedEmail) {
+      errs['email'] = 'Email pemesan wajib diisi untuk penerimaan e-tiket.'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errs['email'] = 'Format email tidak valid (contoh: pemesan@email.com).'
+    }
+
+    const phoneDigits = currentPhone.replace(/\D/g, '')
+    if (!currentPhone.trim()) {
+      errs['phone'] = 'Nomor HP (WhatsApp) pemesan wajib diisi.'
+    } else if (phoneDigits.length < 10) {
+      errs['phone'] = `Nomor HP minimal 10 digit (saat ini ${phoneDigits.length} digit).`
+    }
+
+    return errs
+  }
 
   const updatePassenger = (index: number, field: 'name' | 'ktp', value: string) => {
     setPassengers(prev => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }
+      if (hasAttemptedSubmit) {
+        setErrors(runValidation(next, email, phone))
+      }
       return next
     })
   }
 
-  const applyFastFill = (index: number, person: typeof SAVED_PASSENGERS[0]) => {
-    setPassengers(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], name: person.name, ktp: person.ktp }
-      return next
-    })
+  const handleEmailChange = (val: string) => {
+    setEmail(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(passengers, val, phone))
+    }
   }
 
-  // Price calculations
-  const totalPrice = seatsList.length * pricePerSeat
+  const handlePhoneChange = (val: string) => {
+    setPhone(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(passengers, email, val))
+    }
+  }
 
   const handleProceed = () => {
-    const cleanPassengers = passengers.map(p => {
-      const rawKtp = p.ktp.replace(/\s+/g, '')
-      const ktp = rawKtp.length === 16 ? rawKtp : (rawKtp + '0000000000000000').slice(0, 16)
-      return { ...p, ktp }
-    })
+    setHasAttemptedSubmit(true)
+    const errs = runValidation(passengers, email, phone)
+    setErrors(errs)
+
+    const errorKeys = Object.keys(errs)
+    if (errorKeys.length > 0) {
+      // Scroll to error banner smoothly
+      if (typeof window !== 'undefined') {
+        const banner = document.getElementById('passenger-validation-banner')
+        if (banner) {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }
+      return // BLOCKS NAVIGATION
+    }
+
+    // Success: prepare clean data and proceed
+    const cleanPassengers = passengers.map(p => ({
+      seat: p.seat,
+      name: p.name.trim(),
+      ktp: p.ktp.replace(/\D/g, ''),
+    }))
 
     if (typeof window !== 'undefined') {
       try {
         sessionStorage.setItem('ruteku_passengers', JSON.stringify(cleanPassengers))
-        sessionStorage.setItem('ruteku_email', email)
-        sessionStorage.setItem('ruteku_phone', phone)
+        sessionStorage.setItem('ruteku_email', email.trim())
+        sessionStorage.setItem('ruteku_phone', phone.trim())
       } catch {}
     }
 
@@ -167,7 +225,7 @@ function PassengerContent({
     router.push(
       `/booking/${scheduleId}/review?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
         dateStr
-      )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`
+      )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email.trim())}&phone=${encodeURIComponent(phone.trim())}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`
     )
   }
 
@@ -187,11 +245,40 @@ function PassengerContent({
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-muted font-medium self-start sm:self-auto">
-            <Check size={14} className="text-success stroke-[2.5]" />
-            <span>Draf tersimpan otomatis {savedTime}</span>
-          </div>
+          {savedTime && (
+            <div className="flex items-center gap-1.5 text-xs text-muted font-medium self-start sm:self-auto">
+              <Check size={14} className="text-success stroke-[2.5]" />
+              <span>Draf tersimpan otomatis {savedTime}</span>
+            </div>
+          )}
         </div>
+
+        {/* Validation Error Banner (Shows when submit was blocked) */}
+        {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
+          <div
+            id="passenger-validation-banner"
+            className="mb-6 p-4 rounded-2xl bg-red-50 border-2 border-red-300 text-red-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200"
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1.5 flex-1">
+                <h4 className="font-bold text-sm text-red-950">
+                  Formulir Belum Lengkap ({Object.keys(errors).length} data wajib diisi)
+                </h4>
+                <p className="text-xs text-red-800 leading-relaxed">
+                  Anda belum dapat melanjutkan ke tahap review. Mohon lengkapi seluruh nama penumpang, nomor KTP (16 digit), serta kontak pemesan:
+                </p>
+                <ul className="list-disc pl-4 text-xs text-red-900 space-y-1 pt-0.5">
+                  {Object.values(errors).map((msg, i) => (
+                    <li key={i} className="font-medium">
+                      {msg}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -201,12 +288,15 @@ function PassengerContent({
               const rawKtp = passenger.ktp.replace(/\s+/g, '')
               const digitsCount = rawKtp.replace(/\D/g, '').length
               const isKtpValid = /^\d{16}$/.test(rawKtp)
-              const hasKtpError = passenger.ktp.length > 0 && !isKtpValid
+              const nameError = errors[`name_${index}`]
+              const ktpError = errors[`ktp_${index}`]
 
               return (
                 <div
                   key={passenger.seat}
-                  className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs"
+                  className={`bg-white border rounded-card p-5 sm:p-6 shadow-2xs transition-all ${
+                    nameError || ktpError ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
+                  }`}
                 >
                   {/* Card Header */}
                   <div className="flex items-center justify-between flex-wrap gap-3 pb-4 mb-5 border-b border-borderCol/50">
@@ -218,21 +308,6 @@ function PassengerContent({
                         {passenger.seat}
                       </span>
                     </div>
-
-                    {/* Isi Cepat Buttons */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-muted font-medium">Isi cepat:</span>
-                      {SAVED_PASSENGERS.map(p => (
-                        <button
-                          key={p.name}
-                          type="button"
-                          onClick={() => applyFastFill(index, p)}
-                          className="px-3 py-1 text-xs font-semibold rounded-full border border-borderCol hover:border-primary hover:text-primary hover:bg-primary-tint/30 transition-all text-ink"
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Form Fields */}
@@ -240,50 +315,63 @@ function PassengerContent({
                     {/* Nama Lengkap */}
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nama lengkap (sesuai KTP)
+                        Nama lengkap (sesuai KTP) <span className="text-error">*</span>
                       </label>
                       <input
                         type="text"
                         value={passenger.name}
                         onChange={e => updatePassenger(index, 'name', e.target.value)}
-                        placeholder="Contoh: Dini Sartika"
-                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-ink font-medium text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        placeholder="Masukkan nama lengkap penumpang"
+                        className={`w-full h-11 px-3.5 border rounded-input text-ink font-medium text-sm outline-none transition-all ${
+                          nameError
+                            ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                            : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                        }`}
                       />
+                      {nameError && (
+                        <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                          <AlertCircle size={13} className="flex-shrink-0" />
+                          <span>{nameError}</span>
+                        </p>
+                      )}
                     </div>
 
                     {/* Nomor KTP */}
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nomor KTP
+                        Nomor KTP (16 Digit) <span className="text-error">*</span>
                       </label>
                       <input
                         type="text"
+                        maxLength={16}
                         value={passenger.ktp}
                         onChange={e => updatePassenger(index, 'ktp', e.target.value)}
                         placeholder="16 digit nomor NIK/KTP"
-                        className={`w-full h-11 px-3.5 border rounded-input text-ink font-mono text-sm outline-none transition-colors ${
-                          hasKtpError
-                            ? 'border-error focus:ring-1 focus:ring-error'
+                        className={`w-full h-11 px-3.5 border rounded-input text-ink font-mono text-sm outline-none transition-all ${
+                          ktpError
+                            ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                             : isKtpValid
-                            ? 'border-borderCol focus:border-primary'
-                            : 'border-borderCol focus:border-primary'
+                            ? 'border-success/60 focus:border-success focus:ring-1 focus:ring-success'
+                            : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
                         }`}
                       />
 
                       {/* KTP Validation Message */}
                       <div className="mt-1.5 min-h-[20px]">
-                        {isKtpValid ? (
+                        {ktpError ? (
+                          <div className="flex items-start gap-1 text-xs text-error font-medium leading-tight">
+                            <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
+                            <span>{ktpError}</span>
+                          </div>
+                        ) : isKtpValid ? (
                           <div className="flex items-center gap-1.5 text-xs text-success font-medium">
                             <Check size={13} className="stroke-[2.5]" />
                             <span>16 digit, format benar</span>
                           </div>
-                        ) : hasKtpError ? (
-                          <div className="flex items-start gap-1.5 text-xs text-error font-medium leading-tight">
-                            <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                            <span>
-                              Nomor KTP harus 16 digit, baru terisi {digitsCount}. Lengkapi angkanya.
-                            </span>
-                          </div>
+                        ) : digitsCount > 0 ? (
+                          <span className="text-[11px] text-muted">
+                            {digitsCount}/16 digit terisi
+                          </span>
                         ) : null}
                       </div>
                     </div>
@@ -296,65 +384,88 @@ function PassengerContent({
             <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
               <h2 className="text-base font-bold text-ink">Kontak pemesan</h2>
               <p className="text-xs text-muted mt-0.5 mb-5">
-                E-tiket dan kabar perubahan jadwal dikirim ke sini.
+                E-tiket dan kabar perubahan jadwal akan dikirim ke kontak ini.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-ink mb-1.5">Email</label>
+                  <label className="block text-xs font-bold text-ink mb-1.5">
+                    Email Pemesan <span className="text-error">*</span>
+                  </label>
                   <input
                     type="email"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    className="w-full h-11 px-3.5 border border-borderCol rounded-input text-ink font-medium text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    onChange={e => handleEmailChange(e.target.value)}
+                    placeholder="nama@email.com"
+                    className={`w-full h-11 px-3.5 border rounded-input text-ink font-medium text-sm outline-none transition-all ${
+                      errors['email']
+                        ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                        : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                    }`}
                   />
+                  {errors['email'] ? (
+                    <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                      <AlertCircle size={13} className="flex-shrink-0" />
+                      <span>{errors['email']}</span>
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted">Bukti e-tiket dikirim ke email ini</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-ink mb-1.5">
-                    Nomor HP (WhatsApp)
+                    Nomor HP (WhatsApp) <span className="text-error">*</span>
                   </label>
                   <input
                     type="tel"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    className="w-full h-11 px-3.5 border border-borderCol rounded-input text-ink font-medium text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    onChange={e => handlePhoneChange(e.target.value)}
+                    placeholder="081234567890"
+                    className={`w-full h-11 px-3.5 border rounded-input text-ink font-medium text-sm outline-none transition-all ${
+                      errors['phone']
+                        ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                        : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                    }`}
                   />
+                  {errors['phone'] ? (
+                    <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                      <AlertCircle size={13} className="flex-shrink-0" />
+                      <span>{errors['phone']}</span>
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted">Untuk notifikasi WhatsApp &amp; konfirmasi</p>
+                  )}
                 </div>
               </div>
-
-              {/* Checkbox Simpan Data */}
-              <label className="flex items-center gap-2.5 mt-5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={savePassenger}
-                  onChange={e => setSavePassenger(e.target.checked)}
-                  className="w-4 h-4 rounded border-borderCol text-primary accent-primary cursor-pointer"
-                />
-                <span className="text-xs sm:text-sm text-ink font-medium">
-                  Simpan data penumpang untuk pemesanan berikutnya
-                </span>
-              </label>
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center gap-2 transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <ArrowLeft size={16} />
                 <span>Kembali ke pilih kursi</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleProceed}
-                className="px-7 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm"
-              >
-                Lanjut ke review
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
+                  <span className="text-xs font-semibold text-error flex items-center gap-1.5 animate-pulse">
+                    <AlertCircle size={14} className="flex-shrink-0" />
+                    <span>Lengkapi {Object.keys(errors).length} data di atas</span>
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={handleProceed}
+                  className="w-full sm:w-auto px-7 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer"
+                >
+                  Lanjut ke review
+                </button>
+              </div>
             </div>
           </div>
 
@@ -379,30 +490,25 @@ function PassengerContent({
                 <p className="text-xs text-muted mt-1">
                   {dateStr} · {dep} – {arr}
                 </p>
-                <p className="text-xs text-muted">{bus} · {cls}</p>
+                <p className="text-xs text-muted">{bus} ({cls})</p>
+              </div>
+
+              <div className="pt-3 border-t border-borderCol space-y-1.5 text-xs">
+                <div className="flex items-center justify-between text-muted">
+                  <span>Kursi</span>
+                  <span className="font-bold text-ink font-mono">{seatsParam}</span>
+                </div>
+                <div className="flex items-center justify-between text-muted">
+                  <span>Jumlah</span>
+                  <span className="font-bold text-ink">{seatsList.length} penumpang</span>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-borderCol flex items-center justify-between">
-                <div className="text-xs text-muted">
-                  Kursi <span className="font-bold text-ink">{seatsList.join(', ')}</span>
-                </div>
-                <Link
-                  href={`/booking/${scheduleId}/seat?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(dateStr)}&passengers=${seatsList.length}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`}
-                  className="text-xs font-semibold text-primary hover:underline"
-                >
-                  Ubah kursi
-                </Link>
-              </div>
-
-              <div className="pt-3 border-t border-borderCol space-y-2">
-                <div className="flex items-center justify-between text-xs text-muted">
-                  <span>{seatsList.length} kursi × Rp {pricePerSeat.toLocaleString('id-ID')}</span>
-                  <span className="font-semibold text-ink">Rp {totalPrice.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="flex items-center justify-between text-base font-extrabold text-ink pt-1">
-                  <span>Total</span>
-                  <span className="text-xl">Rp {totalPrice.toLocaleString('id-ID')}</span>
-                </div>
+                <span className="text-sm font-bold text-ink">Total</span>
+                <span className="text-xl font-black text-ink">
+                  Rp {(seatsList.length * pricePerSeat).toLocaleString('id-ID')}
+                </span>
               </div>
             </div>
           </div>

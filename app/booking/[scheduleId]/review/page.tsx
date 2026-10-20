@@ -41,8 +41,8 @@ function ReviewContent({
   const dateStr = sp.date ?? 'Sab, 10 Okt 2026'
   const seatsParam = sp.seats ?? '5A,5B'
   const seatsList = seatsParam.split(',').filter(Boolean)
-  const email = sp.email ?? 'dini@contoh.id'
-  const phone = sp.phone ?? '0812-3456-7890'
+  const email = sp.email ?? ''
+  const phone = sp.phone ?? ''
 
   const dep = sp.dep ?? '08:00'
   const arr = sp.arr ?? '11:30'
@@ -78,10 +78,11 @@ function ReviewContent({
         }
       } catch {}
     }
-    return [
-      { seat: '5A', name: 'Dini Sartika', ktp: '3171020101990001' },
-      { seat: '5B', name: 'Rina Putri',   ktp: '3171024500000002' },
-    ]
+    return seatsList.map((seat, idx) => ({
+      seat,
+      name: `Penumpang ${idx + 1}`,
+      ktp: '-',
+    }))
   })
 
   // Agreement checkbox

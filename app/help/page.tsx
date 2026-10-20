@@ -25,8 +25,8 @@ const FAQS = [
     defaultOpen: false,
   },
   {
-    q: 'Apakah saya bisa memilih kursi otomatis?',
-    a: 'Bisa! Cukup tekan tombol "Pilih kursi otomatis (terbaik)" di atas denah bus, dan sistem akan memilihkan deretan kursi terbaik yang berdampingan secara instan.',
+    q: 'Bagaimana cara memilih kursi bus?',
+    a: 'Anda dapat langsung memilih kursi yang berstatus "Tersedia" pada denah bus interaktif sesuai jumlah penumpang yang dipesan.',
     defaultOpen: false,
   },
 ]

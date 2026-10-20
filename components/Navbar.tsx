@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HelpCircle, Clock } from 'lucide-react'
+import { HelpCircle, Clock, Sun, Moon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function Navbar() {
@@ -10,6 +10,46 @@ export default function Navbar() {
   const isBookingFlow = pathname?.includes('/booking/')
   const isPaymentStep = pathname?.includes('/payment')
   const isAdmin = pathname?.startsWith('/admin')
+
+  const [mounted, setMounted] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('ruteku_theme')
+      const dark = stored === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark' || document.documentElement.classList.contains('dark')
+      setIsDark(dark)
+      const val = dark ? 'dark' : 'light'
+      document.documentElement.setAttribute('data-theme', val)
+      document.body.setAttribute('data-theme', val)
+      if (dark) {
+        document.documentElement.classList.add('dark')
+        document.body.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+        document.body.classList.remove('dark')
+      }
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const nextDark = !isDark
+    setIsDark(nextDark)
+    if (typeof window !== 'undefined') {
+      const val = nextDark ? 'dark' : 'light'
+      localStorage.setItem('ruteku_theme', val)
+      document.documentElement.setAttribute('data-theme', val)
+      document.body.setAttribute('data-theme', val)
+      if (nextDark) {
+        document.documentElement.classList.add('dark')
+        document.body.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+        document.body.classList.remove('dark')
+      }
+    }
+  }
 
   if (isAdmin) return null
 
@@ -98,7 +138,7 @@ export default function Navbar() {
           {/* Bantuan Button -> links to /help */}
           <Link
             href="/help"
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all cursor-pointer ${
               isHelpActive
                 ? 'bg-primary-tint border-primary text-primary font-bold'
                 : 'text-ink border-borderCol hover:border-primary hover:text-primary hover:bg-surface'
@@ -108,10 +148,32 @@ export default function Navbar() {
             <span>Bantuan</span>
           </Link>
 
+          {/* Theme Toggle: 1 logo (Bulan / Matahari) dengan efek animasi klik & rotasi */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="w-9 h-9 rounded-full border border-borderCol bg-white dark:bg-[#0F2332] text-ink hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center transition-all duration-300 transform active:scale-75 active:rotate-45 shadow-2xs cursor-pointer group relative overflow-hidden"
+            title={mounted ? (isDark ? 'Beralih ke Mode Putih' : 'Beralih ke Mode Dark') : 'Ganti Tema'}
+            aria-label="Ganti mode tema"
+            suppressHydrationWarning
+          >
+            <span
+              className={`transition-all duration-500 ease-out flex items-center justify-center ${
+                mounted && isDark ? 'rotate-180 scale-110 text-amber-400' : 'rotate-0 scale-100 text-secondary'
+              }`}
+            >
+              {mounted && isDark ? (
+                <Sun size={17} className="transition-transform duration-300 group-hover:rotate-45" />
+              ) : (
+                <Moon size={17} className="transition-transform duration-300 group-hover:-rotate-12" />
+              )}
+            </span>
+          </button>
+
           {/* User profile avatar badge — akses rahasia ke /admin ("yang tau tau aja") */}
           <Link
             href="/admin"
-            className="w-8 h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm hover:opacity-90 transition-opacity"
+            className="w-8 h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
             title="Akun Petugas"
           >
             DS

@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ArrowLeftRight, Clock, RotateCcw } from 'lucide-react'
+import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle } from 'lucide-react'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -23,12 +23,14 @@ function HomeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [from, setFrom] = useState(searchParams.get('from') || 'Jakarta')
-  const [to, setTo] = useState(searchParams.get('to') || 'Bandung')
-  const [date, setDate] = useState(searchParams.get('date') || '2026-10-10')
-  const [passengers, setPassengers] = useState(
-    searchParams.get('passengers') ? Number(searchParams.get('passengers')) : 2
-  )
+  // Form states start empty by default so the user must select them
+  const [from, setFrom] = useState(searchParams.get('from') || '')
+  const [to, setTo] = useState(searchParams.get('to') || '')
+  const [date, setDate] = useState(searchParams.get('date') || '')
+  const [passengers, setPassengers] = useState(searchParams.get('passengers') || '')
+
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const qFrom = searchParams.get('from')
@@ -39,18 +41,94 @@ function HomeContent() {
     if (qFrom) setFrom(qFrom)
     if (qTo) setTo(qTo)
     if (qDate) setDate(qDate)
-    if (qPassengers) setPassengers(Number(qPassengers))
+    if (qPassengers) setPassengers(qPassengers)
   }, [searchParams])
 
+  const runValidation = (
+    curFrom = from,
+    curTo = to,
+    curDate = date,
+    curPassengers = passengers
+  ): Record<string, string> => {
+    const errs: Record<string, string> = {}
+
+    if (!curFrom.trim()) {
+      errs['from'] = 'Kota asal wajib diisi terlebih dahulu'
+    }
+
+    if (!curTo.trim()) {
+      errs['to'] = 'Kota tujuan wajib diisi terlebih dahulu'
+    } else if (curFrom && curTo && curFrom === curTo) {
+      errs['to'] = 'Kota tujuan tidak boleh sama dengan kota asal'
+    }
+
+    if (!curDate.trim()) {
+      errs['date'] = 'Tanggal berangkat wajib diisi terlebih dahulu'
+    }
+
+    if (!curPassengers || String(curPassengers).trim() === '') {
+      errs['passengers'] = 'Jumlah penumpang wajib diisi terlebih dahulu'
+    }
+
+    return errs
+  }
+
+  const handleFromChange = (val: string) => {
+    setFrom(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(val, to, date, passengers))
+    }
+  }
+
+  const handleToChange = (val: string) => {
+    setTo(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(from, val, date, passengers))
+    }
+  }
+
+  const handleDateChange = (val: string) => {
+    setDate(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(from, to, val, passengers))
+    }
+  }
+
+  const handlePassengersChange = (val: string) => {
+    setPassengers(val)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(from, to, date, val))
+    }
+  }
+
   const handleSwap = () => {
-    setFrom(to)
-    setTo(from)
+    if (!from && !to) return
+    const newFrom = to
+    const newTo = from
+    setFrom(newFrom)
+    setTo(newTo)
+    if (hasAttemptedSubmit) {
+      setErrors(runValidation(newFrom, newTo, date, passengers))
+    }
   }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    setHasAttemptedSubmit(true)
+
+    const errs = runValidation(from, to, date, passengers)
+    setErrors(errs)
+
+    if (Object.keys(errs).length > 0) {
+      const banner = document.getElementById('search-validation-banner')
+      if (banner) {
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      return // BLOCKS NAVIGATION
+    }
+
     router.push(
-      `/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}&passengers=${passengers}`
+      `/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${encodeURIComponent(passengers)}`
     )
   }
 
@@ -60,7 +138,7 @@ function HomeContent() {
       <section className="relative bg-secondary px-6 sm:px-12 pt-14 pb-24 overflow-hidden text-white">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
           <div className="max-w-xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black leading-tight tracking-tight text-white">
               Pesan kursi bus antarkota.<br />
               Kursimu aman, tanpa rebutan.
             </h1>
@@ -69,34 +147,26 @@ function HomeContent() {
             </p>
           </div>
 
-          {/* Bus Illustration (matches design screenshot) */}
+          {/* Bus Illustration */}
           <div className="hidden md:flex items-center justify-center relative w-72 h-36">
             <svg width="280" height="130" viewBox="0 0 280 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Dotted path */}
               <path
                 d="M10 100 C 60 90, 80 50, 140 50 C 190 50, 210 10, 260 20"
                 stroke="rgba(255,255,255,0.4)"
                 strokeWidth="2.5"
                 strokeDasharray="6 6"
               />
-              {/* Waypoint circles */}
               <circle cx="10" cy="100" r="6" fill="#12385C" stroke="white" strokeWidth="3" />
               <circle cx="260" cy="20" r="6" fill="#12385C" stroke="white" strokeWidth="3" />
 
-              {/* Friendly Bus Card */}
               <g transform="translate(95, 20)">
                 <rect x="0" y="0" width="76" height="52" rx="14" fill="#0B6E78" />
-                {/* Windshield */}
                 <rect x="8" y="7" width="60" height="22" rx="6" fill="#E3F2F3" />
-                {/* Bus Eyes */}
                 <circle cx="28" cy="18" r="3.5" fill="#084F57" />
                 <circle cx="48" cy="18" r="3.5" fill="#084F57" />
-                {/* Headlights */}
                 <circle cx="14" cy="38" r="4" fill="#FDE047" />
                 <circle cx="62" cy="38" r="4" fill="#FDE047" />
-                {/* Bumper line */}
                 <rect x="25" y="37" width="26" height="3" rx="1.5" fill="rgba(255,255,255,0.4)" />
-                {/* Wheels */}
                 <rect x="12" y="50" width="12" height="6" rx="2" fill="#0F2A33" />
                 <rect x="52" y="50" width="12" height="6" rx="2" fill="#0F2A33" />
               </g>
@@ -111,67 +181,135 @@ function HomeContent() {
           onSubmit={handleSearch}
           className="bg-white rounded-card shadow-lg border border-borderCol p-6 sm:p-7"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          {/* Validation Warning Banner */}
+          {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
+            <div
+              id="search-validation-banner"
+              className="mb-5 p-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-900 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <p className="font-bold text-sm text-red-950">
+                    Wajib Diisi Terlebih Dahulu ({Object.keys(errors).length} data belum lengkap)
+                  </p>
+                  <p className="text-red-800 leading-relaxed">
+                    Kota asal, kota tujuan, tanggal berangkat, dan jumlah penumpang wajib diisi terlebih dahulu sebelum mencari jadwal bus.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
             {/* Asal */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Asal</label>
+              <label className="block text-xs font-bold text-ink mb-1.5">
+                Asal <span className="text-error">*</span>
+              </label>
               <select
                 value={from}
-                onChange={e => setFrom(e.target.value)}
-                className="w-full h-12 px-3.5 border border-borderCol rounded-input bg-white text-ink font-semibold text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                onChange={e => handleFromChange(e.target.value)}
+                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                  errors['from']
+                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                }`}
               >
+                <option value="">Pilih kota asal</option>
                 {CITIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c} disabled={c === to}>
+                    {c}
+                  </option>
                 ))}
               </select>
+              {errors['from'] && (
+                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                  <AlertCircle size={13} className="flex-shrink-0" />
+                  <span>{errors['from']}</span>
+                </p>
+              )}
             </div>
 
             {/* Tujuan */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Tujuan</label>
+              <label className="block text-xs font-bold text-ink mb-1.5">
+                Tujuan <span className="text-error">*</span>
+              </label>
               <select
                 value={to}
-                onChange={e => setTo(e.target.value)}
-                className="w-full h-12 px-3.5 border border-borderCol rounded-input bg-white text-ink font-semibold text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                onChange={e => handleToChange(e.target.value)}
+                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                  errors['to']
+                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                }`}
               >
+                <option value="">Pilih kota tujuan</option>
                 {CITIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c} disabled={c === from}>
+                    {c}
+                  </option>
                 ))}
               </select>
+              {errors['to'] && (
+                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                  <AlertCircle size={13} className="flex-shrink-0" />
+                  <span>{errors['to']}</span>
+                </p>
+              )}
             </div>
 
             {/* Tanggal berangkat */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Tanggal berangkat</label>
+              <label className="block text-xs font-bold text-ink mb-1.5">
+                Tanggal berangkat <span className="text-error">*</span>
+              </label>
               <input
                 type="date"
                 value={date}
-                onChange={e => setDate(e.target.value)}
-                className="w-full h-12 px-3.5 border border-borderCol rounded-input bg-white text-ink font-semibold text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-              >
-              </input>
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => handleDateChange(e.target.value)}
+                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                  errors['date']
+                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                }`}
+              />
+              {errors['date'] && (
+                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                  <AlertCircle size={13} className="flex-shrink-0" />
+                  <span>{errors['date']}</span>
+                </p>
+              )}
             </div>
 
             {/* Penumpang */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Penumpang</label>
-              <div className="flex items-center justify-between h-12 px-3 border border-borderCol rounded-input bg-white">
-                <button
-                  type="button"
-                  onClick={() => setPassengers(p => Math.max(1, p - 1))}
-                  className="w-8 h-8 flex items-center justify-center text-lg font-bold text-muted hover:text-primary hover:bg-surface rounded transition-colors"
-                >
-                  −
-                </button>
-                <span className="text-sm font-bold text-ink">{passengers} orang</span>
-                <button
-                  type="button"
-                  onClick={() => setPassengers(p => Math.min(4, p + 1))}
-                  className="w-8 h-8 flex items-center justify-center text-lg font-bold text-muted hover:text-primary hover:bg-surface rounded transition-colors"
-                >
-                  +
-                </button>
-              </div>
+              <label className="block text-xs font-bold text-ink mb-1.5">
+                Penumpang <span className="text-error">*</span>
+              </label>
+              <select
+                value={passengers}
+                onChange={e => handlePassengersChange(e.target.value)}
+                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                  errors['passengers']
+                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                }`}
+              >
+                <option value="">Pilih jumlah penumpang</option>
+                <option value="1">1 orang</option>
+                <option value="2">2 orang</option>
+                <option value="3">3 orang</option>
+                <option value="4">4 orang</option>
+              </select>
+              {errors['passengers'] && (
+                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
+                  <AlertCircle size={13} className="flex-shrink-0" />
+                  <span>{errors['passengers']}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -180,7 +318,7 @@ function HomeContent() {
             <button
               type="button"
               onClick={handleSwap}
-              className="text-xs font-bold text-primary flex items-center gap-1.5 hover:underline transition-colors"
+              className="text-xs font-bold text-primary flex items-center gap-1.5 hover:underline transition-colors cursor-pointer"
             >
               <ArrowLeftRight size={14} />
               <span>Tukar asal &amp; tujuan</span>
@@ -188,7 +326,7 @@ function HomeContent() {
 
             <button
               type="submit"
-              className="h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center gap-2 text-sm shadow-sm transition-all"
+              className="h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
             >
               <Search size={16} />
               <span>Cari jadwal</span>
@@ -202,26 +340,26 @@ function HomeContent() {
         <h2 className="text-sm font-bold text-ink mb-3">Lanjutkan cepat</h2>
         <div className="flex flex-wrap gap-2.5">
           <Link
-            href="/schedules?from=Jakarta&to=Bandung&passengers=2"
-            className="flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:border-primary hover:text-primary transition-all shadow-2xs"
+            href="/schedules?from=Jakarta&to=Bandung&date=2026-10-10&passengers=2"
+            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
           >
-            <Clock size={14} className="text-muted" />
+            <Clock size={14} className="text-muted group-hover:text-primary transition-colors" />
             <span>Jakarta → Bandung · Sab, 10 Okt · 2 orang</span>
           </Link>
 
           <Link
-            href="/schedules?from=Surabaya&to=Yogyakarta&passengers=1"
-            className="flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:border-primary hover:text-primary transition-all shadow-2xs"
+            href="/schedules?from=Surabaya&to=Yogyakarta&date=2026-10-10&passengers=1"
+            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
           >
-            <Clock size={14} className="text-muted" />
+            <Clock size={14} className="text-muted group-hover:text-primary transition-colors" />
             <span>Surabaya → Yogyakarta · 1 orang</span>
           </Link>
 
           <Link
-            href="/schedules?from=Jakarta&to=Bandung&passengers=1"
-            className="flex items-center gap-2 px-4 py-2 border border-primary/40 bg-primary-tint rounded-full text-xs sm:text-sm font-bold text-primary hover:border-primary transition-all shadow-2xs"
+            href="/schedules?from=Jakarta&to=Bandung&date=2026-10-08&passengers=1"
+            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={14} className="text-muted group-hover:text-primary transition-colors" />
             <span>Pesan lagi: Jakarta → Bandung (8 Okt)</span>
           </Link>
         </div>
@@ -234,8 +372,8 @@ function HomeContent() {
           {POPULAR_ROUTES.map(route => (
             <Link
               key={`${route.from}-${route.to}`}
-              href={`/schedules?from=${route.from}&to=${route.to}&passengers=2`}
-              className="bg-white border border-borderCol rounded-card p-5 hover:border-primary hover:shadow-md transition-all group block"
+              href={`/schedules?from=${route.from}&to=${route.to}&date=2026-10-10&passengers=2`}
+              className="bg-white border border-borderCol rounded-card p-5 hover:border-primary hover:shadow-md transition-all group block cursor-pointer"
             >
               <h3 className="text-base font-bold text-ink group-hover:text-primary transition-colors">
                 {route.from} → {route.to}
