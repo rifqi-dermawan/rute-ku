@@ -49,10 +49,10 @@ const INITIAL_BOOKINGS: BookingRecord[] = [
     id: 'b-1',
     codeOrSession: 'RK-7Q4M2X',
     isSession: false,
-    passengers: 'Dini Sartika, Rina Putri',
+    passengers: 'Penumpang 1, Penumpang 2',
     passengerList: [
-      { name: 'Dini Sartika', seat: '5A', phone: '0812-3456-7890', idCard: '3171024589230001' },
-      { name: 'Rina Putri', seat: '5B', phone: '0813-8901-2345', idCard: '3171024589230002' },
+      { name: 'Penumpang 1', seat: '5A', phone: '0812-0000-0001', idCard: '3171024589230001' },
+      { name: 'Penumpang 2', seat: '5B', phone: '0813-0000-0002', idCard: '3171024589230002' },
     ],
     seats: ['5A', '5B'],
     status: 'Terbayar',

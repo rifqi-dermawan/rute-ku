@@ -242,8 +242,8 @@ function PaymentContent({
       `/booking/${scheduleId}/eticket?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
         dateStr
       )}&passengersData=${encodeURIComponent(rawPassengers)}&email=${encodeURIComponent(
-        sp.email ?? 'dini@contoh.id'
-      )}&phone=${encodeURIComponent(sp.phone ?? '0812-3456-7890')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
+        sp.email ?? ''
+      )}&phone=${encodeURIComponent(sp.phone ?? '')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
     )
   }
 

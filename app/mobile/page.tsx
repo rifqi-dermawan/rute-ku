@@ -318,13 +318,13 @@ export default function MobilePreviewPage() {
                       <span className="px-2 py-0.5 rounded-md bg-white border border-primary text-primary font-mono font-bold text-[11px]">
                         5A
                       </span>
-                      <span>Dini Sartika</span>
+                      <span>Penumpang 1</span>
                     </div>
                     <div className="flex items-center gap-2.5 p-2 bg-surface rounded-xl text-xs font-semibold text-ink">
                       <span className="px-2 py-0.5 rounded-md bg-white border border-primary text-primary font-mono font-bold text-[11px]">
                         5B
                       </span>
-                      <span>Rina Putri</span>
+                      <span>Penumpang 2</span>
                     </div>
                   </div>
                 </div>

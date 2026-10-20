@@ -76,27 +76,48 @@ function PassengerContent({
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Load sessionStorage on mount
+  // Load sessionStorage on mount (only for current valid booking session)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-
         if (!sp.passengersData) {
           const stored = sessionStorage.getItem('ruteku_passengers')
           if (stored) {
             const parsed = JSON.parse(stored)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setPassengers(parsed)
+              // Sanitize legacy dummy names so they never reappear
+              const sanitized = parsed.map((p: Passenger) => {
+                const isLegacyDummy =
+                  p.name === 'Dini Sartika' ||
+                  p.name === 'Rina Putri' ||
+                  p.ktp === '3171024589230001' ||
+                  p.ktp === '3171024589230002'
+                return {
+                  seat: p.seat,
+                  name: isLegacyDummy ? '' : p.name,
+                  ktp: isLegacyDummy ? '' : p.ktp,
+                }
+              })
+              // Only apply if seats match the current selection
+              const storedSeats = sanitized.map(p => p.seat).sort().join(',')
+              const currentSeats = [...seatsList].sort().join(',')
+              if (storedSeats === currentSeats) {
+                setPassengers(sanitized)
+              }
             }
           }
           const storedEmail = sessionStorage.getItem('ruteku_email')
-          if (storedEmail) setEmail(storedEmail)
+          if (storedEmail && !storedEmail.includes('dini@') && !storedEmail.includes('contoh.id')) {
+            setEmail(storedEmail)
+          }
           const storedPhone = sessionStorage.getItem('ruteku_phone')
-          if (storedPhone) setPhone(storedPhone)
+          if (storedPhone && !storedPhone.includes('0812-3456-7890')) {
+            setPhone(storedPhone)
+          }
         }
       } catch {}
     }
-  }, [sp.passengersData])
+  }, [sp.passengersData, seatsList])
 
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('')
