@@ -82,7 +82,7 @@ export default function Footer() {
               <div>
                 <h4 className="text-xs font-bold text-ink">Pembayaran Terverifikasi</h4>
                 <p className="text-[11px] text-muted mt-0.5 leading-snug">
-                  Didukung Midtrans Sandbox resmi dengan QRIS, Virtual Account, &amp; E-Wallet.
+                  Didukung gateway pembayaran resmi dengan QRIS, Virtual Account, &amp; E-Wallet.
                 </p>
               </div>
             </div>

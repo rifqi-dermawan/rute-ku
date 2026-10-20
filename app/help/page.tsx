@@ -45,10 +45,10 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-20">
-      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-7">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-7">
         {/* Title & Search */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
             Ada yang bisa dibantu?
           </h1>
 

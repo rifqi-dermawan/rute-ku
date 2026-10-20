@@ -92,19 +92,19 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-20">
-      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
             Riwayat booking
           </h1>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
             Lihat e-tiket, pesan lagi, atau batalkan booking yang belum berangkat.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
           <button
             type="button"
             onClick={() => setTab('active')}

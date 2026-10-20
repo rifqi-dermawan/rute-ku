@@ -467,16 +467,89 @@ function SchedulesContent({
 
         {/* ── Schedule list ────────────────────────────────── */}
         <div className="flex-1 min-w-0">
+          {/* Mobile Filter Bar (Visible on mobile < md) */}
+          <div className="md:hidden mb-4">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar text-xs">
+              <span className="text-muted font-bold flex items-center gap-1 flex-shrink-0 mr-0.5">
+                <SlidersHorizontal size={12} /> Filter:
+              </span>
+              <button
+                type="button"
+                onClick={() => setTimeFilter(timeFilter === 'pagi' ? null : 'pagi')}
+                className={`px-3 py-1.5 rounded-full border flex-shrink-0 transition-all font-semibold ${
+                  timeFilter === 'pagi'
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-borderCol hover:border-primary/50'
+                }`}
+              >
+                Pagi (05-11)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeFilter(timeFilter === 'siang' ? null : 'siang')}
+                className={`px-3 py-1.5 rounded-full border flex-shrink-0 transition-all font-semibold ${
+                  timeFilter === 'siang'
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-borderCol hover:border-primary/50'
+                }`}
+              >
+                Siang (11-15)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeFilter(timeFilter === 'sore' ? null : 'sore')}
+                className={`px-3 py-1.5 rounded-full border flex-shrink-0 transition-all font-semibold ${
+                  timeFilter === 'sore'
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-borderCol hover:border-primary/50'
+                }`}
+              >
+                Sore/Malam (15-24)
+              </button>
+              <button
+                type="button"
+                onClick={() => setClassFilter(classFilter === 'exec' ? null : 'exec')}
+                className={`px-3 py-1.5 rounded-full border flex-shrink-0 transition-all font-semibold ${
+                  classFilter === 'exec'
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-borderCol hover:border-primary/50'
+                }`}
+              >
+                Executive
+              </button>
+              <button
+                type="button"
+                onClick={() => setClassFilter(classFilter === 'sleep' ? null : 'sleep')}
+                className={`px-3 py-1.5 rounded-full border flex-shrink-0 transition-all font-semibold ${
+                  classFilter === 'sleep'
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-borderCol hover:border-primary/50'
+                }`}
+              >
+                Sleeper
+              </button>
+              {(timeFilter || classFilter) && (
+                <button
+                  type="button"
+                  onClick={resetFilter}
+                  className="px-2.5 py-1.5 text-xs text-error font-bold flex-shrink-0 hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <p className="text-sm font-medium text-muted">
+            <p className="text-xs sm:text-sm font-medium text-muted">
               {filtered.length} jadwal ditemukan
             </p>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted">Urutkan</span>
+              <span className="text-xs sm:text-sm text-muted">Urutkan</span>
               <select
                 suppressHydrationWarning
                 value={sort} onChange={e => setSort(e.target.value)}
-                className="text-sm border border-borderCol rounded-input px-3 h-9 bg-white outline-none focus:border-primary"
+                className="text-xs sm:text-sm border border-borderCol rounded-input px-2.5 sm:px-3 h-8 sm:h-9 bg-white outline-none focus:border-primary"
               >
                 <option value="earliest">Berangkat paling awal</option>
                 <option value="cheapest">Harga termurah</option>
@@ -501,55 +574,42 @@ function SchedulesContent({
                     isFull ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
                   }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-                    {/* Time block */}
-                    <div className="flex-shrink-0">
-                      <span className="text-2xl font-extrabold text-ink">{s.dep}</span>
-                      <span className="text-sm text-muted"> → {s.arr} · {s.dur}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-5">
+                    {/* Time & Bus info */}
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-xl sm:text-2xl font-black text-ink">{s.dep}</span>
+                        <span className="text-xs sm:text-sm text-muted font-medium">→ {s.arr}</span>
+                        <span className="text-xs text-muted">· {s.dur}</span>
+                      </div>
+                      <p className="font-bold text-ink text-sm">{s.bus} · <span className="text-muted font-semibold">{s.cls}</span></p>
+                      <p className="text-xs text-muted">{s.fac.join(' · ')}</p>
+                      {isFull && <p className="text-xs text-error font-medium mt-1">Semua kursi terisi atau ditahan</p>}
                     </div>
 
-                    {/* Bus info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-ink text-sm">{s.bus} · {s.cls}</p>
-                      <p className="text-xs text-muted mt-0.5">{s.fac.join(' · ')}</p>
-                      {isFull && <p className="text-xs text-muted mt-1">Semua kursi terisi atau ditahan</p>}
-                    </div>
+                    {/* Price, Badge & Action button */}
+                    <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-borderCol/60 flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-2 sm:gap-2.5 flex-shrink-0">
+                      <div className="flex flex-col sm:items-end">
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border mb-1 self-start sm:self-auto ${badge.bg}`}>
+                          {badge.label}
+                        </span>
+                        {!isFull && (
+                          <div>
+                            <span className="text-base sm:text-lg font-black text-ink">{fmt(s.price)}</span>
+                            <span className="text-[11px] text-muted ml-1 sm:ml-0 sm:block sm:text-right">/kursi</span>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Right section */}
-                    <div className="flex sm:flex-col items-center sm:items-end gap-3 flex-wrap sm:flex-nowrap flex-shrink-0">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${badge.bg}`}>
-                        {badge.label}
-                      </span>
-                      {!isFull && (
-                        <div className="text-right sm:mt-auto">
-                          <p className="text-lg font-extrabold text-ink leading-none">{fmt(s.price)}</p>
-                          <p className="text-xs text-muted">per kursi</p>
-                        </div>
-                      )}
                       {isFull ? (
                         <div className="flex gap-2 items-center">
                           <button
                             type="button"
                             disabled
                             suppressHydrationWarning
-                            className="px-4 py-2 text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed"
+                            className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed"
                           >
                             Penuh
-                          </button>
-                          <button
-                            type="button"
-                            suppressHydrationWarning
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              // Focus on earliest available
-                              const avail = SCHEDULES.find(x => x.left > 0)
-                              if (avail) {
-                                handleSelectSchedule(avail)
-                              }
-                            }}
-                            className="text-sm font-semibold text-primary hover:underline cursor-pointer"
-                          >
-                            Lihat jadwal lain
                           </button>
                         </div>
                       ) : (
@@ -560,7 +620,7 @@ function SchedulesContent({
                             e.stopPropagation()
                             handleSelectSchedule(s)
                           }}
-                          className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-sm rounded-input transition-colors cursor-pointer"
+                          className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-input transition-colors cursor-pointer shadow-xs"
                         >
                           Pilih
                         </button>

@@ -132,13 +132,13 @@ function ReviewContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={4} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
             Review &amp; konfirmasi
           </h1>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
             Cek sekali lagi. Tekan &quot;Ubah&quot; untuk memperbaiki bagian mana pun; data lain tidak hilang.
           </p>
         </div>
@@ -272,11 +272,11 @@ function ReviewContent({
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center gap-2 transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <ArrowLeft size={16} />
                 <span>Kembali ke data penumpang</span>
@@ -286,7 +286,7 @@ function ReviewContent({
                 type="button"
                 disabled={!agreed}
                 onClick={handleProceedPayment}
-                className="px-7 py-2.5 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white text-sm font-bold rounded-input transition-all shadow-sm"
+                className="w-full sm:w-auto px-7 py-3 sm:py-2.5 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white text-sm font-bold rounded-input transition-all shadow-sm flex items-center justify-center cursor-pointer"
               >
                 Konfirmasi &amp; lanjut bayar
               </button>

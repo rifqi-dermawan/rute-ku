@@ -224,28 +224,28 @@ function SeatContent({
       </div>
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-5 flex items-start sm:items-center justify-between gap-4">
-        <div>
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 py-4 sm:py-5 flex items-start sm:items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-black text-ink">Pilih kursi</h1>
-          <p className="text-xs sm:text-sm text-muted mt-0.5">
-            {from} → {to} · {tripDate} · {depTime} · {busName} {busClass} · {maxSelect} penumpang
+          <p className="text-xs sm:text-sm text-muted mt-0.5 truncate">
+            {from} → {to} · {tripDate} · {depTime} · {busName}
           </p>
         </div>
         <button
           onClick={() => router.push(`/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(tripDate)}&passengers=${maxSelect}`)}
-          className="flex-shrink-0 px-4 py-2 text-xs sm:text-sm font-bold border border-primary text-primary hover:bg-primary-tint/30 rounded-input transition-all"
+          className="flex-shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold border border-primary text-primary hover:bg-primary-tint/30 rounded-input transition-all"
         >
           Ganti jadwal
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 flex flex-col lg:flex-row gap-6 items-start">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 flex flex-col lg:flex-row gap-6 items-start">
         {/* ── Seat Map Area (Left) ─────────────────────────────────── */}
         <div className="flex-1 w-full min-w-0">
 
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* Bus Grid Layout */}
-            <div className="bg-white border border-borderCol rounded-2xl p-5 sm:p-6 flex-shrink-0 w-full sm:w-[280px] shadow-2xs">
+            <div className="bg-white border border-borderCol rounded-2xl p-3.5 sm:p-6 mx-auto w-full max-w-[340px] sm:max-w-none sm:w-[280px] shadow-2xs flex-shrink-0">
               {/* Bus Front */}
               <div className="flex items-center justify-between text-[11px] font-bold text-muted mb-4 pb-2 border-b border-borderCol">
                 <span className="flex items-center gap-1.5 text-ink">
@@ -261,7 +261,7 @@ function SeatContent({
               </div>
 
               {/* Column Labels */}
-              <div className="grid grid-cols-[minmax(42px,1fr)_minmax(42px,1fr)_28px_minmax(42px,1fr)_minmax(42px,1fr)] gap-2 mb-3 text-center">
+              <div className="grid grid-cols-[minmax(38px,1fr)_minmax(38px,1fr)_22px_minmax(38px,1fr)_minmax(38px,1fr)] gap-1.5 sm:gap-2 mb-3 text-center">
                 {COLS.slice(0, 2).map(c => (
                   <div key={c} className="text-xs font-bold text-muted">{c}</div>
                 ))}
@@ -272,9 +272,9 @@ function SeatContent({
               </div>
 
               {/* Rows 1..10 */}
-              <div className="space-y-2.5">
+              <div className="space-y-2 sm:space-y-2.5">
                 {ROWS.map(row => (
-                  <div key={row} className="grid grid-cols-[minmax(42px,1fr)_minmax(42px,1fr)_28px_minmax(42px,1fr)_minmax(42px,1fr)] gap-2 items-center">
+                  <div key={row} className="grid grid-cols-[minmax(38px,1fr)_minmax(38px,1fr)_22px_minmax(38px,1fr)_minmax(38px,1fr)] gap-1.5 sm:gap-2 items-center">
                     {/* Seats A, B */}
                     {(['A', 'B'] as const).map(col => {
                       const id = `${row}${col}`
@@ -481,7 +481,7 @@ function SeatContent({
                   )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
                 )
               }
-              className="w-full py-3 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-input transition-colors text-sm shadow-sm"
+              className="hidden lg:flex w-full py-3 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-input transition-colors text-sm shadow-sm items-center justify-center cursor-pointer"
             >
               {selected.length < maxSelect
                 ? `Pilih ${maxSelect - selected.length} kursi lagi`
@@ -530,31 +530,31 @@ function SeatContent({
         </div>
       </div>
 
-      {/* ── Layar M: Mobile Sticky Bottom Summary Bar (Screenshot 4) ─── */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-borderCol p-4 z-40 shadow-xl">
-        <div className="flex items-center justify-between mb-3">
+      {/* ── Layar M: Mobile Sticky Bottom Summary Bar ─── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-borderCol p-3.5 sm:p-4 z-40 shadow-xl">
+        <div className="flex items-center justify-between gap-2 mb-2.5">
           {/* Selected Seat Chips */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
             {selected.length === 0 ? (
-              <span className="text-xs text-muted">Belum ada kursi dipilih</span>
+              <span className="text-xs text-muted">Belum ada kursi</span>
             ) : (
               selected.map(id => (
                 <span
                   key={id}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border-2 border-[#4F46E5] text-[#4F46E5] bg-white font-bold text-sm"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border-2 border-[#4F46E5] text-[#4F46E5] bg-white font-bold text-xs"
                 >
-                  <Check size={14} strokeWidth={3} /> {id}
+                  <Check size={12} strokeWidth={3} /> {id}
                 </span>
               ))
             )}
           </div>
 
           {/* Price Summary */}
-          <div className="text-right">
-            <span className="text-[11px] text-muted block">
-              Total · {selected.length} kursi
+          <div className="text-right flex-shrink-0">
+            <span className="text-[10px] text-muted block leading-none mb-0.5">
+              Total ({selected.length} kursi)
             </span>
-            <span className="text-xl font-black text-ink">
+            <span className="text-lg sm:text-xl font-black text-ink leading-tight">
               {fmt(selected.length * pricePerSeat)}
             </span>
           </div>

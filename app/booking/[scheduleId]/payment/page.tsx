@@ -328,13 +328,13 @@ function PaymentContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={5} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
         {/* Title */}
         <div className="mb-5">
-          <h1 className="text-2xl sm:text-3xl font-black text-ink tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
             Pembayaran
           </h1>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
             Selesaikan sebelum timer habis agar kursi {seatsParam} tidak dilepas.
           </p>
         </div>
@@ -740,11 +740,11 @@ function PaymentContent({
             )}
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center gap-2 transition-all cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 border border-primary text-primary hover:bg-primary-tint/30 text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <ArrowLeft size={16} />
                 <span>Kembali ke review</span>
@@ -754,7 +754,7 @@ function PaymentContent({
                 type="button"
                 disabled={midtransLoading || isChecking}
                 onClick={handlePayWithMidtrans}
-                className="px-7 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 sm:py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
               >
                 {midtransLoading ? (
                   <>

@@ -10,9 +10,45 @@ const steps = [
 ]
 
 export default function Stepper({ currentStep }: { currentStep: number }) {
+  const currentStepObj = steps.find(s => s.num === currentStep) ?? steps[0]
+
   return (
-    <div className="w-full bg-white border-b border-borderCol py-3 px-4 sm:px-8">
-      <div className="max-w-4xl mx-auto flex items-center justify-between overflow-x-auto no-scrollbar py-1">
+    <div className="w-full bg-white border-b border-borderCol py-2.5 sm:py-3 px-3.5 sm:px-8">
+      {/* ── Mobile Compact Stepper (screens < 640px) ────────────────── */}
+      <div className="sm:hidden flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="px-2 py-0.5 rounded-full bg-primary-tint border border-primary/25 text-primary font-bold text-[11px] flex-shrink-0">
+            {currentStep}/6
+          </span>
+          <span className="font-extrabold text-xs text-ink truncate">
+            {currentStepObj.label}
+          </span>
+        </div>
+
+        {/* 6-segment mini progress bar */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {steps.map(s => {
+            const isDone = s.num < currentStep
+            const isActive = s.num === currentStep
+            return (
+              <div
+                key={s.num}
+                className={`h-1.5 rounded-full transition-all ${
+                  isActive
+                    ? 'w-5 bg-primary'
+                    : isDone
+                    ? 'w-2.5 bg-success'
+                    : 'w-2 bg-borderCol/70'
+                }`}
+                title={`Langkah ${s.num}: ${s.label}`}
+              />
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Desktop & Tablet Full Stepper (screens >= 640px) ─────────── */}
+      <div className="hidden sm:flex max-w-4xl mx-auto items-center justify-between overflow-x-auto no-scrollbar py-1">
         {steps.map((step, index) => {
           const isDone = step.num < currentStep
           const isActive = step.num === currentStep
@@ -47,7 +83,7 @@ export default function Stepper({ currentStep }: { currentStep: number }) {
 
               {/* Connector line */}
               {!isLast && (
-                <div className="flex-1 px-3 sm:px-4 min-w-[24px]">
+                <div className="flex-1 px-3 sm:px-4 min-w-[20px]">
                   <div
                     className={`h-[1.5px] w-full transition-colors duration-300 ${
                       isDone ? 'bg-primary' : 'bg-borderCol'

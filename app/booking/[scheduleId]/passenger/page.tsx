@@ -233,14 +233,14 @@ function PassengerContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={3} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
               Data penumpang
             </h1>
-            <p className="text-sm text-muted mt-1">
+            <p className="text-xs sm:text-sm text-muted mt-0.5">
               Satu formulir untuk tiap kursi. Isi sesuai KTP agar boarding lancar.
             </p>
           </div>
@@ -283,7 +283,7 @@ function PassengerContent({
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Left Column: Passenger Cards & Contacts */}
-          <div className="flex-1 w-full space-y-6">
+          <div className="flex-1 w-full space-y-5 sm:space-y-6">
             {passengers.map((passenger, index) => {
               const rawKtp = passenger.ktp.replace(/\s+/g, '')
               const digitsCount = rawKtp.replace(/\D/g, '').length
@@ -294,7 +294,7 @@ function PassengerContent({
               return (
                 <div
                   key={passenger.seat}
-                  className={`bg-white border rounded-card p-5 sm:p-6 shadow-2xs transition-all ${
+                  className={`bg-white border rounded-card p-4 sm:p-6 shadow-2xs transition-all ${
                     nameError || ktpError ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
                   }`}
                 >

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, DM_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
@@ -18,6 +18,16 @@ const mono = DM_Mono({
   variable: "--font-mono",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0B6E78" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F2332" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "RuteKu - Pesan Tiket Bus Antarkota",

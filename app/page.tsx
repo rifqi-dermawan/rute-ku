@@ -135,14 +135,14 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-surface pb-20">
       {/* ── Hero Section ─────────────────────────────────────────────── */}
-      <section className="relative bg-secondary px-6 sm:px-12 pt-14 pb-24 overflow-hidden text-white">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
+      <section className="relative bg-secondary px-4 sm:px-12 pt-10 sm:pt-14 pb-20 sm:pb-24 overflow-hidden text-white">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 sm:gap-8 relative z-10">
           <div className="max-w-xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black leading-tight tracking-tight text-white">
+            <h1 className="text-2xl sm:text-4xl lg:text-[44px] font-black leading-tight tracking-tight text-white">
               Pesan kursi bus antarkota.<br />
               Kursimu aman, tanpa rebutan.
             </h1>
-            <p className="mt-4 text-borderCol text-sm sm:text-base leading-relaxed max-w-lg">
+            <p className="mt-3 sm:mt-4 text-borderCol text-xs sm:text-base leading-relaxed max-w-lg">
               Pilih kursi sendiri di denah, kami tahan 10 menit untukmu, lalu bayar dengan tenang.
             </p>
           </div>
@@ -176,10 +176,10 @@ function HomeContent() {
       </section>
 
       {/* ── Search Form Card ────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 -mt-12 relative z-20">
+      <section className="max-w-6xl mx-auto px-3.5 sm:px-8 -mt-10 sm:-mt-12 relative z-20">
         <form
           onSubmit={handleSearch}
-          className="bg-white rounded-card shadow-lg border border-borderCol p-6 sm:p-7"
+          className="bg-white rounded-card shadow-lg border border-borderCol p-4 sm:p-7"
         >
           {/* Validation Warning Banner */}
           {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
@@ -314,11 +314,11 @@ function HomeContent() {
           </div>
 
           {/* Bottom Bar: Swap link & Cari jadwal button */}
-          <div className="mt-5 pt-4 border-t border-borderCol/60 flex items-center justify-between flex-wrap gap-4">
+          <div className="mt-5 pt-4 border-t border-borderCol/60 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <button
               type="button"
               onClick={handleSwap}
-              className="text-xs font-bold text-primary flex items-center gap-1.5 hover:underline transition-colors cursor-pointer"
+              className="text-xs font-bold text-primary flex items-center gap-1.5 hover:underline transition-colors cursor-pointer self-start sm:self-auto py-1"
             >
               <ArrowLeftRight size={14} />
               <span>Tukar asal &amp; tujuan</span>
@@ -326,7 +326,7 @@ function HomeContent() {
 
             <button
               type="submit"
-              className="h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
+              className="w-full sm:w-auto h-12 sm:h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center justify-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
             >
               <Search size={16} />
               <span>Cari jadwal</span>

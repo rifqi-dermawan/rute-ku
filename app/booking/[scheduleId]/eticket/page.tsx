@@ -106,18 +106,18 @@ function ETicketContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={6} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
         {/* Top Success Banner */}
         <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs">
           <div className="w-8 h-8 rounded-full bg-[#12B76A] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Check size={18} strokeWidth={3} />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-[#027A48] dark:text-[#6CE9A6]">
+            <h1 className="text-sm sm:text-lg font-bold text-[#027A48] dark:text-[#6CE9A6]">
               Pembayaran berhasil. Kursi {passengers.map(p => p.seat).join(' dan ')} resmi milikmu.
             </h1>
             <p className="text-xs sm:text-sm text-[#027A48]/80 dark:text-[#A6F4C5] mt-0.5">
-              E-tiket juga sudah dikirim ke {email} dan WhatsApp.
+              E-tiket juga sudah dikirim ke {email || 'email'} dan WhatsApp.
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@ function ETicketContent({
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Left: Ticket Card */}
-          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-6 sm:p-7 shadow-2xs">
+          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-4 sm:p-7 shadow-2xs">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_220px] gap-6 items-center">
               {/* Left Details */}
               <div className="space-y-6">
@@ -197,7 +197,8 @@ function ETicketContent({
                 </div>
               </div>
 
-              {/* Dashed vertical separator */}
+              {/* Perforation separators: horizontal on mobile, vertical on desktop */}
+              <div className="block md:hidden w-full border-t border-dashed border-borderCol my-2" />
               <div className="hidden md:block w-px h-full border-r border-dashed border-borderCol my-2" />
 
               {/* Right: QR Code */}
