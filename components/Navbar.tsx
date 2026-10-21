@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HelpCircle, Clock, Sun, Moon } from 'lucide-react'
+import { HelpCircle, Clock, Sun, Moon, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function Navbar() {
@@ -179,7 +179,7 @@ export default function Navbar() {
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm hover:opacity-90 transition-opacity cursor-pointer flex-shrink-0"
             title="Akun Petugas"
           >
-            DS
+            <User size={15} />
           </Link>
         </div>
       </div>

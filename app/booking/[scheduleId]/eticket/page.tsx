@@ -1,9 +1,10 @@
 'use client'
 
-import { use, useEffect, Suspense } from 'react'
+import { use, useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
+import QRCode from 'react-qr-code'
 import Stepper from '@/components/Stepper'
-import { Check, CheckCircle2 } from 'lucide-react'
+import { Check, CheckCircle2, FileText, Printer, X, ShieldCheck } from 'lucide-react'
 
 function ETicketContent({
   params,
@@ -40,6 +41,10 @@ function ETicketContent({
   const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
   const bookingCode = 'RK-7Q4M2X'
   const email = sp.email ?? ''
+
+  // State for Invoice Modal & QR Code value
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [qrValue, setQrValue] = useState('')
 
   // Parse dynamic passengers
   interface PassengerData {
@@ -78,7 +83,7 @@ function ETicketContent({
     }))
   })()
 
-  // Save completed booking with customized passenger names
+  // Save completed booking with customized passenger names & setup QR value
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -98,6 +103,17 @@ function ETicketContent({
           status: 'paid',
         }
         localStorage.setItem('ruteku_last_booking', JSON.stringify(newBooking))
+
+        // Set dynamic QR code value to open this invoice
+        const currentUrl = new URL(window.location.href)
+        currentUrl.searchParams.set('view', 'invoice')
+        setQrValue(currentUrl.toString())
+
+        // Check if query params ask to show invoice directly (e.g. from scan)
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('view') === 'invoice' || params.get('invoice') === 'true') {
+          setShowInvoiceModal(true)
+        }
       } catch {}
     }
   }, [bookingCode, scheduleId, from, to, dateStr, dep, arr, bus, cls, passengers, sp.total])
@@ -201,41 +217,34 @@ function ETicketContent({
               <div className="block md:hidden w-full border-t border-dashed border-borderCol my-2" />
               <div className="hidden md:block w-px h-full border-r border-dashed border-borderCol my-2" />
 
-              {/* Right: QR Code */}
+              {/* Right: QR Code using react-qr-code */}
               <div className="flex flex-col items-center justify-center text-center p-2">
-                <div className="p-3 bg-white border border-borderCol rounded-xl shadow-2xs mb-3">
-                  <svg width="140" height="140" viewBox="0 0 100 100" fill="none">
-                    <rect width="100" height="100" fill="white" />
-                    {/* Top-Left Finder */}
-                    <rect x="8" y="8" width="28" height="28" rx="3" fill="#0F2A33" />
-                    <rect x="14" y="14" width="16" height="16" rx="1.5" fill="white" />
-                    <rect x="18" y="18" width="8" height="8" rx="1" fill="#0B6E78" />
-                    {/* Top-Right Finder */}
-                    <rect x="64" y="8" width="28" height="28" rx="3" fill="#0F2A33" />
-                    <rect x="70" y="14" width="16" height="16" rx="1.5" fill="white" />
-                    <rect x="74" y="18" width="8" height="8" rx="1" fill="#0B6E78" />
-                    {/* Bottom-Left Finder */}
-                    <rect x="8" y="64" width="28" height="28" rx="3" fill="#0F2A33" />
-                    <rect x="14" y="70" width="16" height="16" rx="1.5" fill="white" />
-                    <rect x="18" y="74" width="8" height="8" rx="1" fill="#0B6E78" />
-                    {/* Data Pattern */}
-                    <rect x="42" y="12" width="8" height="8" fill="#0F2A33" />
-                    <rect x="46" y="24" width="8" height="14" fill="#0B6E78" />
-                    <rect x="12" y="44" width="10" height="8" fill="#0F2A33" />
-                    <rect x="28" y="46" width="8" height="8" fill="#0F2A33" />
-                    <rect x="40" y="42" width="18" height="18" rx="2" fill="#0F2A33" />
-                    <rect x="45" y="47" width="8" height="8" fill="white" />
-                    <rect x="66" y="44" width="8" height="12" fill="#0B6E78" />
-                    <rect x="78" y="42" width="12" height="8" fill="#0F2A33" />
-                    <rect x="42" y="66" width="10" height="8" fill="#0F2A33" />
-                    <rect x="48" y="78" width="8" height="12" fill="#0B6E78" />
-                    <rect x="66" y="68" width="14" height="8" fill="#0F2A33" />
-                    <rect x="82" y="72" width="8" height="18" fill="#0F2A33" />
-                  </svg>
+                <div className="p-3 bg-white border border-borderCol rounded-2xl shadow-2xs mb-2.5">
+                  <QRCode
+                    value={qrValue || `https://ruteku.vercel.app/booking/${scheduleId}/eticket`}
+                    size={135}
+                    style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
+                    viewBox="0 0 256 256"
+                    fgColor="#0F2A33"
+                    bgColor="#FFFFFF"
+                  />
                 </div>
-                <p className="text-[11px] text-muted max-w-[180px] leading-tight">
-                  Tunjukkan QR ini ke petugas saat naik. Contoh tampilan.
-                </p>
+                <div className="space-y-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#027A48] bg-[#EDFDF2] px-2.5 py-0.5 rounded-full border border-[#A6F4C5]">
+                    <CheckCircle2 size={12} /> Scan untuk Invoice
+                  </span>
+                  <p className="text-[11px] text-muted max-w-[190px] leading-tight">
+                    Scan QR dengan kamera HP untuk menampilkan invoice resmi &amp; detail tiket.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowInvoiceModal(true)}
+                    className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                  >
+                    <FileText size={13} />
+                    <span>Buka Invoice Digital</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -277,22 +286,32 @@ function ETicketContent({
             <div className="pt-2 space-y-2.5">
               <button
                 type="button"
-                onClick={() => window.print()}
-                className="w-full py-2.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-input text-sm transition-colors shadow-sm"
+                onClick={() => setShowInvoiceModal(true)}
+                className="w-full py-2.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-input text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                Unduh e-tiket (PDF)
+                <FileText size={16} />
+                <span>Lihat &amp; Cetak Invoice</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="w-full py-2.5 border border-primary text-primary hover:bg-primary-tint/30 font-bold rounded-input text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Printer size={16} />
+                <span>Unduh / Cetak Tiket (PDF)</span>
               </button>
 
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white"
+                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white cursor-pointer"
                 >
                   Bagikan
                 </button>
                 <button
                   type="button"
-                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white"
+                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white cursor-pointer"
                 >
                   Tambah ke kalender
                 </button>
@@ -309,6 +328,152 @@ function ETicketContent({
             </div>
           </div>
         </div>
+
+        {/* Interactive Invoice Modal */}
+        {showInvoiceModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-xs overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-lg w-full border border-borderCol shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+              {/* Invoice Header */}
+              <div className="bg-ink p-5 text-white flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-black text-white text-base">
+                    R
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base tracking-tight leading-none">RuteKu</h3>
+                    <p className="text-[11px] text-white/70 mt-0.5">Invoice Pembayaran Resmi</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-bold flex items-center gap-1">
+                    <CheckCircle2 size={13} /> LUNAS
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowInvoiceModal(false)}
+                    className="p-1 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Invoice Body */}
+              <div className="p-6 space-y-5 text-xs text-ink max-h-[75vh] overflow-y-auto">
+                {/* Meta Info Grid */}
+                <div className="grid grid-cols-2 gap-3 p-3.5 bg-surface rounded-xl border border-borderCol/60 text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-muted block">No. Invoice</span>
+                    <span className="font-mono font-bold text-ink">INV-{bookingCode}-{scheduleId.toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-muted block">Kode Booking</span>
+                    <span className="font-mono font-bold text-primary">{bookingCode}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-muted block">Waktu Transaksi</span>
+                    <span className="font-medium text-ink">{dateStr}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-muted block">Status Pembayaran</span>
+                    <span className="font-bold text-emerald-600 flex items-center gap-1">
+                      <ShieldCheck size={13} /> Terverifikasi
+                    </span>
+                  </div>
+                </div>
+
+                {/* Trip Summary */}
+                <div>
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Detail Perjalanan</h4>
+                  <div className="p-3.5 border border-borderCol rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-ink">{from} → {to}</span>
+                      <span className="text-xs font-semibold text-primary">{bus}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted text-xs">
+                      <span>{dateStr} · {dep} – {arr} WIB</span>
+                      <span>{cls}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Passengers */}
+                <div>
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Daftar Penumpang</h4>
+                  <div className="border border-borderCol rounded-xl overflow-hidden divide-y divide-borderCol/60">
+                    {passengers.map((p, idx) => (
+                      <div key={idx} className="p-3 flex items-center justify-between bg-white">
+                        <div className="flex items-center gap-2.5">
+                          <span className="px-2 py-0.5 rounded bg-primary-tint text-primary font-mono font-bold text-xs">
+                            {p.seat}
+                          </span>
+                          <span className="font-bold text-ink text-xs">{p.name || `Penumpang ${idx + 1}`}</span>
+                        </div>
+                        <span className="text-muted text-[11px] font-mono">
+                          {p.ktp ? `KTP: ${p.ktp.slice(0, 6)}******` : 'e-KTP Terverifikasi'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Billing Breakdown */}
+                <div>
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Rincian Pembayaran</h4>
+                  <div className="space-y-1.5 p-3.5 bg-surface rounded-xl border border-borderCol/60">
+                    <div className="flex justify-between text-muted">
+                      <span>Tiket Bus ({passengers.length} kursi)</span>
+                      <span className="font-medium text-ink">
+                        Rp {(sp.total ? parseInt(sp.total) : 250000).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-muted">
+                      <span>Biaya Layanan &amp; Asuransi Jasa Raharja</span>
+                      <span className="font-medium text-emerald-600">Gratis (Rp 0)</span>
+                    </div>
+                    <div className="pt-2 border-t border-borderCol flex justify-between items-center text-sm font-black text-ink">
+                      <span>Total Dibayar</span>
+                      <span className="text-base text-primary">
+                        Rp {(sp.total ? parseInt(sp.total) : 250000).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* QR Code in Modal for verification */}
+                <div className="flex items-center gap-4 p-3 bg-primary-tint/30 rounded-xl border border-primary/20">
+                  <div className="p-1.5 bg-white rounded-lg border border-primary/20 flex-shrink-0">
+                    <QRCode value={qrValue || 'https://ruteku.vercel.app'} size={56} viewBox="0 0 256 256" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-ink">Validasi Boarding Resmi</p>
+                    <p className="text-[11px] text-muted">
+                      Tunjukkan invoice resmi ini atau scan QR code saat naik ke armada bus.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Footer Actions */}
+              <div className="p-4 bg-surface border-t border-borderCol flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 border border-borderCol bg-white hover:bg-surface text-ink text-xs font-bold rounded-input flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Printer size={14} /> Cetak Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-5 py-2 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-input transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
