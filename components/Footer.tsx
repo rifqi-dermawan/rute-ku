@@ -48,7 +48,7 @@ export default function Footer() {
   return (
     <footer className={`bg-white border-t border-borderCol mt-auto ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
       {/* ── Top Highlights / Trust Bar ─────────────────────────────── */}
-      <div className="border-b border-borderCol/70 bg-surface/50">
+      <div className="border-b border-borderCol/70 bg-surface/50 footer-grey-bar">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <div className="flex items-start gap-3.5">
@@ -56,8 +56,8 @@ export default function Footer() {
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-ink">Tahan Kursi 10 Menit</h4>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">
+                <h4 className="text-xs font-bold text-ink dark:!text-black">Tahan Kursi 10 Menit</h4>
+                <p className="text-[11px] text-muted dark:!text-black/85 mt-0.5 leading-snug">
                   Kursi pilihanmu aman ditahan selama transaksi berlangsung tanpa rebutan.
                 </p>
               </div>
@@ -68,8 +68,8 @@ export default function Footer() {
                 <Bus className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-ink">Denah Kursi Real-Time</h4>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">
+                <h4 className="text-xs font-bold text-ink dark:!text-black">Denah Kursi Real-Time</h4>
+                <p className="text-[11px] text-muted dark:!text-black/85 mt-0.5 leading-snug">
                   Pilih sendiri letak jendela, lorong, atau sleeper sesuai keinginanmu.
                 </p>
               </div>
@@ -80,8 +80,8 @@ export default function Footer() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-ink">Pembayaran Terverifikasi</h4>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">
+                <h4 className="text-xs font-bold text-ink dark:!text-black">Pembayaran Terverifikasi</h4>
+                <p className="text-[11px] text-muted dark:!text-black/85 mt-0.5 leading-snug">
                   Didukung gateway pembayaran resmi dengan QRIS, Virtual Account, &amp; E-Wallet.
                 </p>
               </div>
@@ -92,8 +92,8 @@ export default function Footer() {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-ink">E-Tiket &amp; Barcode Instan</h4>
-                <p className="text-[11px] text-muted mt-0.5 leading-snug">
+                <h4 className="text-xs font-bold text-ink dark:!text-black">E-Tiket &amp; Barcode Instan</h4>
+                <p className="text-[11px] text-muted dark:!text-black/85 mt-0.5 leading-snug">
                   E-tiket resmi terbit langsung setelah pembayaran, tinggal tunjukkan saat naik.
                 </p>
               </div>
@@ -260,26 +260,26 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom Legal & Copyright Bar ────────────────────────────── */}
-      <div className="border-t border-borderCol bg-surface/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
-          <p>
-            © {new Date().getFullYear()} <span className="font-bold text-ink">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.
+      <div className="border-t border-borderCol bg-surface/70 footer-grey-bar">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted dark:!text-black">
+          <p className="dark:!text-black">
+            © {new Date().getFullYear()} <span className="font-bold text-ink dark:!text-black">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.
           </p>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            <Link href="/help" className="hover:text-primary transition-colors">
+          <div className="flex items-center gap-4 flex-wrap dark:!text-black">
+            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
               Kebijakan Privasi
             </Link>
-            <span>·</span>
-            <Link href="/help" className="hover:text-primary transition-colors">
+            <span className="dark:!text-black">·</span>
+            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
               Syarat &amp; Ketentuan
             </Link>
-            <span>·</span>
-            <Link href="/help" className="hover:text-primary transition-colors">
+            <span className="dark:!text-black">·</span>
+            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
               Pusat Panduan
             </Link>
-            <span>·</span>
-            <Link href="/admin" className="text-muted/60 hover:text-primary transition-colors" title="Akses Petugas">
+            <span className="dark:!text-black">·</span>
+            <Link href="/admin" className="text-muted/60 dark:!text-black/80 hover:text-primary dark:hover:!text-primary transition-colors" title="Akses Petugas">
               Petugas
             </Link>
           </div>

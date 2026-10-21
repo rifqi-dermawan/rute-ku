@@ -219,7 +219,7 @@ function ETicketContent({
 
               {/* Right: QR Code using react-qr-code */}
               <div className="flex flex-col items-center justify-center text-center p-2">
-                <div className="p-3 bg-white keep-white border border-borderCol rounded-2xl shadow-2xs mb-2.5">
+                <div className="p-3 bg-white border border-borderCol rounded-2xl shadow-2xs mb-2.5">
                   <QRCode
                     value={qrValue || `https://ruteku.vercel.app/booking/${scheduleId}/eticket`}
                     size={135}
@@ -442,7 +442,7 @@ function ETicketContent({
 
                 {/* QR Code in Modal for verification */}
                 <div className="flex items-center gap-4 p-3 bg-primary-tint/30 rounded-xl border border-primary/20">
-                  <div className="p-1.5 bg-white keep-white rounded-lg border border-primary/20 flex-shrink-0">
+                  <div className="p-1.5 bg-white rounded-lg border border-primary/20 flex-shrink-0">
                     <QRCode value={qrValue || 'https://ruteku.vercel.app'} size={56} viewBox="0 0 256 256" />
                   </div>
                   <div>
