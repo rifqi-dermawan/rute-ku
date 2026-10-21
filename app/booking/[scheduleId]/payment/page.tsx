@@ -15,6 +15,7 @@ import {
   Building2,
   ShieldCheck,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react'
 
 declare global {
@@ -180,8 +181,7 @@ function PaymentContent({
   const [selectedBank, setSelectedBank] = useState('bca')
   const [selectedEwallet, setSelectedEwallet] = useState('gopay')
   const [copied, setCopied] = useState(false)
-  const [isChecking, setIsChecking] = useState(false)
-  const [checkStatusText, setCheckStatusText] = useState('')
+  const [midtransError, setMidtransError] = useState('')
 
   // Dummy Card state
   const [cardNumber, setCardNumber] = useState('4000 1234 5678 9010')
@@ -276,9 +276,8 @@ function PaymentContent({
       const data = await res.json()
 
       if (!res.ok || !data.token) {
-        // Fallback langsung ke proses konfirmasi jika gateway offline
         setMidtransLoading(false)
-        handleSimulatePayment(selectedMethod.toUpperCase())
+        setMidtransError(data.error || 'Gagal menghubungkan ke gateway pembayaran. Silakan coba sesaat lagi.')
         return
       }
 
@@ -286,14 +285,16 @@ function PaymentContent({
         if (typeof window !== 'undefined' && window.snap) {
           window.snap.pay(data.token, {
             onSuccess: function () {
+              setMidtransLoading(false)
               navigateToEticket()
             },
             onPending: function () {
+              setMidtransLoading(false)
               navigateToEticket()
             },
             onError: function () {
               setMidtransLoading(false)
-              handleSimulatePayment(selectedMethod.toUpperCase())
+              setMidtransError('Pembayaran dibatalkan atau tidak berhasil diproses.')
             },
             onClose: function () {
               setMidtransLoading(false)
@@ -303,25 +304,13 @@ function PaymentContent({
           window.location.href = data.redirect_url
         } else {
           setMidtransLoading(false)
-          handleSimulatePayment(selectedMethod.toUpperCase())
+          setMidtransError('Gateway pembayaran Midtrans tidak dapat dimuat. Pastikan koneksi internet aktif.')
         }
       }
     } catch {
       setMidtransLoading(false)
-      handleSimulatePayment(selectedMethod.toUpperCase())
+      setMidtransError('Terjadi kendala koneksi saat menghubungi server pembayaran.')
     }
-  }
-
-  const handleSimulatePayment = (methodLabel: string) => {
-    setIsChecking(true)
-    setCheckStatusText(`Menghubungkan ke Gateway (${methodLabel})...`)
-
-    setTimeout(() => {
-      setCheckStatusText('Pembayaran Terverifikasi! Menerbitkan e-tiket...')
-      setTimeout(() => {
-        navigateToEticket()
-      }, 700)
-    }, 800)
   }
 
   return (
@@ -339,6 +328,17 @@ function PaymentContent({
           </p>
         </div>
 
+
+        {/* Error Banner jika terjadi kendala gateway */}
+        {midtransError && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+            <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <strong className="font-bold text-red-950 dark:text-red-100">Kendala Pembayaran</strong>
+              <p className="text-red-800 dark:text-red-300/90">{midtransError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Amber Alert Banner */}
         <div className="mb-6 p-4 rounded-xl bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] text-[#93370D] dark:text-[#FDB022] flex items-start gap-3 shadow-2xs">
@@ -437,12 +437,12 @@ function PaymentContent({
                 </div>
 
                 {/* Action Area */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <div className="pt-2">
                   <button
                     type="button"
-                    disabled={midtransLoading || isChecking}
+                    disabled={midtransLoading}
                     onClick={handlePayWithMidtrans}
-                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     {midtransLoading ? (
                       <>
@@ -455,14 +455,6 @@ function PaymentContent({
                         <span>Bayar Sekarang</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isChecking || midtransLoading}
-                    onClick={() => handleSimulatePayment('QRIS')}
-                    className="py-3 px-5 border border-borderCol bg-white hover:bg-surface text-ink text-sm font-bold rounded-input transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isChecking ? 'Memverifikasi...' : 'Cek Status Pembayaran'}
                   </button>
                 </div>
 
@@ -552,12 +544,12 @@ function PaymentContent({
                 </div>
 
                 {/* Action Area */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <div className="pt-2">
                   <button
                     type="button"
-                    disabled={midtransLoading || isChecking}
+                    disabled={midtransLoading}
                     onClick={handlePayWithMidtrans}
-                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     {midtransLoading ? (
                       <>
@@ -570,14 +562,6 @@ function PaymentContent({
                         <span>Bayar Sekarang</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isChecking || midtransLoading}
-                    onClick={() => handleSimulatePayment(`VA ${currentVaBank.name.split(' ')[0]}`)}
-                    className="py-3 px-5 border border-borderCol bg-white hover:bg-surface text-ink text-sm font-bold rounded-input transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isChecking ? 'Memverifikasi...' : 'Saya Sudah Transfer'}
                   </button>
                 </div>
               </div>
@@ -630,12 +614,12 @@ function PaymentContent({
                 </div>
 
                 {/* Action Area */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <div className="pt-2">
                   <button
                     type="button"
-                    disabled={midtransLoading || isChecking}
+                    disabled={midtransLoading}
                     onClick={handlePayWithMidtrans}
-                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     {midtransLoading ? (
                       <>
@@ -648,14 +632,6 @@ function PaymentContent({
                         <span>Bayar Sekarang</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isChecking || midtransLoading}
-                    onClick={() => handleSimulatePayment('E-Wallet')}
-                    className="py-3 px-5 border border-borderCol bg-white hover:bg-surface text-ink text-sm font-bold rounded-input transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isChecking ? 'Memverifikasi...' : 'Cek Status Pembayaran'}
                   </button>
                 </div>
               </div>
@@ -708,12 +684,12 @@ function PaymentContent({
                 </div>
 
                 {/* Action Area */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <div className="pt-2">
                   <button
                     type="button"
-                    disabled={midtransLoading || isChecking}
+                    disabled={midtransLoading}
                     onClick={handlePayWithMidtrans}
-                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     {midtransLoading ? (
                       <>
@@ -726,14 +702,6 @@ function PaymentContent({
                         <span>Bayar Sekarang</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isChecking || midtransLoading}
-                    onClick={() => handleSimulatePayment('Kartu Kredit')}
-                    className="py-3 px-5 border border-borderCol bg-white hover:bg-surface text-ink text-sm font-bold rounded-input transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isChecking ? 'Memverifikasi...' : 'Konfirmasi Pembayaran'}
                   </button>
                 </div>
               </div>
@@ -752,9 +720,9 @@ function PaymentContent({
 
               <button
                 type="button"
-                disabled={midtransLoading || isChecking}
+                disabled={midtransLoading}
                 onClick={handlePayWithMidtrans}
-                className="w-full sm:w-auto px-7 py-3 sm:py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 sm:py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {midtransLoading ? (
                   <>
