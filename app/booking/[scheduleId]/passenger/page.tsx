@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect, Suspense } from 'react'
+import { use, useState, useEffect, useMemo, useRef, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
@@ -44,7 +44,7 @@ function PassengerContent({
   const to = sp.to ?? 'Bandung'
   const dateStr = sp.date ?? 'Sab, 10 Okt 2026'
   const seatsParam = sp.seats ?? '5A,5B'
-  const seatsList = seatsParam.split(',').filter(Boolean)
+  const seatsList = useMemo(() => seatsParam.split(',').filter(Boolean), [seatsParam])
 
   const dep = sp.dep ?? '08:00'
   const arr = sp.arr ?? '11:30'
@@ -92,49 +92,53 @@ function PassengerContent({
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // Guard to ensure session hydration only executes once on initial mount
+  const hasHydratedSessionRef = useRef(false)
+
   // Load sessionStorage on mount (only for current valid booking session)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (hasHydratedSessionRef.current) return
+    hasHydratedSessionRef.current = true
+
+    if (typeof window !== 'undefined' && !sp.passengersData) {
       try {
-        if (!sp.passengersData) {
-          const stored = sessionStorage.getItem('ruteku_passengers')
-          if (stored) {
-            const parsed = JSON.parse(stored)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              // Sanitize legacy dummy names so they never reappear
-              const sanitized = parsed.map((p: any) => {
-                const isLegacyDummy =
-                  p.name === 'Dini Sartika' ||
-                  p.name === 'Rina Putri' ||
-                  p.ktp === '3171024589230001' ||
-                  p.ktp === '3171024589230002'
-                return {
-                  seat: p.seat,
-                  name: isLegacyDummy ? '' : p.name,
-                  type: (p.type === 'anak' ? 'anak' : 'dewasa') as PassengerType,
-                  ktp: isLegacyDummy ? '' : (p.ktp || ''),
-                }
-              })
-              // Only apply if seats match the current selection
-              const storedSeats = sanitized.map(p => p.seat).sort().join(',')
-              const currentSeats = [...seatsList].sort().join(',')
-              if (storedSeats === currentSeats) {
-                setPassengers(sanitized)
+        const stored = sessionStorage.getItem('ruteku_passengers')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Sanitize legacy dummy names so they never reappear
+            const sanitized = parsed.map((p: any) => {
+              const isLegacyDummy =
+                p.name === 'Dini Sartika' ||
+                p.name === 'Rina Putri' ||
+                p.ktp === '3171024589230001' ||
+                p.ktp === '3171024589230002'
+              return {
+                seat: p.seat,
+                name: isLegacyDummy ? '' : p.name,
+                type: (p.type === 'anak' ? 'anak' : 'dewasa') as PassengerType,
+                ktp: isLegacyDummy ? '' : (p.ktp || ''),
               }
+            })
+            // Only apply if seats match the current selection
+            const storedSeats = sanitized.map(p => p.seat).sort().join(',')
+            const currentSeats = seatsParam.split(',').filter(Boolean).sort().join(',')
+            if (storedSeats === currentSeats) {
+              setPassengers(sanitized)
             }
           }
-          const storedEmail = sessionStorage.getItem('ruteku_email')
-          if (storedEmail && !storedEmail.includes('dini@') && !storedEmail.includes('contoh.id')) {
-            setEmail(storedEmail)
-          }
-          const storedPhone = sessionStorage.getItem('ruteku_phone')
-          if (storedPhone && !storedPhone.includes('0812-3456-7890')) {
-            setPhone(storedPhone)
-          }
+        }
+        const storedEmail = sessionStorage.getItem('ruteku_email')
+        if (storedEmail && !storedEmail.includes('dini@') && !storedEmail.includes('contoh.id')) {
+          setEmail(storedEmail)
+        }
+        const storedPhone = sessionStorage.getItem('ruteku_phone')
+        if (storedPhone && !storedPhone.includes('0812-3456-7890')) {
+          setPhone(storedPhone)
         }
       } catch {}
     }
-  }, [sp.passengersData, seatsList])
+  }, [sp.passengersData, seatsParam])
 
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('')
