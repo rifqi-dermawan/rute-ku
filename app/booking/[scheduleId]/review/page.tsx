@@ -9,6 +9,7 @@ import { Check, ArrowLeft, ShieldCheck } from 'lucide-react'
 interface PassengerData {
   seat: string
   name: string
+  type?: 'dewasa' | 'anak'
   ktp: string
 }
 
@@ -103,11 +104,16 @@ function ReviewContent({
 
   const totalPrice = seatsList.length * pricePerSeat
 
-  // Mask KTP for privacy: KTP •••• •••• •••• 0001
-  const maskKtp = (ktp: string) => {
-    const clean = ktp.replace(/\s+/g, '')
+  // Mask KTP/NIK for privacy
+  const maskKtp = (ktp: string, type?: string) => {
+    const clean = (ktp || '').replace(/\s+/g, '')
+    if (!clean || clean === '-') {
+      return type === 'anak'
+        ? 'Identitas: Mengikuti KTP Pendamping'
+        : 'Identitas: Belum Diisi'
+    }
     const last4 = clean.slice(-4) || '0000'
-    return `KTP •••• •••• •••• ${last4}`
+    return `NIK •••• •••• •••• ${last4}`
   }
 
   const handleProceedPayment = () => {
@@ -208,15 +214,30 @@ function ReviewContent({
                 {passengers.map(p => (
                   <div
                     key={p.seat}
-                    className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
+                    className="flex items-center justify-between gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
                   >
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
-                      <Check size={12} strokeWidth={3} />
-                      <span>{p.seat}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-ink">{p.name || 'Penumpang'}</p>
-                      <p className="text-xs text-muted font-mono tracking-wide">{maskKtp(p.ktp)}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
+                        <Check size={12} strokeWidth={3} />
+                        <span>{p.seat}</span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-ink">{p.name || 'Penumpang'}</p>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                              p.type === 'anak'
+                                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                : 'bg-primary-tint text-primary border border-primary/25'
+                            }`}
+                          >
+                            {p.type === 'anak' ? 'Anak / Bayi' : 'Dewasa'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted font-mono tracking-wide mt-0.5">
+                          {maskKtp(p.ktp, p.type)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -50,6 +50,7 @@ function ETicketContent({
   interface PassengerData {
     seat: string
     name: string
+    type?: string
     ktp?: string
   }
 
@@ -202,12 +203,23 @@ function ETicketContent({
                   {passengers.map(p => (
                     <div
                       key={p.seat}
-                      className="flex items-center gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
+                      className="flex items-center justify-between gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
                     >
-                      <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
-                        {p.seat}
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
+                          {p.seat}
+                        </span>
+                        <span className="text-sm font-bold text-ink">{p.name || 'Penumpang'}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          p.type === 'anak'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : 'bg-primary-tint text-primary border border-primary/25'
+                        }`}
+                      >
+                        {p.type === 'anak' ? 'Anak / Bayi' : 'Dewasa'}
                       </span>
-                      <span className="text-sm font-bold text-ink">{p.name || 'Penumpang'}</span>
                     </div>
                   ))}
                 </div>
@@ -268,7 +280,7 @@ function ETicketContent({
                   2
                 </span>
                 <p>
-                  Bawa <strong className="font-bold">KTP</strong> sesuai data penumpang.
+                  Bawa <strong className="font-bold">KTP / NIK KK / KIA</strong> sesuai data penumpang.
                 </p>
               </div>
 
@@ -408,9 +420,18 @@ function ETicketContent({
                             {p.seat}
                           </span>
                           <span className="font-bold text-ink text-xs">{p.name || `Penumpang ${idx + 1}`}</span>
+                          {p.type === 'anak' && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 font-bold uppercase">
+                              Anak
+                            </span>
+                          )}
                         </div>
                         <span className="text-muted text-[11px] font-mono">
-                          {p.ktp ? `KTP: ${p.ktp.slice(0, 6)}******` : 'e-KTP Terverifikasi'}
+                          {p.ktp && p.ktp.trim()
+                            ? `NIK: ${p.ktp.slice(0, 6)}******`
+                            : p.type === 'anak'
+                            ? 'Ikut KTP Pendamping'
+                            : 'Identitas Terverifikasi'}
                         </span>
                       </div>
                     ))}

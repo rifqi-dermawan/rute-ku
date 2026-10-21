@@ -6,9 +6,12 @@ import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, AlertCircle, ArrowLeft } from 'lucide-react'
 
+export type PassengerType = 'dewasa' | 'anak'
+
 interface Passenger {
   seat: string
   name: string
+  type: PassengerType
   ktp: string
 }
 
@@ -51,7 +54,7 @@ function PassengerContent({
 
   const router = useRouter()
 
-  // Passenger state: start completely blank per seat (no fake prefilled names)
+  // Passenger state: start completely blank per seat with default type
   const [passengers, setPassengers] = useState<Passenger[]>(() => {
     if (sp.passengersData) {
       try {
@@ -59,13 +62,26 @@ function PassengerContent({
         if (raw.includes('%')) {
           try { raw = decodeURIComponent(raw) } catch {}
         }
+        if (raw.includes('%')) {
+          try { raw = decodeURIComponent(raw) } catch {}
+        }
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
+          return parsed.map((p, idx) => ({
+            seat: p.seat,
+            name: p.name || '',
+            type: (p.type === 'anak' ? 'anak' : 'dewasa') as PassengerType,
+            ktp: p.ktp || '',
+          }))
         }
       } catch {}
     }
-    return seatsList.map(seat => ({ seat, name: '', ktp: '' }))
+    return seatsList.map((seat, idx) => ({
+      seat,
+      name: '',
+      type: 'dewasa' as PassengerType,
+      ktp: '',
+    }))
   })
 
   // Contact person state: start blank unless passed in URL / session
@@ -86,7 +102,7 @@ function PassengerContent({
             const parsed = JSON.parse(stored)
             if (Array.isArray(parsed) && parsed.length > 0) {
               // Sanitize legacy dummy names so they never reappear
-              const sanitized = parsed.map((p: Passenger) => {
+              const sanitized = parsed.map((p: any) => {
                 const isLegacyDummy =
                   p.name === 'Dini Sartika' ||
                   p.name === 'Rina Putri' ||
@@ -95,7 +111,8 @@ function PassengerContent({
                 return {
                   seat: p.seat,
                   name: isLegacyDummy ? '' : p.name,
-                  ktp: isLegacyDummy ? '' : p.ktp,
+                  type: (p.type === 'anak' ? 'anak' : 'dewasa') as PassengerType,
+                  ktp: isLegacyDummy ? '' : (p.ktp || ''),
                 }
               })
               // Only apply if seats match the current selection
@@ -142,7 +159,7 @@ function PassengerContent({
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
-  // Validation logic
+  // Validation logic with conditional validation based on passenger type
   const runValidation = (
     currentPassengers = passengers,
     currentEmail = email,
@@ -152,17 +169,28 @@ function PassengerContent({
 
     currentPassengers.forEach((p, idx) => {
       const trimmedName = p.name.trim()
+      const isAdult = p.type !== 'anak'
+
       if (!trimmedName) {
-        errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi sesuai KTP.`
+        errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi.`
       } else if (trimmedName.length < 2) {
         errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} minimal 2 karakter.`
       }
 
-      const digits = p.ktp.replace(/\D/g, '')
-      if (!p.ktp.trim()) {
-        errs[`ktp_${idx}`] = `Nomor KTP Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi 16 digit.`
-      } else if (digits.length !== 16) {
-        errs[`ktp_${idx}`] = `Nomor KTP harus tepat 16 digit angka (saat ini ${digits.length} digit).`
+      const digits = (p.ktp || '').replace(/\D/g, '')
+
+      if (isAdult) {
+        // Dewasa: Wajib 16 digit KTP / NIK
+        if (!p.ktp || !p.ktp.trim()) {
+          errs[`ktp_${idx}`] = `Nomor Identitas Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi 16 digit (KTP/NIK).`
+        } else if (digits.length !== 16) {
+          errs[`ktp_${idx}`] = `Nomor Identitas Dewasa harus tepat 16 digit angka (saat ini ${digits.length} digit).`
+        }
+      } else {
+        // Anak / Bayi: Opsional (boleh kosong). Jika diisi sebagian, beri tahu format 16 digit
+        if (p.ktp && p.ktp.trim() && digits.length > 0 && digits.length !== 16) {
+          errs[`ktp_${idx}`] = `Jika diisi, nomor identitas anak/pendamping harus 16 digit (saat ini ${digits.length} digit).`
+        }
       }
     })
 
@@ -183,7 +211,11 @@ function PassengerContent({
     return errs
   }
 
-  const updatePassenger = (index: number, field: 'name' | 'ktp', value: string) => {
+  const updatePassenger = (
+    index: number,
+    field: 'name' | 'ktp' | 'type',
+    value: string
+  ) => {
     setPassengers(prev => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }
@@ -231,7 +263,8 @@ function PassengerContent({
     const cleanPassengers = passengers.map(p => ({
       seat: p.seat,
       name: p.name.trim(),
-      ktp: p.ktp.replace(/\D/g, ''),
+      type: p.type || 'dewasa',
+      ktp: (p.ktp || '').replace(/\D/g, ''),
     }))
 
     if (typeof window !== 'undefined') {
@@ -262,7 +295,7 @@ function PassengerContent({
               Data penumpang
             </h1>
             <p className="text-xs sm:text-sm text-muted mt-0.5">
-              Satu formulir untuk tiap kursi. Isi sesuai KTP agar boarding lancar.
+              Satu formulir untuk tiap kursi. Isi sesuai identitas resmi agar boarding lancar.
             </p>
           </div>
 
@@ -287,7 +320,7 @@ function PassengerContent({
                   Formulir Belum Lengkap ({Object.keys(errors).length} data wajib diisi)
                 </h4>
                 <p className="text-xs text-red-800 leading-relaxed">
-                  Anda belum dapat melanjutkan ke tahap review. Mohon lengkapi seluruh nama penumpang, nomor KTP (16 digit), serta kontak pemesan:
+                  Anda belum dapat melanjutkan ke tahap review. Mohon lengkapi seluruh data nama penumpang, nomor identitas penumpang dewasa (16 digit), serta kontak pemesan:
                 </p>
                 <ul className="list-disc pl-4 text-xs text-red-900 space-y-1 pt-0.5">
                   {Object.values(errors).map((msg, i) => (
@@ -306,7 +339,8 @@ function PassengerContent({
           {/* Left Column: Passenger Cards & Contacts */}
           <div className="flex-1 w-full space-y-5 sm:space-y-6">
             {passengers.map((passenger, index) => {
-              const rawKtp = passenger.ktp.replace(/\s+/g, '')
+              const isAdult = passenger.type !== 'anak'
+              const rawKtp = (passenger.ktp || '').replace(/\s+/g, '')
               const digitsCount = rawKtp.replace(/\D/g, '').length
               const isKtpValid = /^\d{16}$/.test(rawKtp)
               const nameError = errors[`name_${index}`]
@@ -319,15 +353,46 @@ function PassengerContent({
                     nameError || ktpError ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
                   }`}
                 >
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between flex-wrap gap-3 pb-4 mb-5 border-b border-borderCol/50">
+                  {/* Card Header: Seat & Tipe Penumpang Selector */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-borderCol/50">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-ink text-base">
                         Penumpang {index + 1} · Kursi
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
+                      <span className="px-2.5 py-0.5 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                         {passenger.seat}
                       </span>
+                    </div>
+
+                    {/* Tipe Penumpang: Dewasa atau Anak / Bayi */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-muted mr-1 hidden sm:inline">
+                        Tipe:
+                      </span>
+                      <div className="inline-flex items-center p-1 bg-surface border border-borderCol rounded-xl">
+                        <button
+                          type="button"
+                          onClick={() => updatePassenger(index, 'type', 'dewasa')}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                            isAdult
+                              ? 'bg-primary text-white shadow-2xs'
+                              : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          Dewasa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updatePassenger(index, 'type', 'anak')}
+                          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                            !isAdult
+                              ? 'bg-amber-600 text-white shadow-2xs'
+                              : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          Anak / Bayi
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -336,13 +401,13 @@ function PassengerContent({
                     {/* Nama Lengkap */}
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nama lengkap (sesuai KTP) <span className="text-error">*</span>
+                        Nama lengkap (sesuai identitas) <span className="text-error">*</span>
                       </label>
                       <input
                         type="text"
                         value={passenger.name}
                         onChange={e => updatePassenger(index, 'name', e.target.value)}
-                        placeholder="Masukkan nama lengkap penumpang"
+                        placeholder={isAdult ? 'Masukkan nama lengkap penumpang' : 'Nama lengkap anak / bayi'}
                         className={`w-full h-11 px-3.5 border rounded-input text-ink font-medium text-sm outline-none transition-all ${
                           nameError
                             ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
@@ -357,17 +422,26 @@ function PassengerContent({
                       )}
                     </div>
 
-                    {/* Nomor KTP */}
+                    {/* Nomor Identitas (KTP/NIK KK/KIA) */}
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nomor KTP (16 Digit) <span className="text-error">*</span>
+                        Nomor Identitas (KTP/NIK KK/KIA){' '}
+                        {isAdult ? (
+                          <span className="text-error">*</span>
+                        ) : (
+                          <span className="text-muted font-normal text-[11px]">(Opsional)</span>
+                        )}
                       </label>
                       <input
                         type="text"
                         maxLength={16}
                         value={passenger.ktp}
                         onChange={e => updatePassenger(index, 'ktp', e.target.value)}
-                        placeholder="16 digit nomor NIK/KTP"
+                        placeholder={
+                          isAdult
+                            ? '16 digit nomor NIK/KTP'
+                            : '16 digit NIK KK / KIA (opsional)'
+                        }
                         className={`w-full h-11 px-3.5 border rounded-input text-ink font-mono text-sm outline-none transition-all ${
                           ktpError
                             ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
@@ -377,8 +451,15 @@ function PassengerContent({
                         }`}
                       />
 
+                      {/* Helper text for Child / Optional */}
+                      {!isAdult && (
+                        <p className="mt-1.5 text-[11px] text-muted leading-tight">
+                          Dapat dikosongkan atau diisi dengan KTP orang tua pendamping
+                        </p>
+                      )}
+
                       {/* KTP Validation Message */}
-                      <div className="mt-1.5 min-h-[20px]">
+                      <div className="mt-1 min-h-[18px]">
                         {ktpError ? (
                           <div className="flex items-start gap-1 text-xs text-error font-medium leading-tight">
                             <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
@@ -389,7 +470,7 @@ function PassengerContent({
                             <Check size={13} className="stroke-[2.5]" />
                             <span>16 digit, format benar</span>
                           </div>
-                        ) : digitsCount > 0 ? (
+                        ) : isAdult && digitsCount > 0 ? (
                           <span className="text-[11px] text-muted">
                             {digitsCount}/16 digit terisi
                           </span>
