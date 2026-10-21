@@ -134,85 +134,95 @@ body[data-theme="dark"],
   color-scheme: dark;
   --color-primary:       #14B8A6;
   --color-primary-dark:  #0D9488;
-  --color-primary-tint:  #11363F;
+  --color-primary-tint:  #042F2E;
   --color-secondary:     #0D263E;
 
-  --color-ink:           #F1F7F9;
-  --color-muted:         #94A8B0;
-  --color-surface:       #0A1721;
-  --color-border-col:    #1E384A;
+  --color-ink:           #FFFFFF;
+  --color-muted:         #A1A1AA;
+  --color-surface:       #000000;
+  --color-border-col:    #27272A;
 }
 
 [data-theme="dark"] body,
 body[data-theme="dark"],
 body.dark,
 .dark body {
-  background-color: #0A1721 !important;
-  color: #F1F7F9 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6,
 body[data-theme="dark"] h1, body[data-theme="dark"] h2, body[data-theme="dark"] h3, body[data-theme="dark"] h4, body[data-theme="dark"] h5, body[data-theme="dark"] h6,
 body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6,
 .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-  color: #F1F7F9 !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme="dark"] header,
 body[data-theme="dark"] header,
 body.dark header,
 .dark header {
-  background-color: #0F2332 !important;
-  border-color: #1E384A !important;
+  background-color: #000000 !important;
+  border-color: #27272A !important;
 }
 
 [data-theme="dark"] .bg-surface,
 body[data-theme="dark"] .bg-surface,
 body.dark .bg-surface,
 .dark .bg-surface {
-  background-color: #0A1721 !important;
+  background-color: #000000 !important;
 }
 
-[data-theme="dark"] .bg-white,
-body[data-theme="dark"] .bg-white,
-body.dark .bg-white,
-.dark .bg-white {
-  background-color: #0F2332 !important;
+[data-theme="dark"] .bg-white:not(.keep-white),
+body[data-theme="dark"] .bg-white:not(.keep-white),
+body.dark .bg-white:not(.keep-white),
+.dark .bg-white:not(.keep-white) {
+  background-color: #000000 !important;
+  border-color: #27272A !important;
 }
 
 [data-theme="dark"] .bg-white\/60,
 body[data-theme="dark"] .bg-white\/60,
 body.dark .bg-white\/60,
 .dark .bg-white\/60 {
-  background-color: rgba(15, 35, 50, 0.6) !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="dark"] .bg-ink,
+body[data-theme="dark"] .bg-ink,
+body.dark .bg-ink,
+.dark .bg-ink {
+  background-color: #121214 !important;
+  color: #FFFFFF !important;
+  border-color: #27272A !important;
 }
 
 [data-theme="dark"] .text-ink,
 body[data-theme="dark"] .text-ink,
 body.dark .text-ink,
 .dark .text-ink {
-  color: #F1F7F9 !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme="dark"] .text-muted,
 body[data-theme="dark"] .text-muted,
 body.dark .text-muted,
 .dark .text-muted {
-  color: #94A8B0 !important;
+  color: #A1A1AA !important;
 }
 
 [data-theme="dark"] .border-borderCol,
 body[data-theme="dark"] .border-borderCol,
 body.dark .border-borderCol,
 .dark .border-borderCol {
-  border-color: #1E384A !important;
+  border-color: #27272A !important;
 }
 
 [data-theme="dark"] .border-borderCol\/60,
 body[data-theme="dark"] .border-borderCol\/60,
 body.dark .border-borderCol\/60,
 .dark .border-borderCol\/60 {
-  border-color: rgba(30, 56, 74, 0.6) !important;
+  border-color: rgba(39, 39, 42, 0.6) !important;
 }
 
 [data-theme="dark"] select,
@@ -227,17 +237,17 @@ body.dark textarea,
 .dark select,
 .dark input,
 .dark textarea {
-  background-color: #0F2332 !important;
-  color: #F1F7F9 !important;
-  border-color: #1E384A !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  border-color: #27272A !important;
 }
 
 [data-theme="dark"] select option,
 body[data-theme="dark"] select option,
 body.dark select option,
 .dark select option {
-  background-color: #0F2332 !important;
-  color: #F1F7F9 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme="dark"] input::placeholder,
@@ -248,21 +258,35 @@ body.dark input::placeholder,
 body.dark textarea::placeholder,
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #94A8B0 !important;
+  color: #71717A !important;
 }
 
 [data-theme="dark"] .bg-primary-tint,
 body[data-theme="dark"] .bg-primary-tint,
 body.dark .bg-primary-tint,
 .dark .bg-primary-tint {
-  background-color: #11363F !important;
+  background-color: #042F2E !important;
 }
 
 [data-theme="dark"] .bg-primary-tint\/50,
 body[data-theme="dark"] .bg-primary-tint\/50,
 body.dark .bg-primary-tint\/50,
 .dark .bg-primary-tint\/50 {
-  background-color: rgba(17, 54, 63, 0.6) !important;
+  background-color: rgba(4, 47, 46, 0.6) !important;
+}
+
+[data-theme="dark"] .bg-primary-tint\/40,
+body[data-theme="dark"] .bg-primary-tint\/40,
+body.dark .bg-primary-tint\/40,
+.dark .bg-primary-tint\/40 {
+  background-color: rgba(4, 47, 46, 0.5) !important;
+}
+
+[data-theme="dark"] .bg-primary-tint\/30,
+body[data-theme="dark"] .bg-primary-tint\/30,
+body.dark .bg-primary-tint\/30,
+.dark .bg-primary-tint\/30 {
+  background-color: rgba(4, 47, 46, 0.4) !important;
 }
 
 [data-theme="dark"] .text-primary,
@@ -298,14 +322,14 @@ body.dark .border-primary\/40,
 body[data-theme="dark"] .hover\:bg-surface:hover,
 body.dark .hover\:bg-surface:hover,
 .dark .hover\:bg-surface:hover {
-  background-color: #142F42 !important;
+  background-color: #18181B !important;
 }
 
 [data-theme="dark"] .hover\:bg-primary-tint:hover,
 body[data-theme="dark"] .hover\:bg-primary-tint:hover,
 body.dark .hover\:bg-primary-tint:hover,
 .dark .hover\:bg-primary-tint:hover {
-  background-color: #11363F !important;
+  background-color: #042F2E !important;
 }
 
 [data-theme="dark"] .shadow-sm,
@@ -324,21 +348,21 @@ body.dark .shadow-2xs,
 .dark .shadow-md,
 .dark .shadow-lg,
 .dark .shadow-2xs {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7) !important;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-track,
 body[data-theme="dark"] ::-webkit-scrollbar-track,
 body.dark ::-webkit-scrollbar-track,
 .dark ::-webkit-scrollbar-track {
-  background: #0A1721;
+  background: #000000;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb,
 body[data-theme="dark"] ::-webkit-scrollbar-thumb,
 body.dark ::-webkit-scrollbar-thumb,
 .dark ::-webkit-scrollbar-thumb {
-  background: #1E384A;
+  background: #27272A;
 }
 
 /* Alert Banners in Dark Mode (Green Success & Amber Timer) */

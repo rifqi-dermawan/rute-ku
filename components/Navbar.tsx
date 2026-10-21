@@ -155,7 +155,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-borderCol bg-white dark:bg-[#0F2332] text-ink hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center transition-all duration-300 transform active:scale-75 active:rotate-45 shadow-2xs cursor-pointer group relative overflow-hidden"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-borderCol bg-white dark:bg-black text-ink hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center transition-all duration-300 transform active:scale-75 active:rotate-45 shadow-2xs cursor-pointer group relative overflow-hidden"
             title={mounted ? (isDark ? 'Beralih ke Mode Putih' : 'Beralih ke Mode Dark') : 'Ganti Tema'}
             aria-label="Ganti mode tema"
             suppressHydrationWarning
