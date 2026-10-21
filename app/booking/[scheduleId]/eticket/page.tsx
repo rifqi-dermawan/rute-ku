@@ -460,19 +460,6 @@ function ETicketContent({
                     </div>
                   </div>
                 </div>
-
-                {/* QR Code in Modal for verification */}
-                <div className="flex items-center gap-4 p-3 bg-primary-tint/30 rounded-xl border border-primary/20">
-                  <div className="p-1.5 bg-white rounded-lg border border-primary/20 flex-shrink-0">
-                    <QRCode value={qrValue || 'https://ruteku.vercel.app'} size={56} viewBox="0 0 256 256" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-xs text-ink">Validasi Boarding Resmi</p>
-                    <p className="text-[11px] text-muted">
-                      Tunjukkan invoice resmi ini atau scan QR code saat naik ke armada bus.
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {/* Invoice Footer Actions */}
