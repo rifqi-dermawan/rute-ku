@@ -45,83 +45,6 @@ const EWALLET_LIST = [
   { id: 'shopeepay', name: 'ShopeePay', color: 'bg-[#EE4D2D]' },
 ]
 
-function QrisQrCode() {
-  return (
-    <div className="relative w-56 h-56 mx-auto bg-white p-3 rounded-2xl border border-borderCol shadow-md flex items-center justify-center">
-      {/* High-fidelity Vector QR Code */}
-      <svg viewBox="0 0 200 200" className="w-full h-full" fill="none">
-        <rect width="200" height="200" fill="white" rx="10" />
-
-        {/* Top-Left Finder */}
-        <rect x="15" y="15" width="45" height="45" rx="6" fill="#0F2A33" />
-        <rect x="23" y="23" width="29" height="29" rx="3" fill="white" />
-        <rect x="29" y="29" width="17" height="17" rx="2" fill="#0B6E78" />
-
-        {/* Top-Right Finder */}
-        <rect x="140" y="15" width="45" height="45" rx="6" fill="#0F2A33" />
-        <rect x="148" y="23" width="29" height="29" rx="3" fill="white" />
-        <rect x="154" y="29" width="17" height="17" rx="2" fill="#0B6E78" />
-
-        {/* Bottom-Left Finder */}
-        <rect x="15" y="140" width="45" height="45" rx="6" fill="#0F2A33" />
-        <rect x="23" y="148" width="29" height="29" rx="3" fill="white" />
-        <rect x="29" y="154" width="17" height="17" rx="2" fill="#0B6E78" />
-
-        {/* Timing Lines */}
-        <path d="M68 25 h8 M84 25 h8 M100 25 h8 M116 25 h8 M124 25 h8" stroke="#0F2A33" strokeWidth="5" strokeLinecap="round" />
-        <path d="M25 68 v8 M25 84 v8 M25 100 v8 M25 116 v8 M25 124 v8" stroke="#0F2A33" strokeWidth="5" strokeLinecap="round" />
-
-        {/* Matrix Grid Blocks */}
-        <rect x="70" y="38" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="85" y="38" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="100" y="38" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="70" y="52" width="22" height="8" rx="2" fill="#0F2A33" />
-        <rect x="100" y="52" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="115" y="52" width="15" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="40" y="70" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="62" y="70" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="130" y="70" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="155" y="70" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="40" y="85" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="55" y="85" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="130" y="85" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="145" y="85" width="20" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="40" y="100" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="60" y="100" width="10" height="8" rx="2" fill="#0F2A33" />
-        <rect x="130" y="100" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="152" y="100" width="15" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="40" y="115" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="55" y="115" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="130" y="115" width="22" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="70" y="135" width="20" height="8" rx="2" fill="#0F2A33" />
-        <rect x="98" y="135" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="114" y="135" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="136" y="135" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="150" y="135" width="15" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="70" y="150" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="85" y="150" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="108" y="150" width="20" height="8" rx="2" fill="#0F2A33" />
-        <rect x="136" y="150" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="158" y="150" width="12" height="8" rx="2" fill="#0F2A33" />
-
-        <rect x="70" y="165" width="15" height="8" rx="2" fill="#0F2A33" />
-        <rect x="92" y="165" width="10" height="8" rx="2" fill="#0F2A33" />
-        <rect x="110" y="165" width="8" height="8" rx="2" fill="#0F2A33" />
-        <rect x="125" y="165" width="18" height="8" rx="2" fill="#0F2A33" />
-
-        {/* Center Logo Box */}
-        <rect x="80" y="80" width="40" height="40" rx="8" fill="#0B6E78" />
-        <path d="M92 90 L108 90 L108 98 L92 98 Z" fill="white" />
-        <path d="M96 98 L104 98 L104 110 L96 110 Z" fill="white" />
-      </svg>
-    </div>
-  )
-}
 
 function PaymentContent({
   params,
@@ -183,16 +106,28 @@ function PaymentContent({
   const [copied, setCopied] = useState(false)
   const [midtransError, setMidtransError] = useState('')
 
+  // QRIS sandbox state
+  const [qrisData, setQrisData] = useState<{
+    orderId: string
+    qrUrl: string
+    amount: number
+    expiryTime: string | null
+  } | null>(null)
+  const [qrisLoading, setQrisLoading] = useState(false)
+  const [qrisError, setQrisError] = useState('')
+  const [qrisCopied, setQrisCopied] = useState(false)
+  const [qrisStatus, setQrisStatus] = useState<'pending' | 'paid' | 'expired' | 'failed'>('pending')
+
   // Dummy Card state
   const [cardNumber, setCardNumber] = useState('4000 1234 5678 9010')
   const [cardExp, setCardExp] = useState('12/28')
   const [cardCvv, setCardCvv] = useState('123')
 
-  // Payment state
+  // Payment state (for non-QRIS tabs / Snap)
   const [midtransLoading, setMidtransLoading] = useState(false)
 
-  // Countdown timer: 01:48 (108 seconds)
-  const [secondsLeft, setSecondsLeft] = useState(108)
+  // Countdown timer: 15 menit (900 detik)
+  const [secondsLeft, setSecondsLeft] = useState(900)
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -201,7 +136,7 @@ function PaymentContent({
     return () => clearInterval(t)
   }, [])
 
-  // Load Midtrans Snap Script
+  // Load Midtrans Snap Script (for other tabs)
   useEffect(() => {
     const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js'
     const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ''
@@ -215,6 +150,33 @@ function PaymentContent({
     }
   }, [])
 
+  // Polling status QRIS setiap 3 detik setelah QR berhasil dibuat
+  useEffect(() => {
+    if (!qrisData || qrisStatus !== 'pending') return
+
+    const poll = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payment/qris/status/${encodeURIComponent(qrisData.orderId)}`)
+        const json = await res.json()
+        const s: 'pending' | 'paid' | 'expired' | 'failed' = json.status ?? 'pending'
+        setQrisStatus(s)
+        if (s === 'paid') {
+          clearInterval(poll)
+          navigateToEticket()
+        } else if (s === 'expired' || s === 'failed') {
+          clearInterval(poll)
+          setQrisError(s === 'expired' ? 'QR Code telah kedaluwarsa. Buat QR baru.' : 'Pembayaran gagal atau dibatalkan.')
+          setQrisData(null)
+        }
+      } catch {
+        // polling error - abaikan, coba lagi di interval berikutnya
+      }
+    }, 3000)
+
+    return () => clearInterval(poll)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrisData, qrisStatus])
+
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
@@ -224,6 +186,53 @@ function PaymentContent({
     navigator.clipboard.writeText(currentVaBank.code.replace(/\s+/g, ''))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Generate QRIS via Midtrans Core API
+  const handleGenerateQris = async () => {
+    setQrisLoading(true)
+    setQrisError('')
+    setQrisData(null)
+    setQrisStatus('pending')
+
+    try {
+      const orderId = `RUTEKU-QRIS-${scheduleId}-${Date.now().toString().slice(-8)}`
+      const res = await fetch('/api/payment/qris', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          grossAmount: parseInt(total) || 100000,
+          customerDetails: {
+            first_name: passengerNames ? passengerNames.split(',')[0].trim() : 'Penumpang RuteKu',
+            email: sp.email || 'customer@ruteku.id',
+            phone: sp.phone || '081234567890',
+          },
+          itemDetails: [
+            {
+              id: scheduleId,
+              price: parseInt(total) || 100000,
+              quantity: 1,
+              name: `Tiket Bus ${bus} (${cls}) ${from} – ${to}`.slice(0, 50),
+            },
+          ],
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.qrUrl) {
+        setQrisError(data.error || 'Gagal membuat QR Code. Silakan coba lagi.')
+        setQrisLoading(false)
+        return
+      }
+
+      setQrisData(data)
+    } catch {
+      setQrisError('Terjadi kendala koneksi saat membuat QR Code.')
+    } finally {
+      setQrisLoading(false)
+    }
   }
 
   const navigateToEticket = () => {
@@ -399,73 +408,165 @@ function PaymentContent({
               </div>
             </div>
 
-            {/* Card 2: Detail Pembayaran Berdasarkan Metode */}
+            {/* Card 2: QRIS Tab — QR Real dari Midtrans */}
             {selectedMethod === 'qris' && (
               <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <h2 className="text-base font-bold text-ink flex items-center gap-2">
                       <QrCode size={18} className="text-primary" />
-                      <span>Pembayaran QRIS Nasional</span>
+                      <span>Pembayaran QRIS Sandbox</span>
                     </h2>
                     <p className="text-xs text-muted mt-0.5">
-                      Bisa di-scan dari BCA Mobile, Livin, BRImo, GoPay, OVO, DANA, ShopeePay
+                      QR Code langsung dari Midtrans Sandbox — scan di QRIS Simulator
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info/10 text-info border border-info/30 text-xs font-semibold">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                    qrisStatus === 'paid'
+                      ? 'bg-success/10 text-success border-success/30'
+                      : qrisStatus === 'expired' || qrisStatus === 'failed'
+                      ? 'bg-red-50 text-red-600 border-red-200'
+                      : qrisData
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-info/10 text-info border-info/30'
+                  }`}>
                     <Info size={13} />
-                    <span>Menunggu scan</span>
+                    <span>
+                      {qrisStatus === 'paid' ? 'Lunas!' :
+                       qrisStatus === 'expired' ? 'QR Kedaluwarsa' :
+                       qrisStatus === 'failed' ? 'Gagal' :
+                       qrisData ? 'Menunggu scan…' : 'Belum dibuat'}
+                    </span>
                   </span>
                 </div>
 
-                {/* QR Code Container */}
-                <div className="p-6 bg-surface border border-borderCol rounded-2xl text-center space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-borderCol rounded-full text-xs font-bold text-ink shadow-2xs">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    <span>Merchant: RUTEKU ANTARKOTA</span>
-                  </div>
+                {/* QR Container */}
+                <div className="p-5 bg-surface border border-borderCol rounded-2xl text-center space-y-4">
+                  {!qrisData && !qrisLoading && (
+                    <div className="py-6 space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <QrCode size={32} className="text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-ink">QR Code Belum Dibuat</p>
+                        <p className="text-xs text-muted mt-1">
+                          Klik tombol di bawah untuk membuat QRIS dari Midtrans Sandbox.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                  <QrisQrCode />
+                  {qrisLoading && (
+                    <div className="py-8 flex flex-col items-center gap-3">
+                      <RefreshCw size={28} className="animate-spin text-primary" />
+                      <p className="text-sm text-muted">Membuat QR Code dari Midtrans...</p>
+                    </div>
+                  )}
 
-                  <div className="space-y-1">
-                    <span className="text-xs font-mono text-muted block">NMID: ID1020039281920</span>
-                    <span className="text-xl sm:text-2xl font-black text-ink block">
-                      Rp {parseInt(total).toLocaleString('id-ID')}
-                    </span>
-                    <span className="text-xs text-muted block">Jumlah pas tanpa biaya admin</span>
-                  </div>
+                  {qrisError && !qrisLoading && (
+                    <div className="py-2 flex items-start gap-2 text-xs text-red-700 bg-red-50 rounded-xl p-3">
+                      <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
+                      <span>{qrisError}</span>
+                    </div>
+                  )}
+
+                  {qrisData && !qrisLoading && (
+                    <>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-borderCol rounded-full text-xs font-bold text-ink shadow-2xs">
+                        <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                        <span>Order: {qrisData.orderId.slice(-12)}</span>
+                      </div>
+
+                      {/* QR Image dari Midtrans */}
+                      <div className="relative w-56 h-56 mx-auto bg-white p-3 rounded-2xl border border-borderCol shadow-md flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={qrisData.qrUrl}
+                          alt="QRIS Midtrans Sandbox"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-xl sm:text-2xl font-black text-ink block">
+                          Rp {qrisData.amount.toLocaleString('id-ID')}
+                        </span>
+                        <span className="text-xs text-muted block">Jumlah pas tanpa biaya admin</span>
+                      </div>
+
+                      {/* Tombol salin URL QR — hanya untuk testing sandbox */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(qrisData.qrUrl)
+                          setQrisCopied(true)
+                          setTimeout(() => setQrisCopied(false), 2500)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-borderCol rounded-lg bg-white hover:border-primary hover:text-primary transition-all cursor-pointer"
+                      >
+                        {qrisCopied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                        <span>{qrisCopied ? 'URL Tersalin!' : 'Salin URL QR (untuk simulator)'}</span>
+                      </button>
+
+                      {/* Polling indicator */}
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted">
+                        <RefreshCw size={11} className="animate-spin" />
+                        <span>Mengecek status pembayaran setiap 3 detik...</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Action Area */}
                 <div className="pt-2">
-                  <button
-                    type="button"
-                    disabled={midtransLoading}
-                    onClick={handlePayWithMidtrans}
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                  >
-                    {midtransLoading ? (
-                      <>
-                        <RefreshCw size={16} className="animate-spin" />
-                        <span>Memproses Pembayaran...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} />
-                        <span>Bayar Sekarang</span>
-                      </>
-                    )}
-                  </button>
+                  {!qrisData || qrisStatus === 'expired' || qrisStatus === 'failed' ? (
+                    <button
+                      type="button"
+                      disabled={qrisLoading}
+                      onClick={handleGenerateQris}
+                      className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      {qrisLoading ? (
+                        <>
+                          <RefreshCw size={16} className="animate-spin" />
+                          <span>Membuat QR Code...</span>
+                        </>
+                      ) : (
+                        <>
+                          <QrCode size={16} />
+                          <span>{qrisData ? 'Buat QR Code Baru' : 'Buat QR Code QRIS'}</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="text-center text-xs text-muted py-2">
+                      Scan QR di atas, lalu kunjungi{' '}
+                      <a
+                        href="https://simulator.sandbox.midtrans.com/v2/qris/index"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary font-semibold hover:underline"
+                      >
+                        QRIS Simulator
+                      </a>{' '}
+                      untuk menyelesaikan pembayaran.
+                    </div>
+                  )}
                 </div>
 
                 {/* Instructions */}
                 <div className="pt-2 border-t border-borderCol/60">
-                  <p className="text-xs font-bold text-ink mb-2">Cara Pembayaran QRIS:</p>
+                  <p className="text-xs font-bold text-ink mb-2">Cara Pembayaran QRIS Sandbox:</p>
                   <ol className="space-y-1.5 text-xs text-muted leading-relaxed">
-                    <li>1. Buka aplikasi m-Banking atau E-Wallet pilihan Anda di smartphone.</li>
-                    <li>2. Pilih menu <strong>Scan / Bayar dengan QRIS</strong>.</li>
-                    <li>3. Arahkan kamera ke QR code di atas, pastikan nama tujuan <strong>RUTEKU ANTARKOTA</strong>.</li>
-                    <li>4. Konfirmasi pembayaran tepat sejumlah <strong>Rp {parseInt(total).toLocaleString('id-ID')}</strong>.</li>
+                    <li>1. Klik <strong>Buat QR Code QRIS</strong> di atas untuk mendapatkan QR dari Midtrans.</li>
+                    <li>2. Klik <strong>Salin URL QR</strong>, lalu buka{' '}
+                      <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">QRIS Simulator Midtrans</a>.
+                    </li>
+                    <li>3. Tempel URL, tekan tombol scan, lalu selesaikan sebagai <strong>sukses</strong>.</li>
+                    <li>4. Halaman akan otomatis berpindah ke e-tiket dalam beberapa detik.</li>
                   </ol>
                 </div>
               </div>
