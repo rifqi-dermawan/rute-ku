@@ -181,21 +181,16 @@ function PassengerContent({
         errs[`name_${idx}`] = `Nama Penumpang ${idx + 1} minimal 2 karakter.`
       }
 
-      const digits = (p.ktp || '').replace(/\D/g, '')
-
       if (isAdult) {
+        const digits = (p.ktp || '').replace(/\D/g, '')
         // Dewasa: Wajib 16 digit KTP / NIK
         if (!p.ktp || !p.ktp.trim()) {
           errs[`ktp_${idx}`] = `Nomor Identitas Penumpang ${idx + 1} (Kursi ${p.seat}) wajib diisi 16 digit (KTP/NIK).`
         } else if (digits.length !== 16) {
           errs[`ktp_${idx}`] = `Nomor Identitas Dewasa harus tepat 16 digit angka (saat ini ${digits.length} digit).`
         }
-      } else {
-        // Anak / Bayi: Opsional (boleh kosong). Jika diisi sebagian, beri tahu format 16 digit
-        if (p.ktp && p.ktp.trim() && digits.length > 0 && digits.length !== 16) {
-          errs[`ktp_${idx}`] = `Jika diisi, nomor identitas anak/pendamping harus 16 digit (saat ini ${digits.length} digit).`
-        }
       }
+      // Anak / Bayi: Kolom identitas disembunyikan dan tidak memerlukan nomor identitas
     })
 
     const trimmedEmail = currentEmail.trim()
@@ -222,7 +217,12 @@ function PassengerContent({
   ) => {
     setPassengers(prev => {
       const next = [...prev]
-      next[index] = { ...next[index], [field]: value }
+      if (field === 'type' && value === 'anak') {
+        // Jika beralih ke Anak / Bayi, kosongkan nomor identitas karena kolom disembunyikan
+        next[index] = { ...next[index], type: value, ktp: '' }
+      } else {
+        next[index] = { ...next[index], [field]: value }
+      }
       if (hasAttemptedSubmit) {
         setErrors(runValidation(next, email, phone))
       }
@@ -354,7 +354,7 @@ function PassengerContent({
                 <div
                   key={passenger.seat}
                   className={`bg-white border rounded-card p-4 sm:p-6 shadow-2xs transition-all ${
-                    nameError || ktpError ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
+                    nameError || (isAdult && ktpError) ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
                   }`}
                 >
                   {/* Card Header: Seat & Tipe Penumpang Selector */}
@@ -401,11 +401,12 @@ function PassengerContent({
                   </div>
 
                   {/* Form Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={isAdult ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-4'}>
                     {/* Nama Lengkap */}
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nama lengkap (sesuai identitas) <span className="text-error">*</span>
+                        {isAdult ? 'Nama lengkap (sesuai identitas)' : 'Nama lengkap anak / bayi'}{' '}
+                        <span className="text-error">*</span>
                       </label>
                       <input
                         type="text"
@@ -426,61 +427,47 @@ function PassengerContent({
                       )}
                     </div>
 
-                    {/* Nomor Identitas (KTP/NIK KK/KIA) */}
-                    <div>
-                      <label className="block text-xs font-bold text-ink mb-1.5">
-                        Nomor Identitas (KTP/NIK KK/KIA){' '}
-                        {isAdult ? (
-                          <span className="text-error">*</span>
-                        ) : (
-                          <span className="text-muted font-normal text-[11px]">(Opsional)</span>
-                        )}
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={16}
-                        value={passenger.ktp}
-                        onChange={e => updatePassenger(index, 'ktp', e.target.value)}
-                        placeholder={
-                          isAdult
-                            ? '16 digit nomor NIK/KTP'
-                            : '16 digit NIK KK / KIA (opsional)'
-                        }
-                        className={`w-full h-11 px-3.5 border rounded-input text-ink font-mono text-sm outline-none transition-all ${
-                          ktpError
-                            ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
-                            : isKtpValid
-                            ? 'border-success/60 focus:border-success focus:ring-1 focus:ring-success'
-                            : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
-                        }`}
-                      />
+                    {/* Nomor Identitas (KTP/NIK) - Hanya untuk Penumpang Dewasa */}
+                    {isAdult && (
+                      <div>
+                        <label className="block text-xs font-bold text-ink mb-1.5">
+                          Nomor Identitas (KTP/NIK) <span className="text-error">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={16}
+                          value={passenger.ktp}
+                          onChange={e => updatePassenger(index, 'ktp', e.target.value)}
+                          placeholder="16 digit nomor NIK/KTP"
+                          className={`w-full h-11 px-3.5 border rounded-input text-ink font-mono text-sm outline-none transition-all ${
+                            ktpError
+                              ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
+                              : isKtpValid
+                              ? 'border-success/60 focus:border-success focus:ring-1 focus:ring-success'
+                              : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
+                          }`}
+                        />
 
-                      {/* Helper text for Child / Optional */}
-                      {!isAdult && (
-                        <p className="mt-1.5 text-[11px] text-muted leading-tight">
-                          Dapat dikosongkan atau diisi dengan KTP orang tua pendamping
-                        </p>
-                      )}
-
-                      {/* KTP Validation Message */}
-                      <div className="mt-1 min-h-[18px]">
-                        {ktpError ? (
-                          <div className="flex items-start gap-1 text-xs text-error font-medium leading-tight">
-                            <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
-                            <span>{ktpError}</span>
-                          </div>
-                        ) : isKtpValid ? (
-                          <div className="flex items-center gap-1.5 text-xs text-success font-medium">
-                            <Check size={13} className="stroke-[2.5]" />
-                            <span>16 digit, format benar</span>
-                          </div>
-                        ) : isAdult && digitsCount > 0 ? (
-                          <span className="text-[11px] text-muted">
-                            {digitsCount}/16 digit terisi
-                          </span>
-                        ) : null}
+                        {/* KTP Validation Message */}
+                        <div className="mt-1 min-h-[18px]">
+                          {ktpError ? (
+                            <div className="flex items-start gap-1 text-xs text-error font-medium leading-tight">
+                              <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
+                              <span>{ktpError}</span>
+                            </div>
+                          ) : isKtpValid ? (
+                            <div className="flex items-center gap-1.5 text-xs text-success font-medium">
+                              <Check size={13} className="stroke-[2.5]" />
+                              <span>16 digit, format benar</span>
+                            </div>
+                          ) : digitsCount > 0 ? (
+                            <span className="text-[11px] text-muted">
+                              {digitsCount}/16 digit terisi
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )
