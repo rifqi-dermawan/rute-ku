@@ -105,12 +105,10 @@ function ReviewContent({
   const totalPrice = seatsList.length * pricePerSeat
 
   // Mask KTP/NIK for privacy
-  const maskKtp = (ktp: string, type?: string) => {
+  const maskKtp = (ktp: string) => {
     const clean = (ktp || '').replace(/\s+/g, '')
     if (!clean || clean === '-') {
-      return type === 'anak'
-        ? 'Identitas: Mengikuti KTP Pendamping'
-        : 'Identitas: Belum Diisi'
+      return ''
     }
     const last4 = clean.slice(-4) || '0000'
     return `NIK •••• •••• •••• ${last4}`
@@ -234,9 +232,11 @@ function ReviewContent({
                             {p.type === 'anak' ? 'Anak / Bayi' : 'Dewasa'}
                           </span>
                         </div>
-                        <p className="text-xs text-muted font-mono tracking-wide mt-0.5">
-                          {maskKtp(p.ktp, p.type)}
-                        </p>
+                        {p.type !== 'anak' && (
+                          <p className="text-xs text-muted font-mono tracking-wide mt-0.5">
+                            {maskKtp(p.ktp) || 'Identitas: Belum Diisi'}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

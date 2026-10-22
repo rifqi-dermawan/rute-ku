@@ -430,7 +430,7 @@ function ETicketContent({
                           {p.ktp && p.ktp.trim()
                             ? `NIK: ${p.ktp.slice(0, 6)}******`
                             : p.type === 'anak'
-                            ? 'Ikut KTP Pendamping'
+                            ? '-'
                             : 'Identitas Terverifikasi'}
                         </span>
                       </div>
