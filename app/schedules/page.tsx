@@ -421,7 +421,7 @@ function SchedulesContent({
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8 flex gap-5 items-start">
         {/* ── Filter sidebar ───────────────────────────────── */}
-        <aside className="hidden md:block w-52 flex-shrink-0 bg-white border border-borderCol rounded-card p-4 sticky top-20">
+        <aside className="hidden md:block w-52 flex-shrink-0 bg-white border border-borderCol rounded-card p-4 sticky top-32 z-30">
           <h2 className="font-bold text-ink mb-4 flex items-center gap-2 text-sm">
             <SlidersHorizontal size={14} /> Filter
           </h2>

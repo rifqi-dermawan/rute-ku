@@ -13,11 +13,11 @@ export default function Stepper({ currentStep }: { currentStep: number }) {
   const currentStepObj = steps.find(s => s.num === currentStep) ?? steps[0]
 
   return (
-    <div className="w-full bg-white border-b border-borderCol py-2.5 sm:py-3 px-3.5 sm:px-8">
+    <div className="sticky top-16 z-40 w-full bg-white border-b border-borderCol py-2.5 sm:py-3 px-3.5 sm:px-8 shadow-2xs">
       {/* ── Mobile Compact Stepper (screens < 640px) ────────────────── */}
       <div className="sm:hidden flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="px-2 py-0.5 rounded-full bg-primary-tint border border-primary/25 text-primary font-bold text-[11px] flex-shrink-0">
+        <div className="flex items-center gap-2 min-w-0 relative z-20">
+          <span className="px-2 py-0.5 rounded-full bg-primary-tint border border-primary/25 text-primary font-bold text-[11px] flex-shrink-0 relative z-20">
             {currentStep}/6
           </span>
           <span className="font-extrabold text-xs text-ink truncate">
@@ -57,17 +57,17 @@ export default function Stepper({ currentStep }: { currentStep: number }) {
           return (
             <div key={step.label} className="flex items-center flex-1 last:flex-initial">
               {/* Step indicator (Circle + Label on same line) */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0 relative z-20">
                 {isDone ? (
-                  <div className="w-5 h-5 rounded-full bg-success text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                  <div className="w-5 h-5 rounded-full bg-success text-white flex items-center justify-center text-xs font-bold shadow-xs relative z-20">
                     <Check size={12} strokeWidth={3} />
                   </div>
                 ) : isActive ? (
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-xs relative z-20">
                     {step.num}
                   </div>
                 ) : (
-                  <div className="w-5 h-5 rounded-full border border-borderCol bg-white text-muted flex items-center justify-center text-xs font-semibold">
+                  <div className="w-5 h-5 rounded-full border border-borderCol bg-white text-muted flex items-center justify-center text-xs font-semibold relative z-20">
                     {step.num}
                   </div>
                 )}
