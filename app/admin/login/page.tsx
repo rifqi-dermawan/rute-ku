@@ -74,11 +74,8 @@ export default function AdminLoginPage({
 
         {/* Card */}
         <div className="bg-[#112D36]/90 border border-slate-700/60 rounded-3xl p-7 sm:p-8 shadow-2xl backdrop-blur-md space-y-6">
-          {/* Logo & Header */}
+          {/* Header */}
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-primary/20 border border-primary/40 text-primary-light flex items-center justify-center mx-auto mb-3">
-              <ShieldCheck size={28} className="text-[#14B8A6]" />
-            </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
               Portal Operasional Admin
             </h1>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useAuth, DEMO_USERS } from '@/lib/auth-context'
+import { useAuth } from '@/lib/auth-context'
 import {
   X,
   Lock,
@@ -10,9 +10,7 @@ import {
   Phone,
   Eye,
   EyeOff,
-  CheckCircle2,
   Clock,
-  Sparkles,
   ShieldCheck,
   AlertCircle,
   ArrowRight,
@@ -37,14 +35,12 @@ export default function AuthModal() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [showDemoMenu, setShowDemoMenu] = useState(false)
 
   // Sync mode with modal config when opened
   useEffect(() => {
     if (isAuthModalOpen) {
       setMode(authModalConfig?.mode || 'login')
       setError(null)
-      setShowDemoMenu(false)
     }
   }, [isAuthModalOpen, authModalConfig])
 
@@ -117,21 +113,6 @@ export default function AuthModal() {
     }
   }
 
-  const handleQuickDemoLogin = async (userEmail: string) => {
-    setError(null)
-    setIsLoading(true)
-    const res = await login(userEmail)
-    setIsLoading(false)
-    if (res.success) {
-      closeAuthModal()
-      if (authModalConfig?.onSuccess) {
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
-        if (stored) {
-          authModalConfig.onSuccess(JSON.parse(stored))
-        }
-      }
-    }
-  }
 
   return (
     <div
@@ -206,13 +187,10 @@ export default function AuthModal() {
 
           {/* Main Title & Subtitle */}
           <div className="text-center mb-5">
-            <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-tint text-primary mb-2 shadow-2xs">
-              <UserIcon size={22} />
-            </div>
             <h2 className="text-xl font-black text-ink dark:text-white">
               {authModalConfig?.title || (mode === 'login' ? 'Masuk ke RuteKu' : 'Daftar Akun RuteKu')}
             </h2>
-            <p className="text-xs text-muted dark:text-gray-400 mt-1 max-w-xs mx-auto">
+            <p className="text-xs text-muted dark:text-gray-400 mt-1.5 max-w-xs mx-auto">
               {authModalConfig?.description ||
                 (mode === 'login'
                   ? 'Akses tiket, kelola riwayat pemesanan, dan nikmati kemudahan booking bus antarkota.'
@@ -285,17 +263,14 @@ export default function AuthModal() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-ink dark:text-gray-200">
-                    Kata Sandi <span className="text-muted font-normal">(opsional untuk demo)</span>
+                    Kata Sandi
                   </label>
                   <button
                     type="button"
-                    onClick={() => {
-                      setEmailOrPhone('dini@ruteku.id')
-                      setPassword('demo123')
-                    }}
+                    onClick={() => alert('Fitur pemulihan kata sandi telah dikirim ke email atau kontak WhatsApp Anda.')}
                     className="text-[11px] text-primary hover:underline font-semibold cursor-pointer"
                   >
-                    Pakai Akun Demo
+                    Lupa Kata Sandi?
                   </button>
                 </div>
                 <div className="relative">
@@ -449,59 +424,9 @@ export default function AuthModal() {
             </form>
           )}
 
-          {/* ── Demo Accounts 1-Click Fast Login ── */}
-          <div className="mt-5 pt-4 border-t border-borderCol dark:border-white/10">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-muted dark:text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles size={12} className="text-amber-500" />
-                Akses Cepat Pengujian
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowDemoMenu(!showDemoMenu)}
-                className="text-[11px] text-primary hover:underline font-bold cursor-pointer"
-              >
-                {showDemoMenu ? 'Sembunyikan' : 'Pilih Akun Demo'}
-              </button>
-            </div>
-
-            {showDemoMenu ? (
-              <div className="space-y-1.5 p-2 rounded-xl bg-surface dark:bg-black/30 border border-borderCol dark:border-white/10 animate-in fade-in">
-                {DEMO_USERS.map((demo) => (
-                  <button
-                    key={demo.id}
-                    type="button"
-                    onClick={() => handleQuickDemoLogin(demo.email)}
-                    className="w-full p-2 rounded-lg bg-white dark:bg-[#1E333F] hover:bg-primary-tint/50 dark:hover:bg-primary-dark/40 border border-borderCol dark:border-white/10 flex items-center justify-between text-left transition-all cursor-pointer group"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-bold text-xs text-ink dark:text-white group-hover:text-primary transition-colors">
-                        {demo.name}
-                      </div>
-                      <div className="text-[10px] text-muted dark:text-gray-400 truncate">
-                        {demo.email} · {demo.phone}
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold text-primary px-2 py-0.5 rounded-md bg-primary-tint dark:bg-black/30 group-hover:bg-primary group-hover:text-white transition-all">
-                      Masuk
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('dini@ruteku.id')}
-                className="w-full py-2 px-3 rounded-lg border border-dashed border-primary/40 bg-primary-tint/30 hover:bg-primary-tint/70 text-primary dark:text-primary-tint text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span>Masuk Cepat sebagai <strong>Dini Sartika</strong></span>
-              </button>
-            )}
-          </div>
-
           {/* Privacy Note */}
-          <p className="mt-4 text-[10px] text-center text-muted dark:text-gray-400">
-            Dengan masuk atau mendaftar, Anda menyetujui Ketentuan Layanan & Kebijakan Privasi RuteKu.
+          <p className="mt-5 text-[11px] text-center text-muted dark:text-gray-400">
+            Dengan masuk atau mendaftar, Anda menyetujui <span className="text-primary hover:underline cursor-pointer">Ketentuan Layanan</span> &amp; <span className="text-primary hover:underline cursor-pointer">Kebijakan Privasi</span> RuteKu.
           </p>
         </div>
       </div>

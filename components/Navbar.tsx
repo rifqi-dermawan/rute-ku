@@ -153,16 +153,24 @@ export default function Navbar() {
             )
           )}
 
-          {/* Tombol Masuk / Daftar (di sebelah tombol Bantuan) */}
+          {/* Tombol Masuk & Daftar (terpisah seperti web travel asli) */}
           {!user ? (
-            <button
-              type="button"
-              onClick={() => openAuthModal({ mode: 'login' })}
-              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary hover:bg-primary-dark text-white shadow-2xs transition-all cursor-pointer"
-            >
-              <LogIn size={15} />
-              <span>Masuk / Daftar</span>
-            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: 'login' })}
+                className="px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full text-ink dark:text-white hover:text-primary hover:bg-surface dark:hover:bg-white/5 border border-borderCol dark:border-white/10 transition-all cursor-pointer"
+              >
+                Masuk
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: 'register' })}
+                className="px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary hover:bg-primary-dark text-white shadow-2xs transition-all cursor-pointer"
+              >
+                Daftar
+              </button>
+            </div>
           ) : (
             <div className="relative" ref={userMenuRef}>
               <button
