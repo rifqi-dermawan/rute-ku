@@ -22,8 +22,8 @@ export default function AdminLoginPage({
     sp.error === 'unauthorized_role'
       ? 'Akses ditolak: Akun Anda adalah akun Penumpang. Silakan masuk menggunakan akun Staf Admin.'
       : sp.error === 'auth_required'
-      ? 'Silakan masuk dengan akun Administrator untuk mengakses dashboard operasional.'
-      : ''
+        ? 'Silakan masuk dengan akun Administrator untuk mengakses dashboard operasional.'
+        : ''
   )
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +77,7 @@ export default function AdminLoginPage({
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-              Portal Operasional Admin
+              Halaman Admin
             </h1>
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
               Masuk dengan akun staf untuk mengelola manifest penumpang dan operasional armada bus.
@@ -96,7 +96,7 @@ export default function AdminLoginPage({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Email Staf / Operator
+                Email
               </label>
               <div className="relative">
                 <Mail
@@ -116,7 +116,7 @@ export default function AdminLoginPage({
 
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Kata Sandi
+                Password
               </label>
               <div className="relative">
                 <Lock
@@ -142,11 +142,6 @@ export default function AdminLoginPage({
               {loading ? 'Memverifikasi Kredensial...' : 'Masuk ke Dashboard Admin'}
             </button>
           </form>
-        </div>
-
-        {/* Security badge footer */}
-        <div className="text-center text-[11px] text-slate-500">
-          Dilindungi oleh Next.js Edge Middleware · Autentikasi Berbasis Peran (RBAC)
         </div>
       </div>
     </div>
