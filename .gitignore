@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# gtfs sample and exports (per project rules)
+data/gtfs-sample/
+exports/
 
 # vercel
 .vercel

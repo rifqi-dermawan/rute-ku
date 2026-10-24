@@ -1,0 +1,12 @@
+[
+  { "city": "Jakarta",    "name": "Terminal Pulo Gebang" },
+  { "city": "Bogor",      "name": "Terminal Baranangsiang" },
+  { "city": "Bandung",    "name": "Terminal Leuwipanjang" },
+  { "city": "Cirebon",    "name": "Terminal Harjamukti" },
+  { "city": "Tegal",      "name": "Terminal Tegal" },
+  { "city": "Semarang",   "name": "Terminal Terboyo" },
+  { "city": "Yogyakarta", "name": "Terminal Giwangan" },
+  { "city": "Surakarta",  "name": "Terminal Tirtonadi" },
+  { "city": "Surabaya",   "name": "Terminal Purabaya (Bungurasih)" },
+  { "city": "Malang",     "name": "Terminal Arjosari" }
+]

@@ -24,7 +24,7 @@ export default function Footer() {
   // Dedicated clean administrative footer for the operator dashboard
   if (isAdmin) {
     return (
-      <footer className="bg-white border-t border-borderCol py-4 px-4 sm:px-8 mt-auto text-xs text-muted flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="bg-white border-t border-borderCol py-4 px-4 sm:px-8 mt-auto text-xs text-muted flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-bold">
             RK
@@ -46,7 +46,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className={`bg-white border-t border-borderCol mt-auto ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
+    <footer className={`bg-white border-t border-borderCol mt-auto print:hidden ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
       {/* ── Top Highlights / Trust Bar ─────────────────────────────── */}
       <div className="border-b border-borderCol/70 bg-surface/50 footer-grey-bar">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">

@@ -13,7 +13,7 @@ export default function Stepper({ currentStep }: { currentStep: number }) {
   const currentStepObj = steps.find(s => s.num === currentStep) ?? steps[0]
 
   return (
-    <div className="sticky top-16 z-40 w-full bg-white border-b border-borderCol py-2.5 sm:py-3 px-3.5 sm:px-8 shadow-2xs">
+    <div className="sticky top-16 z-40 w-full bg-white border-b border-borderCol py-2.5 sm:py-3 px-3.5 sm:px-8 shadow-2xs print:hidden">
       {/* ── Mobile Compact Stepper (screens < 640px) ────────────────── */}
       <div className="sm:hidden flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0 relative z-20">

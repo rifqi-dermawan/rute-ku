@@ -1,0 +1,12 @@
+[
+  { "name": "Jakarta",    "match": "Kota Jakarta Pusat", "lat": -6.1805, "lng": 106.8284 },
+  { "name": "Bogor",      "match": "Kota Bogor",         "lat": -6.5950, "lng": 106.8166 },
+  { "name": "Bandung",    "match": "Kota Bandung",       "lat": -6.9175, "lng": 107.6191 },
+  { "name": "Cirebon",    "match": "Kota Cirebon",       "lat": -6.7063, "lng": 108.5570 },
+  { "name": "Tegal",      "match": "Kota Tegal",         "lat": -6.8694, "lng": 109.1402 },
+  { "name": "Semarang",   "match": "Kota Semarang",      "lat": -6.9667, "lng": 110.4167 },
+  { "name": "Yogyakarta", "match": "Kota Yogyakarta",    "lat": -7.7956, "lng": 110.3695 },
+  { "name": "Surakarta",  "match": "Kota Surakarta",     "lat": -7.5666, "lng": 110.8283 },
+  { "name": "Surabaya",   "match": "Kota Surabaya",      "lat": -7.2575, "lng": 112.7521 },
+  { "name": "Malang",     "match": "Kota Malang",        "lat": -7.9666, "lng": 112.6326 }
+]

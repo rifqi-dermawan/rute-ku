@@ -120,12 +120,12 @@ function ETicketContent({
   }, [bookingCode, scheduleId, from, to, dateStr, dep, arr, bus, cls, passengers, sp.total])
 
   return (
-    <div className="min-h-screen bg-surface pb-20">
+    <div className={`min-h-screen bg-surface pb-20 ${showInvoiceModal ? 'print:p-0 print:bg-white print:m-0' : ''}`}>
       <Stepper currentStep={6} />
 
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8 print:p-0 print:max-w-none print:w-full print:m-0">
         {/* Top Success Banner */}
-        <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs">
+        <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs print:hidden">
           <div className="w-8 h-8 rounded-full bg-[#12B76A] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Check size={18} strokeWidth={3} />
           </div>
@@ -140,9 +140,9 @@ function ETicketContent({
         </div>
 
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className={`flex flex-col lg:flex-row gap-6 items-start ${showInvoiceModal ? 'print:hidden' : ''}`}>
           {/* Left: Ticket Card */}
-          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-4 sm:p-7 shadow-2xs">
+          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-4 sm:p-7 shadow-2xs print:border-slate-300 print:shadow-none print:p-6 print:rounded-xl">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_220px] gap-6 items-center">
               {/* Left Details */}
               <div className="space-y-6">
@@ -262,7 +262,7 @@ function ETicketContent({
           </div>
 
           {/* Right: Langkah Berikutnya Card */}
-          <div className="w-full lg:w-80 flex-shrink-0 bg-white border border-borderCol rounded-card p-6 shadow-2xs space-y-5">
+          <div className="w-full lg:w-80 flex-shrink-0 bg-white border border-borderCol rounded-card p-6 shadow-2xs space-y-5 print:hidden">
             <h2 className="text-base font-bold text-ink">Langkah berikutnya</h2>
 
             <div className="space-y-4 text-xs text-ink leading-relaxed">
@@ -343,10 +343,13 @@ function ETicketContent({
 
         {/* Interactive Invoice Modal */}
         {showInvoiceModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-xs overflow-y-auto">
-            <div className="bg-white rounded-2xl max-w-lg w-full border border-borderCol shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) setShowInvoiceModal(false) }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-xs overflow-y-auto print:static print:p-0 print:bg-transparent print:backdrop-blur-none print:overflow-visible print:block print:w-full print:m-0"
+          >
+            <div className="bg-white rounded-2xl max-w-lg w-full border border-borderCol shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200 print:max-w-xl print:w-full print:mx-auto print:my-0 print:border print:border-slate-300 print:shadow-none print:rounded-xl">
               {/* Invoice Header */}
-              <div className="bg-ink p-5 text-white flex items-center justify-between">
+              <div className="bg-ink p-5 text-white flex items-center justify-between print:bg-slate-900 print:text-white print:p-4">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-black text-white text-base">
                     R
@@ -357,13 +360,23 @@ function ETicketContent({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-bold flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-bold flex items-center gap-1 print:border-emerald-600 print:text-emerald-700 print:bg-emerald-50">
                     <CheckCircle2 size={13} /> LUNAS
                   </span>
                   <button
                     type="button"
+                    onClick={() => window.print()}
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer print:hidden flex items-center gap-1 text-xs font-bold bg-white/10"
+                    title="Cetak Invoice"
+                  >
+                    <Printer size={15} />
+                    <span className="hidden sm:inline">Cetak</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setShowInvoiceModal(false)}
-                    className="p-1 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer print:hidden"
+                    title="Tutup"
                   >
                     <X size={18} />
                   </button>
@@ -371,23 +384,23 @@ function ETicketContent({
               </div>
 
               {/* Invoice Body */}
-              <div className="p-6 space-y-5 text-xs text-ink max-h-[75vh] overflow-y-auto">
+              <div className="p-6 space-y-5 text-xs text-ink max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-6 print:text-black">
                 {/* Meta Info Grid */}
-                <div className="grid grid-cols-2 gap-3 p-3.5 bg-surface rounded-xl border border-borderCol/60 text-xs">
+                <div className="grid grid-cols-2 gap-3 p-3.5 bg-surface rounded-xl border border-borderCol/60 text-xs print:bg-slate-50 print:border-slate-200">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-muted block">No. Invoice</span>
-                    <span className="font-mono font-bold text-ink">INV-{bookingCode}-{scheduleId.toUpperCase()}</span>
+                    <span className="text-[10px] uppercase font-bold text-muted block print:text-slate-500">No. Invoice</span>
+                    <span className="font-mono font-bold text-ink print:text-black">INV-{bookingCode}-{scheduleId.toUpperCase()}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-muted block">Kode Booking</span>
+                    <span className="text-[10px] uppercase font-bold text-muted block print:text-slate-500">Kode Booking</span>
                     <span className="font-mono font-bold text-primary">{bookingCode}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-muted block">Waktu Transaksi</span>
-                    <span className="font-medium text-ink">{dateStr}</span>
+                    <span className="text-[10px] uppercase font-bold text-muted block print:text-slate-500">Waktu Transaksi</span>
+                    <span className="font-medium text-ink print:text-black">{dateStr}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-muted block">Status Pembayaran</span>
+                    <span className="text-[10px] uppercase font-bold text-muted block print:text-slate-500">Status Pembayaran</span>
                     <span className="font-bold text-emerald-600 flex items-center gap-1">
                       <ShieldCheck size={13} /> Terverifikasi
                     </span>
@@ -396,13 +409,13 @@ function ETicketContent({
 
                 {/* Trip Summary */}
                 <div>
-                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Detail Perjalanan</h4>
-                  <div className="p-3.5 border border-borderCol rounded-xl space-y-2">
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2 print:text-slate-600">Detail Perjalanan</h4>
+                  <div className="p-3.5 border border-borderCol rounded-xl space-y-2 print:border-slate-200">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-ink">{from} → {to}</span>
+                      <span className="font-bold text-sm text-ink print:text-black">{from} → {to}</span>
                       <span className="text-xs font-semibold text-primary">{bus}</span>
                     </div>
-                    <div className="flex items-center justify-between text-muted text-xs">
+                    <div className="flex items-center justify-between text-muted text-xs print:text-slate-600">
                       <span>{dateStr} · {dep} – {arr} WIB</span>
                       <span>{cls}</span>
                     </div>
@@ -411,22 +424,22 @@ function ETicketContent({
 
                 {/* Passengers */}
                 <div>
-                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Daftar Penumpang</h4>
-                  <div className="border border-borderCol rounded-xl overflow-hidden divide-y divide-borderCol/60">
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2 print:text-slate-600">Daftar Penumpang</h4>
+                  <div className="border border-borderCol rounded-xl overflow-hidden divide-y divide-borderCol/60 print:border-slate-200">
                     {passengers.map((p, idx) => (
                       <div key={idx} className="p-3 flex items-center justify-between bg-white">
                         <div className="flex items-center gap-2.5">
-                          <span className="px-2 py-0.5 rounded bg-primary-tint text-primary font-mono font-bold text-xs">
+                          <span className="px-2 py-0.5 rounded bg-primary-tint text-primary font-mono font-bold text-xs print:border print:border-primary/40">
                             {p.seat}
                           </span>
-                          <span className="font-bold text-ink text-xs">{p.name || `Penumpang ${idx + 1}`}</span>
+                          <span className="font-bold text-ink text-xs print:text-black">{p.name || `Penumpang ${idx + 1}`}</span>
                           {p.type === 'anak' && (
                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 font-bold uppercase">
                               Anak
                             </span>
                           )}
                         </div>
-                        <span className="text-muted text-[11px] font-mono">
+                        <span className="text-muted text-[11px] font-mono print:text-slate-500">
                           {p.ktp && p.ktp.trim()
                             ? `NIK: ${p.ktp.slice(0, 6)}******`
                             : p.type === 'anak'
@@ -440,19 +453,19 @@ function ETicketContent({
 
                 {/* Billing Breakdown */}
                 <div>
-                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2">Rincian Pembayaran</h4>
-                  <div className="space-y-1.5 p-3.5 bg-surface rounded-xl border border-borderCol/60">
-                    <div className="flex justify-between text-muted">
+                  <h4 className="font-bold text-xs text-muted uppercase tracking-wider mb-2 print:text-slate-600">Rincian Pembayaran</h4>
+                  <div className="space-y-1.5 p-3.5 bg-surface rounded-xl border border-borderCol/60 print:bg-slate-50 print:border-slate-200">
+                    <div className="flex justify-between text-muted print:text-slate-700">
                       <span>Tiket Bus ({passengers.length} kursi)</span>
-                      <span className="font-medium text-ink">
+                      <span className="font-medium text-ink print:text-black">
                         Rp {(sp.total ? parseInt(sp.total) : 250000).toLocaleString('id-ID')}
                       </span>
                     </div>
-                    <div className="flex justify-between text-muted">
+                    <div className="flex justify-between text-muted print:text-slate-700">
                       <span>Biaya Layanan &amp; Asuransi Jasa Raharja</span>
                       <span className="font-medium text-emerald-600">Gratis (Rp 0)</span>
                     </div>
-                    <div className="pt-2 border-t border-borderCol flex justify-between items-center text-sm font-black text-ink">
+                    <div className="pt-2 border-t border-borderCol flex justify-between items-center text-sm font-black text-ink print:border-slate-200 print:text-black">
                       <span>Total Dibayar</span>
                       <span className="text-base text-primary">
                         Rp {(sp.total ? parseInt(sp.total) : 250000).toLocaleString('id-ID')}
@@ -462,8 +475,8 @@ function ETicketContent({
                 </div>
               </div>
 
-              {/* Invoice Footer Actions */}
-              <div className="p-4 bg-surface border-t border-borderCol flex items-center justify-between gap-3">
+              {/* Invoice Footer Actions (Disembunyikan saat dicetak sehingga kertas cetak/PDF bersih tanpa tombol aksi) */}
+              <div className="p-4 bg-surface border-t border-borderCol flex items-center justify-between gap-3 print:hidden">
                 <button
                   type="button"
                   onClick={() => window.print()}

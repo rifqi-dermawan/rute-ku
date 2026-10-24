@@ -461,3 +461,21 @@ body.dark .footer-grey-bar a:hover,
     color: #0B6E78;
   }
 }
+
+/* ─── Print Styles ────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: auto;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0F2A33 !important;
+    font-size: 11pt;
+  }
+
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+}

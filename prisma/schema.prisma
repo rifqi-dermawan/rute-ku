@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" // Ubah ke "postgresql" jika menggunakan PostgreSQL
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum BusClass {
@@ -56,20 +57,21 @@ model Bus {
 }
 
 model Schedule {
-  id              String      @id @default(uuid())
+  id              String         @id @default(uuid())
   busId           String
   originCity      String
   destinationCity String
   departureTime   DateTime
   arrivalTime     DateTime
-  price           Decimal     @db.Decimal(10, 2)
-  isFull          Boolean     @default(false)
-  createdAt       DateTime    @default(now())
+  price           Decimal        @db.Decimal(10, 2)
+  isFull          Boolean        @default(false)
+  createdAt       DateTime       @default(now())
 
-  bus             Bus         @relation(fields: [busId], references: [id])
+  bus             Bus            @relation(fields: [busId], references: [id])
   seats           Seat[]
   seatHolds       SeatHold[]
   bookings        Booking[]
+  scheduleStops   ScheduleStop[]
 
   @@index([originCity, destinationCity, departureTime])
 }
@@ -155,4 +157,76 @@ model Passenger {
   seatNumber String   
 
   booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// FITUR PELENGKAP RUTE & STANDAR GTFS
+// ==========================================
+
+model City {
+  id           String   @id @default(uuid())
+  code         String   @unique // Kode wilayah resmi (Kemendagri/BPS)
+  name         String   // Title Case (contoh: "Kota Bandung")
+  provinceCode String   @map("province_code")
+  provinceName String   @map("province_name")
+  lat          Float?
+  lng          Float?
+  isHub        Boolean  @default(false) @map("is_hub")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  terminals         Terminal[]
+  originRoutes      Route[]    @relation("OriginCity")
+  destinationRoutes Route[]    @relation("DestinationCity")
+
+  @@index([name])
+  @@map("cities")
+}
+
+model Route {
+  id                  String   @id @default(uuid())
+  originCityId        String   @map("origin_city_id")
+  destinationCityId   String   @map("destination_city_id")
+  distanceKm          Int      @map("distance_km")
+  osrmDurationMinutes Int      @map("osrm_duration_minutes")
+  provider            String   // 'osrm' atau 'ors'
+  computedAt          DateTime @default(now()) @map("computed_at")
+
+  originCity      City @relation("OriginCity", fields: [originCityId], references: [id], onDelete: Cascade)
+  destinationCity City @relation("DestinationCity", fields: [destinationCityId], references: [id], onDelete: Cascade)
+
+  @@unique([originCityId, destinationCityId])
+  @@map("routes")
+}
+
+model Terminal {
+  id             String   @id @default(uuid())
+  cityId         String   @map("city_id")
+  name           String
+  lat            Float
+  lng            Float
+  coordsVerified Boolean  @default(false) @map("coords_verified")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  city          City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  scheduleStops ScheduleStop[]
+
+  @@index([cityId])
+  @@map("terminals")
+}
+
+model ScheduleStop {
+  id           String   @id @default(uuid())
+  scheduleId   String   @map("schedule_id")
+  terminalId   String   @map("terminal_id")
+  stopSequence Int      @map("stop_sequence") // Integer mulai 1
+  arrivalAt    DateTime @map("arrival_at")
+  departureAt  DateTime @map("departure_at")
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  terminal Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, stopSequence])
+  @@index([scheduleId])
+  @@index([terminalId])
+  @@map("schedule_stops")
 }

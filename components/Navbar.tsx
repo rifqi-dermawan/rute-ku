@@ -71,7 +71,7 @@ export default function Navbar() {
   const isHelpActive = pathname?.startsWith('/help')
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-borderCol">
+    <header className="sticky top-0 z-50 bg-white border-b border-borderCol print:hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-8 h-16 flex items-center justify-between gap-2">
         {/* Left: Brand & Nav Links */}
         <div className="flex items-center gap-2.5 sm:gap-6 min-w-0">
