@@ -185,25 +185,18 @@ function SeatContent({
     )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
 
     if (user) {
-      // Pengguna sudah login -> langsung lanjutkan
+      // Pengguna sudah login -> langsung lanjutkan ke data penumpang
       router.push(targetUrl)
     } else {
-      // Pengguna belum login -> tampilkan dialog Lazy Registration
-      openAuthModal({
-        mode: 'login',
-        title: 'Masuk untuk Lanjut Pemesanan',
-        description: 'Satu langkah lagi! Masuk atau buat akun RuteKu untuk mengamankan kursi pilihan Anda.',
-        bannerInfo: {
-          seats: selected,
-          timeLeftFormatted: fmtTime(timeLeft),
-          from,
-          to,
-        },
-        onSuccess: () => {
-          // Setelah login/daftar berhasil, otomatis lanjutkan ke Langkah 4
-          router.push(targetUrl)
-        },
-      })
+      // Pengguna belum login -> arahkan ke halaman autentikasi OAuth & OTP email
+      const authUrl = `/booking/${scheduleId}/auth?seats=${selected.join(
+        ','
+      )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(
+        tripDate
+      )}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(
+        busName
+      )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}&timeLeft=${timeLeft}`
+      router.push(authUrl)
     }
   }
 

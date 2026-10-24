@@ -37,6 +37,9 @@ interface AuthContextType {
   authModalConfig: AuthModalConfig | null
   openAuthModal: (config?: AuthModalConfig) => void
   closeAuthModal: () => void
+  sendOtp: (email: string) => Promise<{ success: boolean; message?: string; devCode?: string; error?: string }>
+  loginWithOtp: (email: string, otp: string, name?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
+  loginWithGoogle: (email?: string, name?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
 }
 
 const DEMO_USERS: AuthUser[] = [
@@ -264,6 +267,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false)
   }, [])
 
+  const sendOtp = useCallback(async (email: string) => {
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      return data
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Gagal mengirim kode verifikasi.' }
+    }
+  }, [])
+
+  const loginWithOtp = useCallback(async (email: string, otp: string, name?: string) => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, name }),
+      })
+      const data = await res.json()
+      if (data.success && data.user) {
+        saveUserSession(data.user)
+        return { success: true, user: data.user }
+      }
+      return { success: false, error: data.error || 'Verifikasi kode gagal.' }
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Kendala jaringan verifikasi.' }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const loginWithGoogle = useCallback(async (email?: string, name?: string) => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      })
+      const data = await res.json()
+      if (data.success && data.user) {
+        saveUserSession(data.user)
+        return { success: true, user: data.user }
+      }
+      return { success: false, error: data.error || 'Autentikasi Google gagal.' }
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Gagal terhubung ke layanan Google.' }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   return (
     <AuthContext.Provider
       value={{
@@ -276,6 +335,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authModalConfig,
         openAuthModal,
         closeAuthModal,
+        sendOtp,
+        loginWithOtp,
+        loginWithGoogle,
       }}
     >
       {children}
