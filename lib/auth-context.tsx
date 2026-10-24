@@ -120,6 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         u => u.email.toLowerCase() === normalized || u.phone === normalized || u.name.toLowerCase() === normalized
       )
       if (demoMatch) {
+        if (demoMatch.role === 'ADMIN') {
+          if (!_password || _password !== 'admin123') {
+            return { success: false, error: 'Kata sandi staf Administrator salah. (Gunakan kata sandi admin yang telah ditentukan).' }
+          }
+        }
         saveUserSession(demoMatch)
         return { success: true }
       }

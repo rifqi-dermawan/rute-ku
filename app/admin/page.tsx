@@ -20,7 +20,8 @@ import {
   ChevronRight,
   ShieldCheck,
   AlertCircle,
-  LogOut
+  LogOut,
+  Menu
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
@@ -128,6 +129,7 @@ const INITIAL_BOOKINGS: BookingRecord[] = [
 
 export default function AdminPage() {
   const { user, logout } = useAuth()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'bookings' | 'seats' | 'help'>('bookings')
   const [scheduleFilter, setScheduleFilter] = useState('Jakarta → Bandung · Sab 10 Okt · 08:00')
   const [statusFilter, setStatusFilter] = useState('Semua status')
@@ -194,25 +196,51 @@ export default function AdminPage() {
   })
 
   return (
-    <div className="min-h-screen bg-surface flex">
-      {/* ─── SIDEBAR (Dark Navy #123B5C from Design System) ────── */}
-      <aside className="w-64 bg-[#123B5C] text-white flex-shrink-0 flex flex-col justify-between py-6 px-4">
+    <div className="min-h-screen bg-surface flex flex-col lg:flex-row relative">
+      {/* ─── MOBILE BACKDROP OVERLAY ────── */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity cursor-pointer"
+        />
+      )}
+
+      {/* ─── SIDEBAR (Slide-over drawer on mobile, static on desktop) ────── */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 bg-[#123B5C] text-white flex flex-col justify-between py-6 px-4 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none lg:static lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div>
-          {/* Brand */}
-          <div className="flex items-center gap-3 px-3 py-2 mb-8">
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-xs">
-              <Bus size={20} />
+          {/* Brand & Mobile Close button */}
+          <div className="flex items-center justify-between px-3 py-2 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-xs">
+                <Bus size={20} />
+              </div>
+              <span className="font-extrabold text-xl tracking-tight text-white">
+                Rute<span className="text-[#3DD598]">Ku</span> Admin
+              </span>
             </div>
-            <span className="font-extrabold text-xl tracking-tight text-white">
-              Rute<span className="text-[#3DD598]">Ku</span> Admin
-            </span>
+
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Tutup navigasi sidebar"
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* Nav Links */}
           <nav className="space-y-1.5">
             <button
-              onClick={() => setActiveTab('bookings')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all text-left ${
+              onClick={() => {
+                setActiveTab('bookings')
+                setIsSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all text-left cursor-pointer ${
                 activeTab === 'bookings'
                   ? 'bg-white text-ink shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -223,8 +251,11 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('seats')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all text-left ${
+              onClick={() => {
+                setActiveTab('seats')
+                setIsSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all text-left cursor-pointer ${
                 activeTab === 'seats'
                   ? 'bg-white text-ink shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -235,8 +266,11 @@ export default function AdminPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('help')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all text-left ${
+              onClick={() => {
+                setActiveTab('help')
+                setIsSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all text-left cursor-pointer ${
                 activeTab === 'help'
                   ? 'bg-white text-ink shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -282,8 +316,38 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      {/* ─── MAIN CONTENT ─────────────────────────────────────── */}
-      <main className="flex-1 p-8 lg:p-10 overflow-y-auto">
+      {/* ─── MAIN CONTENT WRAPPER ──────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Top Navbar with Hamburger */}
+        <header className="lg:hidden bg-[#123B5C] text-white px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              aria-label="Buka navigasi menu admin"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white border border-white/20">
+                <Bus size={15} />
+              </div>
+              <span className="font-extrabold text-base tracking-tight text-white">
+                Rute<span className="text-[#3DD598]">Ku</span> Admin
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              ADMIN
+            </span>
+          </div>
+        </header>
+
+        {/* ─── MAIN CONTENT ─────────────────────────────────────── */}
+        <main className="flex-1 p-4 sm:p-8 lg:p-10 overflow-y-auto">
         {activeTab === 'bookings' && (
           <div className="max-w-6xl mx-auto space-y-6">
             {/* Header */}
@@ -660,6 +724,7 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+      </div>
 
       {/* ─── MODAL DETAIL BOOKING ─────────────────────────────── */}
       {selectedBooking && (

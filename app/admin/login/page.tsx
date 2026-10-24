@@ -3,7 +3,7 @@
 import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 export default function AdminLoginPage({
@@ -34,32 +34,24 @@ export default function AdminLoginPage({
     try {
       const res = await login(email, password)
       if (!res.success) {
-        throw new Error(res.error || 'Email atau password staf salah.')
+        throw new Error(res.error || 'Email atau kata sandi staf salah.')
       }
 
-      // Check cookie or state
+      // Verify that the logged-in user has ADMIN role
+      const roleMatch = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('ruteku_user_role='))
+        ?.split('=')[1]
+
+      if (roleMatch !== 'ADMIN') {
+        throw new Error('Akses ditolak: Akun ini adalah akun Penumpang biasa, bukan akun Administrator.')
+      }
+
       const target = sp.callbackUrl || '/admin'
       router.push(target)
       router.refresh()
     } catch (err: any) {
       setErrorMessage(err.message || 'Gagal masuk sebagai admin.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleQuickAdminLogin = async () => {
-    setLoading(true)
-    setErrorMessage('')
-    try {
-      const res = await login('admin@ruteku.id')
-      if (res.success) {
-        const target = sp.callbackUrl || '/admin'
-        router.push(target)
-        router.refresh()
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Gagal masuk.')
     } finally {
       setLoading(false)
     }
@@ -71,7 +63,7 @@ export default function AdminLoginPage({
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-md z-10 space-y-6">
-        {/* Back to main portal link */}
+        {/* Back to client app */}
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
@@ -91,7 +83,7 @@ export default function AdminLoginPage({
               Portal Operasional Admin
             </h1>
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
-              Dashboard manifest penumpang, operasional armada, dan manajemen rilis kursi RuteKu.
+              Masuk dengan akun staf untuk mengelola manifest penumpang dan operasional armada bus.
             </p>
           </div>
 
@@ -150,24 +142,13 @@ export default function AdminLoginPage({
               disabled={loading}
               className="w-full h-11 rounded-xl bg-[#0B6E78] hover:bg-[#08525A] text-white font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer disabled:opacity-50"
             >
-              {loading ? 'Memverifikasi...' : 'Masuk ke Dashboard Admin'}
+              {loading ? 'Memverifikasi Kredensial...' : 'Masuk ke Dashboard Admin'}
             </button>
           </form>
 
-          {/* Quick Simulation Button for Evaluation/Demo */}
-          <div className="pt-4 border-t border-slate-700/60 space-y-2.5">
-            <p className="text-[11px] font-bold text-slate-400 text-center uppercase tracking-wider">
-              Akses Cepat Pengujian (Evaluasi RPL)
-            </p>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleQuickAdminLogin}
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-600 text-xs font-bold text-emerald-400 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <CheckCircle2 size={15} />
-              <span>Masuk sebagai Admin (admin@ruteku.id)</span>
-            </button>
+          {/* Note credentials info for grading/evaluation */}
+          <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 text-[11px] text-slate-400 text-center leading-relaxed">
+            Akun Staf Demo: <span className="text-white font-mono font-bold">admin@ruteku.id</span> · Sandi: <span className="text-white font-mono font-bold">admin123</span>
           </div>
         </div>
 
