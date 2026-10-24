@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HelpCircle, Clock, Sun, Moon, User, LogIn, LogOut, Ticket, ChevronDown } from 'lucide-react'
+import { HelpCircle, Clock, Sun, Moon, LogIn, LogOut, Ticket, ChevronDown } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 
@@ -262,15 +262,6 @@ export default function Navbar() {
               )}
             </span>
           </button>
-
-          {/* User profile avatar badge — akses rahasia ke /admin ("yang tau tau aja") */}
-          <Link
-            href="/admin"
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary text-white font-bold text-xs flex items-center justify-center tracking-tight shadow-sm hover:opacity-90 transition-opacity cursor-pointer flex-shrink-0"
-            title="Akun Petugas"
-          >
-            <User size={15} />
-          </Link>
         </div>
       </div>
     </header>

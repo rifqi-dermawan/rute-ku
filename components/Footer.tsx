@@ -21,28 +21,9 @@ export default function Footer() {
   const isAdmin = pathname?.startsWith('/admin')
   const isSeatPage = pathname?.includes('/booking/') && pathname?.includes('/seat')
 
-  // Dedicated clean administrative footer for the operator dashboard
+  // Do not show footer on admin pages (pure admin interface)
   if (isAdmin) {
-    return (
-      <footer className="bg-white border-t border-borderCol py-4 px-4 sm:px-8 mt-auto text-xs text-muted flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-bold">
-            RK
-          </div>
-          <span className="font-medium text-ink">
-            © 2026 RuteKu Operator Console · Sistem Manajemen Reservasi &amp; Kursi Bus
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-[11px] bg-green-50 text-success border border-green-200 px-2.5 py-0.5 rounded-full font-semibold">
-            ● Sistem Aktif
-          </span>
-          <Link href="/" className="text-primary font-semibold hover:underline flex items-center gap-1">
-            Portal Penumpang <ArrowRight size={12} />
-          </Link>
-        </div>
-      </footer>
-    )
+    return null
   }
 
   return (
@@ -277,10 +258,6 @@ export default function Footer() {
             <span className="dark:!text-black">·</span>
             <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
               Pusat Panduan
-            </Link>
-            <span className="dark:!text-black">·</span>
-            <Link href="/admin" className="text-muted/60 dark:!text-black/80 hover:text-primary dark:hover:!text-primary transition-colors" title="Akses Petugas">
-              Petugas
             </Link>
           </div>
         </div>

@@ -142,11 +142,6 @@ export default function AdminLoginPage({
               {loading ? 'Memverifikasi Kredensial...' : 'Masuk ke Dashboard Admin'}
             </button>
           </form>
-
-          {/* Note credentials info for grading/evaluation */}
-          <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 text-[11px] text-slate-400 text-center leading-relaxed">
-            Akun Staf Demo: <span className="text-white font-mono font-bold">admin@ruteku.id</span> · Sandi: <span className="text-white font-mono font-bold">admin123</span>
-          </div>
         </div>
 
         {/* Security badge footer */}
