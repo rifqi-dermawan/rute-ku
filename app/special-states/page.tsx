@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle, Clock, WifiOff, Check } from 'lucide-react'
+import { AlertCircle, Clock, WifiOff, Check, X } from 'lucide-react'
 
 export default function SpecialStatesPage() {
   const [extended, setExtended] = useState(false)
@@ -88,7 +88,7 @@ export default function SpecialStatesPage() {
                       4C
                     </div>
                     <div className="w-8 h-8 rounded-lg bg-[#0F2A33] text-white flex items-center justify-center">
-                      ✕
+                      <X size={12} strokeWidth={2.5} />
                     </div>
                   </div>
 
@@ -103,7 +103,7 @@ export default function SpecialStatesPage() {
                     </div>
                     <span className="w-5 text-center text-muted font-normal text-[11px]">5</span>
                     <div className="w-8 h-8 rounded-lg bg-[#0F2A33] text-white flex items-center justify-center">
-                      ✕
+                      <X size={12} strokeWidth={2.5} />
                     </div>
                     <div className="w-8 h-8 rounded-lg bg-white border border-borderCol text-ink flex items-center justify-center">
                       5D
@@ -240,8 +240,9 @@ export default function SpecialStatesPage() {
               {/* Notice Card */}
               <div className="p-4 rounded-xl bg-surface border border-borderCol space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold">
-                    ✕ Penuh
+                  <span className="px-2 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold inline-flex items-center gap-1">
+                    <X size={11} strokeWidth={2.5} />
+                    Penuh
                   </span>
                   <span className="text-xs font-bold text-ink">14:00 → 17:30 · Nusa Trans</span>
                 </div>

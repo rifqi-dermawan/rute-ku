@@ -4,7 +4,7 @@ import { use, useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
-import { Check, Clock, Ban } from 'lucide-react'
+import { Check, Clock, Ban, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 /* ─── Types ──────────────────────────────────────────────────── */
@@ -63,7 +63,7 @@ function seatClass(status: SeatStatus, isSelected: boolean): string {
 function SeatIcon({ status, isSelected }: { status: SeatStatus; isSelected: boolean }) {
   if (isSelected) return <Check size={11} strokeWidth={3} className="text-white" />
   if (status === 'held') return <Clock size={11} className="text-pink-600" />
-  if (status === 'booked') return <span className="text-[9px] font-black leading-none">✕</span>
+  if (status === 'booked') return <X size={10} strokeWidth={2.5} className="text-white" />
   if (status === 'blocked') return <Ban size={10} className="text-muted" />
   return null
 }
@@ -242,7 +242,9 @@ function SeatContent({
           <span>Tersedia</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-[#4F46E5] text-white flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+          <span className="w-4 h-4 rounded-md bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0">
+            <Check size={10} strokeWidth={3} />
+          </span>
           <span>Dipilih</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -252,11 +254,15 @@ function SeatContent({
           <span>Ditahan orang lain</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-ink text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">✕</span>
+          <span className="w-4 h-4 rounded-md bg-ink text-white flex items-center justify-center flex-shrink-0">
+            <X size={10} strokeWidth={2.5} />
+          </span>
           <span>Terisi</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center text-[10px] flex-shrink-0">⊘</span>
+          <span className="w-4 h-4 rounded-md bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center flex-shrink-0">
+            <Ban size={10} />
+          </span>
           <span>Tidak tersedia</span>
         </div>
       </div>
@@ -406,7 +412,7 @@ function SeatContent({
                   {/* Terisi */}
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-[#0F2A33] text-white flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-black">✕</span>
+                      <X size={14} strokeWidth={2.5} />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-ink">Terisi · {counts.booked}</p>
@@ -488,7 +494,7 @@ function SeatContent({
                       >
                         <Check size={11} strokeWidth={3} />
                         <span>{id}</span>
-                        <span className="opacity-60 text-[10px]">✕</span>
+                        <X size={10} strokeWidth={2.5} className="opacity-60" />
                       </button>
                     ))}
                   </div>
@@ -550,7 +556,7 @@ function SeatContent({
             href="/special-states"
             className="text-xs font-bold text-primary hover:underline px-2 py-1 bg-primary-tint border border-primary/30 rounded-md"
           >
-            ✦ Layar 10: State Khusus
+            Layar 10: State Khusus
           </Link>
           <button
             type="button"
@@ -625,7 +631,7 @@ function SeatContent({
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-borderCol/50 text-muted hover:text-ink flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Tutup modal"
             >
-              ✕
+              <X size={16} />
             </button>
 
             {/* Header */}

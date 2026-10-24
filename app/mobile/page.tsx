@@ -12,7 +12,8 @@ import {
   History, 
   Download, 
   Smartphone,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react'
 
 type SeatStatus = 'available' | 'selected' | 'held' | 'booked' | 'blocked'
@@ -155,7 +156,9 @@ export default function MobilePreviewPage() {
                   <span>Tersedia</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-3.5 h-3.5 rounded-sm bg-[#4F46E5] text-white flex items-center justify-center text-[9px] font-bold">✓</span>
+                  <span className="w-3.5 h-3.5 rounded-sm bg-[#4F46E5] text-white flex items-center justify-center">
+                    <Check size={8} strokeWidth={3} />
+                  </span>
                   <span>Dipilih</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -165,11 +168,15 @@ export default function MobilePreviewPage() {
                   <span>Ditahan</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-3.5 h-3.5 rounded-sm bg-ink text-white flex items-center justify-center text-[8px] font-bold">✕</span>
+                  <span className="w-3.5 h-3.5 rounded-sm bg-ink text-white flex items-center justify-center">
+                    <X size={8} strokeWidth={2.5} />
+                  </span>
                   <span>Terisi</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-3.5 h-3.5 rounded-sm bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center text-[8px]">⊘</span>
+                  <span className="w-3.5 h-3.5 rounded-sm bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center">
+                    <Ban size={8} />
+                  </span>
                   <span>Kosong</span>
                 </div>
               </div>
@@ -426,9 +433,9 @@ function renderMobileSeatButton(
       disabled={status === 'booked' || status === 'held' || status === 'blocked'}
       className={`w-12 h-12 rounded-xl border text-xs font-bold flex flex-col items-center justify-center transition-all ${style}`}
     >
-      {isSelected && <span className="text-[11px] font-black leading-none">✓</span>}
+      {isSelected && <Check size={11} strokeWidth={3} className="text-white" />}
       {!isSelected && status === 'held' && <Clock size={11} className="text-[#C11574]" />}
-      {!isSelected && status === 'booked' && <span className="text-[10px] font-black leading-none">✕</span>}
+      {!isSelected && status === 'booked' && <X size={10} strokeWidth={2.5} className="text-white" />}
       {!isSelected && status === 'blocked' && <Ban size={11} className="text-muted" />}
       <span className="text-[10px] font-mono leading-none mt-0.5 font-bold">{id}</span>
     </button>

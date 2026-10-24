@@ -483,7 +483,7 @@ export default function AuthModal() {
                       </div>
                     </div>
                     <span className="text-[11px] font-bold text-primary px-2 py-0.5 rounded-md bg-primary-tint dark:bg-black/30 group-hover:bg-primary group-hover:text-white transition-all">
-                      Masuk ⚡
+                      Masuk
                     </span>
                   </button>
                 ))}
@@ -494,7 +494,7 @@ export default function AuthModal() {
                 onClick={() => handleQuickDemoLogin('dini@ruteku.id')}
                 className="w-full py-2 px-3 rounded-lg border border-dashed border-primary/40 bg-primary-tint/30 hover:bg-primary-tint/70 text-primary dark:text-primary-tint text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span>⚡ 1-Klik Masuk sebagai <strong>Dini Sartika</strong></span>
+                <span>Masuk Cepat sebagai <strong>Dini Sartika</strong></span>
               </button>
             )}
           </div>

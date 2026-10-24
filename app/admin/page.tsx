@@ -463,7 +463,7 @@ export default function AdminPage() {
               {/* Card 3: Terisi */}
               <div className="bg-white border border-borderCol rounded-2xl p-5 flex items-center gap-4 shadow-2xs">
                 <div className="w-10 h-10 rounded-xl bg-ink text-white flex items-center justify-center">
-                  <span className="text-sm font-black">✕</span>
+                  <X size={18} strokeWidth={2.5} />
                 </div>
                 <div>
                   <div className="text-2xl font-extrabold text-ink">11</div>
@@ -543,7 +543,7 @@ export default function AdminPage() {
                             )}
                             {row.status === 'Dibatalkan' && (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEF3F2] text-[#B42318] border border-[#FECDCA] text-xs font-bold">
-                                <span className="font-black text-[10px]">✕</span>
+                                <X size={12} strokeWidth={2.5} />
                                 Dibatalkan
                               </span>
                             )}
@@ -615,7 +615,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-5 h-5 rounded-md bg-ink text-white flex items-center justify-center text-[10px] font-bold">
-                    ✕
+                    <X size={11} strokeWidth={2.5} />
                   </div>
                   <span>Terisi terbayar (11)</span>
                 </div>

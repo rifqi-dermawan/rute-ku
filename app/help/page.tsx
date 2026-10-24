@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Clock, Ban, Search, Plus, Minus, MessageSquare, Mail } from 'lucide-react'
+import { Check, Clock, Ban, Search, Plus, Minus, MessageSquare, Mail, X } from 'lucide-react'
 
 const FAQS = [
   {
@@ -107,7 +107,7 @@ export default function HelpPage() {
             {/* Terisi */}
             <div className="flex items-start gap-3 p-3 rounded-xl border border-borderCol bg-surface">
               <div className="w-8 h-8 rounded-lg bg-[#0F2A33] text-white flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-black">✕</span>
+                <X size={14} strokeWidth={2.5} />
               </div>
               <p className="text-xs text-ink leading-snug">
                 <strong className="font-bold">Terisi.</strong> Sudah dibayar, tidak bisa dipilih.

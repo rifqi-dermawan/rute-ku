@@ -182,28 +182,6 @@ export default function HistoryPage() {
                 <span>Masuk ke Akun Anda</span>
               </button>
             </div>
-
-            <div className="pt-4 border-t border-borderCol/60 max-w-sm mx-auto text-left">
-              <p className="text-[11px] font-semibold text-muted text-center mb-2">
-                Pilih akun simulasi untuk menguji:
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => openAuthModal({ mode: 'login' })}
-                  className="px-2.5 py-1 rounded-lg bg-surface border border-borderCol text-[11px] font-bold text-ink hover:border-primary transition-colors cursor-pointer"
-                >
-                  👤 Dini Sartika (Ada tiket)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openAuthModal({ mode: 'login' })}
-                  className="px-2.5 py-1 rounded-lg bg-surface border border-borderCol text-[11px] font-bold text-ink hover:border-primary transition-colors cursor-pointer"
-                >
-                  👤 Rifqi Dermawan (Akun baru)
-                </button>
-              </div>
-            </div>
           </div>
         ) : (
           /* ── AUTHENTICATED STATE: DISPLAY USER'S REAL TICKETS ONLY ── */
