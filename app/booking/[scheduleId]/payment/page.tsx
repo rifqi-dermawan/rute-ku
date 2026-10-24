@@ -3,6 +3,7 @@
 import { use, useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Stepper from '@/components/Stepper'
+import { useAuth } from '@/lib/auth-context'
 import {
   ArrowLeft,
   Clock,
@@ -100,6 +101,7 @@ function PaymentContent({
   } catch {}
 
   const router = useRouter()
+  const { user } = useAuth()
   const [selectedMethod, setSelectedMethod] = useState('qris')
   const [selectedBank, setSelectedBank] = useState('bca')
   const [selectedEwallet, setSelectedEwallet] = useState('gopay')
@@ -235,7 +237,7 @@ function PaymentContent({
     }
   }
 
-  const navigateToEticket = () => {
+  const navigateToEticket = async () => {
     let rawPassengers = sp.passengersData ?? ''
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem('ruteku_passengers')
@@ -247,12 +249,69 @@ function PaymentContent({
       }
     } catch {}
 
+    const dynamicCode = `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+
+    // Securely persist booking strictly associated with authenticated user (Anti-IDOR)
+    if (user?.id) {
+      try {
+        await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingCode: dynamicCode,
+            userId: user.id,
+            scheduleId,
+            from,
+            to,
+            date: `${dateStr} · ${dep}`,
+            dep,
+            arr,
+            bus,
+            cls,
+            seats: seatsParam,
+            passengers: passengerNames,
+            contactName: user.name || 'Penumpang RuteKu',
+            contactEmail: user.email || sp.email || 'customer@ruteku.id',
+            contactPhone: user.phone || sp.phone || '081234567890',
+            totalAmount: parseInt(total) || 250000,
+            paymentMethod: selectedMethod === 'qris' ? 'QRIS' : 'VIRTUAL_ACCOUNT',
+            status: 'PAID',
+          }),
+        })
+      } catch (e) {}
+    }
+
+    // Trigger asynchronous official E-Ticket Email dispatch
+    const targetEmail = user?.email || sp.email
+    if (targetEmail) {
+      try {
+        fetch('/api/email/eticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: targetEmail,
+            bookingCode: dynamicCode,
+            passengerNames: passengerNames || 'Penumpang RuteKu',
+            seats: seatsParam,
+            from,
+            toCity: to,
+            date: dateStr,
+            dep,
+            arr,
+            bus,
+            cls,
+            totalAmount: parseInt(total) || 250000,
+          }),
+        }).catch(() => {})
+      } catch (e) {}
+    }
+
     router.push(
       `/booking/${scheduleId}/eticket?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
         dateStr
       )}&passengersData=${encodeURIComponent(rawPassengers)}&email=${encodeURIComponent(
         sp.email ?? ''
-      )}&phone=${encodeURIComponent(sp.phone ?? '')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
+      )}&phone=${encodeURIComponent(sp.phone ?? '')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&code=${dynamicCode}`
     )
   }
 

@@ -244,8 +244,7 @@ function ReviewContent({
               </div>
 
               <p className="text-xs text-muted mt-4">
-                E-tiket dikirim ke <span className="font-semibold text-ink">{email}</span> dan WhatsApp{' '}
-                <span className="font-semibold text-ink">{phone}</span>.
+                E-tiket resmi akan dikirimkan ke <span className="font-semibold text-ink">{email}</span> setelah pembayaran berhasil.
               </p>
             </div>
 

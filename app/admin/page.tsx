@@ -19,8 +19,10 @@ import {
   Info, 
   ChevronRight,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  LogOut
 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 /* ─── Types & Mock Data ────────────────────────────────────────── */
 type BookingStatus = 'Terbayar' | 'Ditahan' | 'Dibatalkan'
@@ -125,6 +127,7 @@ const INITIAL_BOOKINGS: BookingRecord[] = [
 ]
 
 export default function AdminPage() {
+  const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState<'bookings' | 'seats' | 'help'>('bookings')
   const [scheduleFilter, setScheduleFilter] = useState('Jakarta → Bandung · Sab 10 Okt · 08:00')
   const [statusFilter, setStatusFilter] = useState('Semua status')
@@ -245,16 +248,35 @@ export default function AdminPage() {
           </nav>
         </div>
 
-        {/* Back to Client App Link */}
-        <div className="pt-6 border-t border-white/15">
+        {/* Admin User Profile & Back to Client App */}
+        <div className="pt-6 border-t border-white/15 space-y-3">
+          <div className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+            <div className="overflow-hidden">
+              <p className="text-xs font-bold text-white truncate">{user?.name || 'Staff Admin'}</p>
+              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">
+                ADMIN
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                logout()
+                window.location.href = '/admin/login'
+              }}
+              title="Keluar dari Portal Admin"
+              className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+
           <Link
             href="/"
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors"
           >
             <ArrowLeft size={16} />
             <span>Kembali ke Web Pemesan</span>
           </Link>
-          <div className="mt-3 px-3 text-[11px] text-white/50">
+          <div className="px-3 text-[11px] text-white/50">
             RuteKu Internal System v1.0
           </div>
         </div>

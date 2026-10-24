@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, Clock, Ban } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type SeatStatus = 'available' | 'selected' | 'held' | 'booked' | 'blocked'
@@ -101,6 +102,7 @@ function SeatContent({
   const tripDate = sp.date ? decodeURIComponent(sp.date) : 'Sab, 10 Okt 2026'
 
   const router = useRouter()
+  const { user, openAuthModal } = useAuth()
 
   /* Seat state - default preselection matches chosen passengers */
   const [seatMap, setSeatMap] = useState<Record<string, SeatStatus>>({ ...INITIAL_MAP })
@@ -168,6 +170,42 @@ function SeatContent({
   }
 
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
+
+  /* ─── Titik Paksaan Login / Lazy Registration Checkpoint ───────── */
+  /* Setelah Langkah 3 (Pilih Kursi) dan tepat sebelum Langkah 4 (Data Penumpang) */
+  const handleProceedToPassenger = () => {
+    if (selected.length < maxSelect || expired) return
+
+    const targetUrl = `/booking/${scheduleId}/passenger?seats=${selected.join(
+      ','
+    )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(
+      tripDate
+    )}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(
+      busName
+    )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
+
+    if (user) {
+      // Pengguna sudah login -> langsung lanjutkan
+      router.push(targetUrl)
+    } else {
+      // Pengguna belum login -> tampilkan dialog Lazy Registration
+      openAuthModal({
+        mode: 'login',
+        title: 'Masuk untuk Lanjut Pemesanan',
+        description: 'Satu langkah lagi! Masuk atau buat akun RuteKu untuk mengamankan kursi pilihan Anda.',
+        bannerInfo: {
+          seats: selected,
+          timeLeftFormatted: fmtTime(timeLeft),
+          from,
+          to,
+        },
+        onSuccess: () => {
+          // Setelah login/daftar berhasil, otomatis lanjutkan ke Langkah 4
+          router.push(targetUrl)
+        },
+      })
+    }
+  }
 
   /* Legend counts */
   const counts = {
@@ -474,13 +512,7 @@ function SeatContent({
             <button
               type="button"
               disabled={selected.length < maxSelect || expired}
-              onClick={() =>
-                router.push(
-                  `/booking/${scheduleId}/passenger?seats=${selected.join(
-                    ','
-                  )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
-                )
-              }
+              onClick={handleProceedToPassenger}
               className="hidden lg:flex w-full py-3 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-input transition-colors text-sm shadow-sm items-center justify-center cursor-pointer"
             >
               {selected.length < maxSelect
@@ -564,13 +596,7 @@ function SeatContent({
         <button
           type="button"
           disabled={selected.length < maxSelect || expired}
-          onClick={() =>
-            router.push(
-              `/booking/${scheduleId}/passenger?seats=${selected.join(
-                ','
-              )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(tripDate)}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(busName)}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
-            )
-          }
+          onClick={handleProceedToPassenger}
           className="w-full h-12 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold rounded-xl transition text-base shadow-sm flex items-center justify-center cursor-pointer"
         >
           {selected.length < maxSelect

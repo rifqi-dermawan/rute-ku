@@ -26,6 +26,7 @@ function ETicketContent({
     bus?: string
     cls?: string
     price?: string
+    code?: string
   }>
 }) {
   const { scheduleId } = use(params)
@@ -39,7 +40,7 @@ function ETicketContent({
   const dur = sp.dur ?? '3j 30m'
   const bus = sp.bus ? decodeURIComponent(sp.bus) : 'Nusa Trans'
   const cls = sp.cls ? decodeURIComponent(sp.cls) : 'Executive 2–2'
-  const bookingCode = 'RK-7Q4M2X'
+  const bookingCode = sp.code ?? 'RK-7Q4M2X'
   const email = sp.email ?? ''
 
   // State for Invoice Modal & QR Code value
@@ -84,27 +85,10 @@ function ETicketContent({
     }))
   })()
 
-  // Save completed booking with customized passenger names & setup QR value
+  // Setup dynamic QR value and invoice view
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const newBooking = {
-          id: bookingCode,
-          scheduleId,
-          from,
-          to,
-          date: `${dateStr} · ${dep}`,
-          dep,
-          arr,
-          bus,
-          cls,
-          seats: passengers.map(p => p.seat).join(', '),
-          passengers: passengers.map(p => p.name).join(', '),
-          price: sp.total ? parseInt(sp.total) : 250000,
-          status: 'paid',
-        }
-        localStorage.setItem('ruteku_last_booking', JSON.stringify(newBooking))
-
         // Set dynamic QR code value to open this invoice
         const currentUrl = new URL(window.location.href)
         currentUrl.searchParams.set('view', 'invoice')
@@ -117,7 +101,7 @@ function ETicketContent({
         }
       } catch {}
     }
-  }, [bookingCode, scheduleId, from, to, dateStr, dep, arr, bus, cls, passengers, sp.total])
+  }, [])
 
   return (
     <div className={`min-h-screen bg-surface pb-20 ${showInvoiceModal ? 'print:p-0 print:bg-white print:m-0' : ''}`}>
@@ -134,7 +118,7 @@ function ETicketContent({
               Pembayaran berhasil. Kursi {passengers.map(p => p.seat).join(' dan ')} resmi milikmu.
             </h1>
             <p className="text-xs sm:text-sm text-[#027A48]/80 dark:text-[#A6F4C5] mt-0.5">
-              E-tiket juga sudah dikirim ke {email || 'email'} dan WhatsApp.
+              E-tiket resmi telah dikirim ke {email || 'email Anda'}.
             </p>
           </div>
         </div>

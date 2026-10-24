@@ -1,0 +1,510 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { useAuth, DEMO_USERS } from '@/lib/auth-context'
+import {
+  X,
+  Lock,
+  Mail,
+  User as UserIcon,
+  Phone,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  ShieldCheck,
+  AlertCircle,
+  ArrowRight,
+} from 'lucide-react'
+
+export default function AuthModal() {
+  const {
+    isAuthModalOpen,
+    closeAuthModal,
+    authModalConfig,
+    login,
+    register,
+  } = useAuth()
+
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [emailOrPhone, setEmailOrPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [regEmail, setRegEmail] = useState('')
+  const [regPhone, setRegPhone] = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showDemoMenu, setShowDemoMenu] = useState(false)
+
+  // Sync mode with modal config when opened
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      setMode(authModalConfig?.mode || 'login')
+      setError(null)
+      setShowDemoMenu(false)
+    }
+  }, [isAuthModalOpen, authModalConfig])
+
+  if (!isAuthModalOpen) return null
+
+  const banner = authModalConfig?.bannerInfo
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    if (!emailOrPhone.trim()) {
+      setError('Silakan masukkan email atau nomor HP Anda.')
+      return
+    }
+
+    setIsLoading(true)
+    const res = await login(emailOrPhone, password)
+    setIsLoading(false)
+
+    if (res.success) {
+      closeAuthModal()
+      if (authModalConfig?.onSuccess) {
+        // Find user from state
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
+        if (stored) {
+          authModalConfig.onSuccess(JSON.parse(stored))
+        }
+      }
+    } else {
+      setError(res.error || 'Gagal masuk. Periksa kembali data Anda.')
+    }
+  }
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    if (!name.trim()) {
+      setError('Nama lengkap wajib diisi.')
+      return
+    }
+    if (!regEmail.trim()) {
+      setError('Email wajib diisi.')
+      return
+    }
+    if (!regPhone.trim()) {
+      setError('Nomor HP wajib diisi.')
+      return
+    }
+
+    setIsLoading(true)
+    const res = await register({
+      name,
+      email: regEmail,
+      phone: regPhone,
+      password: regPassword,
+    })
+    setIsLoading(false)
+
+    if (res.success) {
+      closeAuthModal()
+      if (authModalConfig?.onSuccess) {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
+        if (stored) {
+          authModalConfig.onSuccess(JSON.parse(stored))
+        }
+      }
+    } else {
+      setError(res.error || 'Gagal mendaftar.')
+    }
+  }
+
+  const handleQuickDemoLogin = async (userEmail: string) => {
+    setError(null)
+    setIsLoading(true)
+    const res = await login(userEmail)
+    setIsLoading(false)
+    if (res.success) {
+      closeAuthModal()
+      if (authModalConfig?.onSuccess) {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
+        if (stored) {
+          authModalConfig.onSuccess(JSON.parse(stored))
+        }
+      }
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeAuthModal()
+      }}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="bg-white dark:bg-[#14232B] rounded-2xl max-w-md w-full shadow-2xl border border-borderCol dark:border-white/10 relative overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
+        
+        {/* Top Decorative Header Accent */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary-dark to-secondary" />
+
+        {/* Modal Close Button */}
+        <button
+          type="button"
+          onClick={closeAuthModal}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-surface dark:bg-white/10 text-muted hover:text-ink dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer z-10"
+          aria-label="Tutup"
+        >
+          <X size={16} />
+        </button>
+
+        {/* Scrollable Content Container */}
+        <div className="p-5 sm:p-7 overflow-y-auto custom-scrollbar">
+
+          {/* ── Lazy Registration / Checkpoint Context Banner (if triggered from Seat Step) ── */}
+          {banner && (
+            <div className="mb-5 p-3.5 sm:p-4 rounded-xl bg-primary-tint/70 dark:bg-primary-dark/30 border border-primary/30">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+                  <ShieldCheck size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-extrabold text-xs sm:text-sm text-ink dark:text-white">
+                      Kursi Anda Ditahan Sementara!
+                    </span>
+                    {banner.timeLeftFormatted && (
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-primary dark:text-primary-tint bg-white dark:bg-black/30 px-2 py-0.5 rounded-full border border-primary/20">
+                        <Clock size={11} /> {banner.timeLeftFormatted}
+                      </span>
+                    )}
+                  </div>
+                  {banner.seats && banner.seats.length > 0 && (
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <span className="text-[11px] text-muted dark:text-gray-300">Kursi:</span>
+                      {banner.seats.map((s) => (
+                        <span
+                          key={s}
+                          className="px-2 py-0.5 rounded-md bg-white dark:bg-black/40 text-primary dark:text-primary-tint border border-primary/30 text-[11px] font-mono font-bold"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                      {banner.from && banner.to && (
+                        <span className="text-[11px] text-muted dark:text-gray-300 truncate">
+                          ({banner.from} → {banner.to})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-[11px] text-muted dark:text-gray-300 mt-2 leading-relaxed">
+                    Masuk atau buat akun sebentar untuk mengamankan kursi Anda dan melanjutkan ke pengisian data penumpang.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Title & Subtitle */}
+          <div className="text-center mb-5">
+            <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary-tint text-primary mb-2 shadow-2xs">
+              <UserIcon size={22} />
+            </div>
+            <h2 className="text-xl font-black text-ink dark:text-white">
+              {authModalConfig?.title || (mode === 'login' ? 'Masuk ke RuteKu' : 'Daftar Akun RuteKu')}
+            </h2>
+            <p className="text-xs text-muted dark:text-gray-400 mt-1 max-w-xs mx-auto">
+              {authModalConfig?.description ||
+                (mode === 'login'
+                  ? 'Akses tiket, kelola riwayat pemesanan, dan nikmati kemudahan booking bus antarkota.'
+                  : 'Daftar gratis dalam 30 detik untuk kemudahan pesan tiket bus antarkota.')}
+            </p>
+          </div>
+
+          {/* Mode Switch Tabs */}
+          <div className="flex p-1 bg-surface dark:bg-black/20 rounded-xl mb-5 border border-borderCol dark:border-white/10">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login')
+                setError(null)
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                mode === 'login'
+                  ? 'bg-white dark:bg-[#1E333F] text-primary dark:text-white shadow-2xs'
+                  : 'text-muted hover:text-ink dark:hover:text-white'
+              }`}
+            >
+              Masuk
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('register')
+                setError(null)
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                mode === 'register'
+                  ? 'bg-white dark:bg-[#1E333F] text-primary dark:text-white shadow-2xs'
+                  : 'text-muted hover:text-ink dark:hover:text-white'
+              }`}
+            >
+              Daftar Akun Baru
+            </button>
+          </div>
+
+          {/* Error Message Alert */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 text-xs flex items-start gap-2 animate-in fade-in">
+              <AlertCircle size={15} className="text-error flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* ── Tab Content: MASUK ── */}
+          {mode === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
+                  Email atau Nomor HP
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={emailOrPhone}
+                    onChange={(e) => setEmailOrPhone(e.target.value)}
+                    placeholder="nama@email.com atau 08123456789"
+                    required
+                    className="w-full h-11 pl-9 pr-3.5 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-ink dark:text-gray-200">
+                    Kata Sandi <span className="text-muted font-normal">(opsional untuk demo)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmailOrPhone('dini@ruteku.id')
+                      setPassword('demo123')
+                    }}
+                    className="text-[11px] text-primary hover:underline font-semibold cursor-pointer"
+                  >
+                    Pakai Akun Demo
+                  </button>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi"
+                    className="w-full h-11 pl-9 pr-10 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-ink cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer text-muted dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    className="rounded border-borderCol text-primary focus:ring-primary"
+                  />
+                  <span>Ingat saya di perangkat ini</span>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl transition text-sm shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Masuk Sekarang</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* ── Tab Content: DAFTAR ── */}
+          {mode === 'register' && (
+            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Nama Lengkap <span className="text-error">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <UserIcon size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Contoh: Rifqi Dermawan"
+                    required
+                    className="w-full h-10 pl-9 pr-3.5 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Email Pemesan <span className="text-error">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="nama@email.com"
+                    required
+                    className="w-full h-10 pl-9 pr-3.5 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Nomor HP (WhatsApp) <span className="text-error">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="tel"
+                    value={regPhone}
+                    onChange={(e) => setRegPhone(e.target.value)}
+                    placeholder="081234567890"
+                    required
+                    className="w-full h-10 pl-9 pr-3.5 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Kata Sandi
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Buat kata sandi minimal 6 karakter"
+                    className="w-full h-10 pl-9 pr-10 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-ink cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl transition text-sm shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Daftar & Lanjutkan</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* ── Demo Accounts 1-Click Fast Login ── */}
+          <div className="mt-5 pt-4 border-t border-borderCol dark:border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-muted dark:text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles size={12} className="text-amber-500" />
+                Akses Cepat Pengujian
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowDemoMenu(!showDemoMenu)}
+                className="text-[11px] text-primary hover:underline font-bold cursor-pointer"
+              >
+                {showDemoMenu ? 'Sembunyikan' : 'Pilih Akun Demo'}
+              </button>
+            </div>
+
+            {showDemoMenu ? (
+              <div className="space-y-1.5 p-2 rounded-xl bg-surface dark:bg-black/30 border border-borderCol dark:border-white/10 animate-in fade-in">
+                {DEMO_USERS.map((demo) => (
+                  <button
+                    key={demo.id}
+                    type="button"
+                    onClick={() => handleQuickDemoLogin(demo.email)}
+                    className="w-full p-2 rounded-lg bg-white dark:bg-[#1E333F] hover:bg-primary-tint/50 dark:hover:bg-primary-dark/40 border border-borderCol dark:border-white/10 flex items-center justify-between text-left transition-all cursor-pointer group"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-ink dark:text-white group-hover:text-primary transition-colors">
+                        {demo.name}
+                      </div>
+                      <div className="text-[10px] text-muted dark:text-gray-400 truncate">
+                        {demo.email} · {demo.phone}
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold text-primary px-2 py-0.5 rounded-md bg-primary-tint dark:bg-black/30 group-hover:bg-primary group-hover:text-white transition-all">
+                      Masuk ⚡
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('dini@ruteku.id')}
+                className="w-full py-2 px-3 rounded-lg border border-dashed border-primary/40 bg-primary-tint/30 hover:bg-primary-tint/70 text-primary dark:text-primary-tint text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>⚡ 1-Klik Masuk sebagai <strong>Dini Sartika</strong></span>
+              </button>
+            )}
+          </div>
+
+          {/* Privacy Note */}
+          <p className="mt-4 text-[10px] text-center text-muted dark:text-gray-400">
+            Dengan masuk atau mendaftar, Anda menyetujui Ketentuan Layanan & Kebijakan Privasi RuteKu.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
