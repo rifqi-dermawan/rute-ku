@@ -39,7 +39,7 @@ interface AuthContextType {
   closeAuthModal: () => void
   sendOtp: (email: string) => Promise<{ success: boolean; message?: string; devCode?: string; error?: string }>
   loginWithOtp: (email: string, otp: string, name?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
-  loginWithGoogle: (email?: string, name?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
+  loginWithGoogle: (email?: string, name?: string, options?: { returnTo?: string }) => Promise<{ success: boolean; user?: AuthUser; error?: string; redirecting?: boolean; isConfigMissing?: boolean }>
 }
 
 const DEMO_USERS: AuthUser[] = [
@@ -302,20 +302,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const loginWithGoogle = useCallback(async (email?: string, name?: string) => {
+  const loginWithGoogle = useCallback(async (
+    email?: string, 
+    name?: string, 
+    options?: { returnTo?: string }
+  ) => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
-      })
-      const data = await res.json()
-      if (data.success && data.user) {
-        saveUserSession(data.user)
-        return { success: true, user: data.user }
+      // 1. Jika ada email manual yang diberikan (mode custom input / demo), proses langsung
+      if (email && email.trim()) {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name }),
+        })
+        const data = await res.json()
+        if (data.success && data.user) {
+          saveUserSession(data.user)
+          return { success: true, user: data.user }
+        }
+        return { success: false, error: data.error || 'Autentikasi Google gagal.' }
       }
-      return { success: false, error: data.error || 'Autentikasi Google gagal.' }
+
+      // 2. Minta URL otorisasi Google OAuth resmi dari backend
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
+      const targetReturn = options?.returnTo || currentPath
+      const urlRes = await fetch(`/api/auth/google/url?returnTo=${encodeURIComponent(targetReturn)}`)
+      const urlData = await urlRes.json()
+
+      // Jika Google OAuth sudah terkonfigurasi, arahkan pengguna ke halaman login Google resmi
+      if (urlData.success && urlData.url) {
+        if (typeof window !== 'undefined') {
+          window.location.href = urlData.url
+        }
+        return { success: true, redirecting: true }
+      }
+
+      // Jika belum dikonfigurasi, beri tahu user secara transparan
+      return {
+        success: false,
+        isConfigMissing: true,
+        error: urlData.error || 'Google OAuth belum dikonfigurasi di file .env. Silakan masukkan GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET, atau gunakan form Masuk / Daftar di bawah.',
+      }
     } catch (err: any) {
       return { success: false, error: err.message || 'Gagal terhubung ke layanan Google.' }
     } finally {

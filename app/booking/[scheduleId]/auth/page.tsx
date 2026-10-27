@@ -185,13 +185,34 @@ export default function BookingAuthPage({
   // Handle Google OAuth Login
   const handleGoogleAuth = async (selectedEmail?: string) => {
     setLoading(true)
-    setShowGoogleModal(false)
+    setErrorMessage('')
     try {
-      const targetEmail = selectedEmail || customGoogleEmail.trim() || 'user.google@gmail.com'
-      const namePart = targetEmail.split('@')[0]
-      const res = await loginWithGoogle(targetEmail, namePart)
-      if (res.success) {
+      // 1. Jika pengguna memilih email tertentu dari modal
+      if (selectedEmail || (customGoogleEmail && customGoogleEmail.trim())) {
+        setShowGoogleModal(false)
+        const targetEmail = (selectedEmail || customGoogleEmail).trim()
+        const namePart = targetEmail.split('@')[0]
+        const res = await loginWithGoogle(targetEmail, namePart)
+        if (res.success && res.user) {
+          router.push(targetPassengerUrl)
+        } else {
+          setErrorMessage(res.error || 'Autentikasi gagal.')
+        }
+        return
+      }
+
+      // 2. Jika belum memilih email spesifik, coba Google OAuth resmi
+      const res = await loginWithGoogle(undefined, undefined, { returnTo: targetPassengerUrl })
+      if (res.redirecting) {
+        return
+      }
+      if (res.success && res.user) {
         router.push(targetPassengerUrl)
+        return
+      }
+      if (res.isConfigMissing) {
+        // Tampilkan modal fallback agar pengguna bisa memasukkan email miliknya sendiri
+        setShowGoogleModal(true)
       } else {
         setErrorMessage(res.error || 'Autentikasi Google gagal.')
       }
@@ -280,7 +301,7 @@ export default function BookingAuthPage({
             <button
               type="button"
               disabled={loading}
-              onClick={() => setShowGoogleModal(true)}
+              onClick={() => handleGoogleAuth()}
               className="w-full h-12 rounded-2xl border-2 border-borderCol hover:border-slate-400 bg-white text-ink font-bold text-sm flex items-center justify-center gap-3 transition-all shadow-2xs hover:shadow-xs cursor-pointer disabled:opacity-60"
             >
               <GoogleIcon className="w-5 h-5 flex-shrink-0" />
@@ -442,43 +463,51 @@ export default function BookingAuthPage({
               </div>
             </div>
 
-            <div className="space-y-2 border-y border-borderCol py-3">
-              {/* Option 1: Quick Google demo account */}
-              <button
-                type="button"
-                onClick={() => handleGoogleAuth('rifqidermawan15@gmail.com')}
-                className="w-full p-3 rounded-xl hover:bg-surface border border-transparent hover:border-borderCol flex items-center gap-3 text-left transition-all cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-                  R
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-ink">Rifqi Dermawan</div>
-                  <div className="text-[11px] text-muted truncate">rifqidermawan15@gmail.com</div>
-                </div>
-              </button>
-
-              {/* Option 2: Custom input Google account */}
-              <div className="pt-2">
-                <label className="block text-[11px] font-bold text-muted mb-1">
-                  Atau gunakan Akun Google lain:
+            <div className="space-y-3 border-y border-borderCol py-3">
+              {/* Option: Masukkan Akun Google / Email Pengguna */}
+              <div>
+                <label className="block text-[11px] font-bold text-ink mb-1.5">
+                  Masukkan Email Google Anda:
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="email"
                     value={customGoogleEmail}
                     onChange={e => setCustomGoogleEmail(e.target.value)}
-                    placeholder="email.anda@gmail.com"
-                    className="flex-1 h-9 px-3 rounded-lg border border-borderCol text-xs text-ink outline-none focus:border-primary"
+                    placeholder="nama.anda@gmail.com"
+                    className="flex-1 h-10 px-3 rounded-xl border border-borderCol text-xs text-ink outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => handleGoogleAuth(customGoogleEmail)}
-                    className="px-3 h-9 rounded-lg bg-primary text-white text-xs font-bold cursor-pointer hover:bg-primary-dark"
+                    className="px-4 h-10 rounded-xl bg-primary text-white text-xs font-bold cursor-pointer hover:bg-primary-dark transition"
                   >
-                    Pilih
+                    Masuk
                   </button>
                 </div>
+              </div>
+
+              {/* Info Kredensial OAuth */}
+              <div className="p-2.5 rounded-xl bg-surface border border-borderCol/60 text-[11px] text-muted leading-relaxed">
+                <span className="font-semibold text-ink">Catatan:</span> Untuk login otomatis dengan 1-klik akun Google, masukkan <code className="text-primary font-mono font-bold">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> & <code className="text-primary font-mono font-bold">GOOGLE_CLIENT_SECRET</code> di file <code className="font-mono">.env</code>.
+              </div>
+
+              {/* Demo Account (Hanya untuk pengujian cepat pengembang) */}
+              <div className="pt-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Akun Demo Pengembang:</p>
+                <button
+                  type="button"
+                  onClick={() => handleGoogleAuth('rifqidermawan15@gmail.com')}
+                  className="w-full p-2.5 rounded-xl bg-surface hover:bg-primary-tint/40 border border-borderCol/60 hover:border-primary/40 flex items-center gap-2.5 text-left transition-all cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    R
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-ink truncate">Rifqi Dermawan (Akun Demo)</div>
+                    <div className="text-[11px] text-muted truncate">rifqidermawan15@gmail.com</div>
+                  </div>
+                </button>
               </div>
             </div>
 

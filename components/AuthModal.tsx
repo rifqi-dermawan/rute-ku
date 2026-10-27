@@ -260,8 +260,12 @@ export default function AuthModal() {
             disabled={isLoading}
             onClick={async () => {
               setIsLoading(true)
+              setError(null)
               const res = await loginWithGoogle()
               setIsLoading(false)
+              if (res.redirecting) {
+                return
+              }
               if (res.success) {
                 closeAuthModal()
                 if (authModalConfig?.onSuccess && res.user) {
