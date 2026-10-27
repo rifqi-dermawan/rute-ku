@@ -34,3 +34,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Referensi
+
+Pola arsitektur dan desain sistem dalam proyek ini terinspirasi dari beberapa referensi sumber terbuka (pola desain & arsitektur, bukan penyalinan kode):
+1. **[Skybus](https://github.com/doaesque/skybus)** (Lisensi: *GNU General Public License v3.0*) — Pola alur antarmuka pencarian tiket, visualisasi pemilihan kursi bus berbagai layout (2-2, 2-3, 1-1), serta presentasi kartu e-ticket digital.
+2. **[WarTicket](https://github.com/ramdhey/WarTicket)** (Lisensi: *ISC*) — Pola concurrency control pada tingkat database PostgreSQL menggunakan row-level locking (`SELECT ... FOR UPDATE`), tingkat isolasi transaksi `Serializable`, queue background worker (BullMQ/Redis) untuk promosi waitlist, serta pengujian ketat anti-double booking.
