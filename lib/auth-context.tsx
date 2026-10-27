@@ -326,8 +326,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // 2. Minta URL otorisasi Google OAuth resmi dari backend
       const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
+      const browserOrigin = typeof window !== 'undefined' ? window.location.origin : ''
       const targetReturn = options?.returnTo || currentPath
-      const urlRes = await fetch(`/api/auth/google/url?returnTo=${encodeURIComponent(targetReturn)}`)
+      const urlRes = await fetch(`/api/auth/google/url?returnTo=${encodeURIComponent(targetReturn)}&origin=${encodeURIComponent(browserOrigin)}`)
       const urlData = await urlRes.json()
 
       // Jika Google OAuth sudah terkonfigurasi, arahkan pengguna ke halaman login Google resmi

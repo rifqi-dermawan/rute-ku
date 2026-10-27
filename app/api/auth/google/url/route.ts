@@ -5,11 +5,20 @@ import { NextRequest, NextResponse } from 'next/server'
  * Mendukung Vercel, reverse proxy HTTPS, domain custom, dan localhost
  */
 export function getGoogleRedirectUri(req: NextRequest): string {
+  // 1. Cek parameter origin yang dikirim dari browser pengguna secara presisi
+  const { searchParams } = new URL(req.url)
+  const clientOrigin = searchParams.get('origin')
+  if (clientOrigin && clientOrigin.startsWith('http')) {
+    return `${clientOrigin.replace(/\/$/, '')}/api/auth/google/callback`
+  }
+
+  // 2. Cek environment variable NEXT_PUBLIC_APP_URL jika disetel ke domain publik
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
   if (envAppUrl && !envAppUrl.includes('localhost') && !envAppUrl.includes('MASUKKAN')) {
     return `${envAppUrl.replace(/\/$/, '')}/api/auth/google/callback`
   }
 
+  // 3. Deteksi otomatis dari header host / reverse proxy (Vercel)
   const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host')
   const forwardedProto = req.headers.get('x-forwarded-proto')
 
