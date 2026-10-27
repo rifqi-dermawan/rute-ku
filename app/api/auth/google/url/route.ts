@@ -5,20 +5,26 @@ import { NextRequest, NextResponse } from 'next/server'
  * Mendukung Vercel, reverse proxy HTTPS, domain custom, dan localhost
  */
 export function getGoogleRedirectUri(req: NextRequest): string {
-  // 1. Cek parameter origin yang dikirim dari browser pengguna secara presisi
   const { searchParams } = new URL(req.url)
   const clientOrigin = searchParams.get('origin')
+
+  // 1. Jika diuji di localhost/lokal, selalu gunakan localhost
+  if (clientOrigin && (clientOrigin.includes('localhost') || clientOrigin.includes('127.0.0.1'))) {
+    return `${clientOrigin.replace(/\/$/, '')}/api/auth/google/callback`
+  }
+
+  // 2. Cek environment variable NEXT_PUBLIC_APP_URL jika disetel ke domain publik di Vercel
+  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (envAppUrl && !envAppUrl.includes('localhost') && !envAppUrl.includes('MASUKKAN') && envAppUrl.startsWith('http')) {
+    return `${envAppUrl.replace(/\/$/, '')}/api/auth/google/callback`
+  }
+
+  // 3. Gunakan origin dari browser pengguna secara presisi
   if (clientOrigin && clientOrigin.startsWith('http')) {
     return `${clientOrigin.replace(/\/$/, '')}/api/auth/google/callback`
   }
 
-  // 2. Cek environment variable NEXT_PUBLIC_APP_URL jika disetel ke domain publik
-  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (envAppUrl && !envAppUrl.includes('localhost') && !envAppUrl.includes('MASUKKAN')) {
-    return `${envAppUrl.replace(/\/$/, '')}/api/auth/google/callback`
-  }
-
-  // 3. Deteksi otomatis dari header host / reverse proxy (Vercel)
+  // 4. Deteksi otomatis dari header host / reverse proxy (Vercel)
   const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host')
   const forwardedProto = req.headers.get('x-forwarded-proto')
 
