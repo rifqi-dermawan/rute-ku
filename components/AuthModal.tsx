@@ -86,12 +86,12 @@ export default function AuthModal() {
 
     if (res.success) {
       closeAuthModal()
-      if (authModalConfig?.onSuccess) {
-        // Find user from state
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
-        if (stored) {
-          authModalConfig.onSuccess(JSON.parse(stored))
-        }
+      const activeUser = res.user || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('ruteku_auth_user') || 'null') : null)
+      if (authModalConfig?.onSuccess && activeUser) {
+        authModalConfig.onSuccess(activeUser)
+      }
+      if (authModalConfig?.redirectUrl && typeof window !== 'undefined') {
+        window.location.href = authModalConfig.redirectUrl
       }
     } else {
       setError(res.error || 'Gagal masuk. Periksa kembali data Anda.')
@@ -126,11 +126,12 @@ export default function AuthModal() {
 
     if (res.success) {
       closeAuthModal()
-      if (authModalConfig?.onSuccess) {
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('ruteku_auth_user') : null
-        if (stored) {
-          authModalConfig.onSuccess(JSON.parse(stored))
-        }
+      const activeUser = res.user || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('ruteku_auth_user') || 'null') : null)
+      if (authModalConfig?.onSuccess && activeUser) {
+        authModalConfig.onSuccess(activeUser)
+      }
+      if (authModalConfig?.redirectUrl && typeof window !== 'undefined') {
+        window.location.href = authModalConfig.redirectUrl
       }
     } else {
       setError(res.error || 'Gagal mendaftar.')
@@ -268,8 +269,12 @@ export default function AuthModal() {
               }
               if (res.success) {
                 closeAuthModal()
-                if (authModalConfig?.onSuccess && res.user) {
-                  authModalConfig.onSuccess(res.user)
+                const activeUser = res.user || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('ruteku_auth_user') || 'null') : null)
+                if (authModalConfig?.onSuccess && activeUser) {
+                  authModalConfig.onSuccess(activeUser)
+                }
+                if (authModalConfig?.redirectUrl && typeof window !== 'undefined') {
+                  window.location.href = authModalConfig.redirectUrl
                 }
               } else {
                 setError(res.error || 'Gagal masuk dengan Google.')

@@ -62,7 +62,7 @@ export default function BookingAuthPage({
   const { scheduleId } = use(params)
   const sp = use(searchParams)
   const router = useRouter()
-  const { user, loginWithGoogle, sendOtp, loginWithOtp } = useAuth()
+  const { user, loginWithGoogle, sendOtp, loginWithOtp, openAuthModal } = useAuth()
 
   const seats = sp.seats ? sp.seats.split(',') : ['5A']
   const from = sp.from || 'Jakarta'
@@ -442,6 +442,48 @@ export default function BookingAuthPage({
                 </div>
               </form>
             )}
+
+            {/* Opsi Daftar Baru atau Masuk dengan Sandi */}
+            <div className="pt-4 mt-2 text-center border-t border-borderCol">
+              <p className="text-xs text-muted mb-2">
+                Ingin daftar akun baru atau masuk dengan kata sandi?
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    openAuthModal({
+                      mode: 'register',
+                      title: 'Daftar Akun RuteKu',
+                      description: 'Daftar akun cepat dalam 30 detik untuk langsung melanjutkan pemesanan kursi.',
+                      onSuccess: () => {
+                        router.push(targetPassengerUrl)
+                      },
+                    })
+                  }
+                  className="text-xs font-bold text-primary hover:underline cursor-pointer"
+                >
+                  Daftar Akun Baru
+                </button>
+                <span className="text-muted text-xs">·</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openAuthModal({
+                      mode: 'login',
+                      title: 'Masuk Akun RuteKu',
+                      description: 'Masuk dengan email atau nomor HP dan kata sandi Anda.',
+                      onSuccess: () => {
+                        router.push(targetPassengerUrl)
+                      },
+                    })
+                  }
+                  className="text-xs font-bold text-muted hover:text-ink cursor-pointer"
+                >
+                  Masuk dengan Sandi
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Privacy Note */}

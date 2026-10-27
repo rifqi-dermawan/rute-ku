@@ -150,6 +150,22 @@ function PassengerContent({
     }
   }, [sp.passengersData, seatsParam])
 
+  // Sinkronisasi otomatis data pemesan saat user berhasil masuk atau mendaftar (auto-login)
+  useEffect(() => {
+    if (user) {
+      if (!email && user.email) setEmail(user.email)
+      if (!phone && user.phone) setPhone(user.phone)
+      setPassengers(prev => {
+        if (prev.length > 0 && !prev[0].name && user.name) {
+          const next = [...prev]
+          next[0] = { ...next[0], name: user.name }
+          return next
+        }
+        return prev
+      })
+    }
+  }, [user, email, phone])
+
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('')
 
@@ -375,7 +391,25 @@ function PassengerContent({
             </div>
             <button
               type="button"
-              onClick={() => openAuthModal({ mode: 'login' })}
+              onClick={() =>
+                openAuthModal({
+                  mode: 'login',
+                  title: 'Masuk atau Daftar Akun RuteKu',
+                  description: 'Daftar atau masuk agar data kontak terisi otomatis dan e-tiket tersimpan.',
+                  onSuccess: (u) => {
+                    if (u.email) setEmail(u.email)
+                    if (u.phone) setPhone(u.phone)
+                    setPassengers(prev => {
+                      if (prev.length > 0 && !prev[0].name && u.name) {
+                        const next = [...prev]
+                        next[0] = { ...next[0], name: u.name }
+                        return next
+                      }
+                      return prev
+                    })
+                  },
+                })
+              }
               className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               Masuk / Daftar Sekarang

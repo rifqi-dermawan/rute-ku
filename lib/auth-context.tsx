@@ -30,8 +30,8 @@ export interface AuthModalConfig {
 interface AuthContextType {
   user: AuthUser | null
   isLoading: boolean
-  login: (emailOrPhone: string, password?: string) => Promise<{ success: boolean; error?: string }>
-  register: (data: { name: string; email: string; phone: string; password?: string }) => Promise<{ success: boolean; error?: string }>
+  login: (emailOrPhone: string, password?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
+  register: (data: { name: string; email: string; phone: string; password?: string }) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
   logout: () => void
   isAuthModalOpen: boolean
   authModalConfig: AuthModalConfig | null
@@ -103,18 +103,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
       // Also sync cookies for server component & middleware checks
-      document.cookie = `ruteku_user_id=${userData.id}; path=/; max-age=604800`
-      document.cookie = `ruteku_user_role=${userData.role || 'USER'}; path=/; max-age=604800`
+      document.cookie = `ruteku_user_id=${userData.id}; path=/; max-age=604800; SameSite=Lax`
+      document.cookie = `ruteku_user_role=${userData.role || 'USER'}; path=/; max-age=604800; SameSite=Lax`
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'))
+        window.dispatchEvent(new CustomEvent('ruteku_auth_change', { detail: userData }))
+      }
     } catch (e) {
       console.error('Failed to save user session:', e)
     }
   }
 
-  const login = useCallback(async (emailOrPhone: string, _password?: string): Promise<{ success: boolean; error?: string }> => {
+  const login = useCallback(async (emailOrPhone: string, _password?: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
     setIsLoading(true)
     try {
-      // Simulate network latency for realistic feel
-      await new Promise(r => setTimeout(r, 400))
+      await new Promise(r => setTimeout(r, 300))
 
       const normalized = emailOrPhone.trim().toLowerCase()
 
@@ -129,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         saveUserSession(demoMatch)
-        return { success: true }
+        return { success: true, user: demoMatch }
       }
 
       // 2. Check registered users in localStorage
@@ -144,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       )
       if (customMatch) {
         saveUserSession(customMatch)
-        return { success: true }
+        return { success: true, user: customMatch }
       }
 
       // 3. If email looks valid, allow creating / logging into a dynamic user session
@@ -163,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(customUsers))
         } catch {}
         saveUserSession(newUser)
-        return { success: true }
+        return { success: true, user: newUser }
       }
 
       // If just phone number given (>= 10 digits)
@@ -181,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(customUsers))
         } catch {}
         saveUserSession(newUser)
-        return { success: true }
+        return { success: true, user: newUser }
       }
 
       return { success: false, error: 'Email atau nomor HP tidak valid.' }
@@ -197,49 +200,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string
     phone: string
     password?: string
-  }): Promise<{ success: boolean; error?: string }> => {
+  }): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
     setIsLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 450))
+      await new Promise(r => setTimeout(r, 350))
 
-      if (!data.name.trim() || data.name.trim().length < 2) {
+      const cleanName = data.name.trim()
+      const cleanEmail = data.email.trim().toLowerCase()
+      const cleanPhone = data.phone.trim()
+
+      if (!cleanName || cleanName.length < 2) {
         return { success: false, error: 'Nama lengkap minimal 2 karakter.' }
       }
-      if (!data.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+      if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
         return { success: false, error: 'Format email tidak valid.' }
       }
-      const phoneDigits = data.phone.replace(/\D/g, '')
+      const phoneDigits = cleanPhone.replace(/\D/g, '')
       if (phoneDigits.length < 10) {
         return { success: false, error: 'Nomor HP minimal 10 digit angka.' }
       }
 
+      // 1. Cek apakah ada di DEMO_USERS
+      const demoMatch = DEMO_USERS.find(u => u.email.toLowerCase() === cleanEmail)
+      if (demoMatch) {
+        saveUserSession(demoMatch)
+        return { success: true, user: demoMatch }
+      }
+
+      // 2. Ambil registered users dari localStorage
       let customUsers: AuthUser[] = []
       try {
         const stored = localStorage.getItem(USERS_STORAGE_KEY)
         if (stored) customUsers = JSON.parse(stored)
       } catch {}
 
-      // Check duplicate email
-      const existing = customUsers.find(u => u.email.toLowerCase() === data.email.trim().toLowerCase())
-      if (existing) {
-        return { success: false, error: 'Email sudah terdaftar. Silakan gunakan tab Masuk.' }
+      // Jika user sudah pernah terdaftar, jangan suruh pindah ke tab masuk!
+      // Langsung loginkan dengan data yang telah ada atau perbarui namanya.
+      const existingIndex = customUsers.findIndex(u => u.email.toLowerCase() === cleanEmail)
+      let activeUser: AuthUser
+
+      if (existingIndex >= 0) {
+        activeUser = {
+          ...customUsers[existingIndex],
+          name: cleanName || customUsers[existingIndex].name,
+          phone: cleanPhone || customUsers[existingIndex].phone,
+        }
+        customUsers[existingIndex] = activeUser
+      } else {
+        // Pengguna baru
+        activeUser = {
+          id: `usr-${Date.now()}`,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          role: 'USER',
+        }
+        customUsers.push(activeUser)
       }
 
-      const newUser: AuthUser = {
-        id: `usr-${Date.now()}`,
-        name: data.name.trim(),
-        email: data.email.trim().toLowerCase(),
-        phone: data.phone.trim(),
-        role: 'USER',
-      }
-
-      customUsers.push(newUser)
       try {
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(customUsers))
       } catch {}
 
-      saveUserSession(newUser)
-      return { success: true }
+      // Sinkronkan ke API backend untuk persistensi DB Prisma dan pasang HttpOnly cookies
+      try {
+        const apiRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(activeUser),
+        })
+        const apiData = await apiRes.json().catch(() => ({}))
+        if (apiData?.user?.id) {
+          activeUser.id = apiData.user.id
+        }
+      } catch (e) {
+        console.warn('Sync register API skipped:', e)
+      }
+
+      // Langsung aktifkan sesi login (auto-login)!
+      saveUserSession(activeUser)
+
+      return { success: true, user: activeUser }
     } catch (err: any) {
       return { success: false, error: err?.message || 'Gagal mendaftarkan akun.' }
     } finally {
