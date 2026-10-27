@@ -33,10 +33,10 @@ const PAYMENT_METHODS = [
 ]
 
 const VA_BANKS = [
-  { id: 'bca', name: 'BCA Virtual Account', code: '8277 0812 3456 7890' },
-  { id: 'mandiri', name: 'Mandiri Bill Payment', code: '8870 8123 4567 8901' },
-  { id: 'bni', name: 'BNI Virtual Account', code: '8241 0812 3456 7890' },
-  { id: 'bri', name: 'BRIVA (BRI)', code: '8021 0812 3456 7890' },
+  { id: 'bca', name: 'BCA Virtual Account', prefix: '8277', example: '8277 0812 3456 7890' },
+  { id: 'mandiri', name: 'Mandiri Bill Payment', prefix: '8870', example: '8870 8123 4567 8901' },
+  { id: 'bni', name: 'BNI Virtual Account', prefix: '8241', example: '8241 0812 3456 7890' },
+  { id: 'bri', name: 'BRIVA (BRI)', prefix: '8021', example: '8021 0812 3456 7890' },
 ]
 
 const EWALLET_LIST = [
@@ -105,6 +105,8 @@ function PaymentContent({
   const [selectedMethod, setSelectedMethod] = useState('qris')
   const [selectedBank, setSelectedBank] = useState('bca')
   const [selectedEwallet, setSelectedEwallet] = useState('gopay')
+  const [ewalletPhone, setEwalletPhone] = useState('')
+  const [generatedVa, setGeneratedVa] = useState<Record<string, string>>({})
   const [copied, setCopied] = useState(false)
   const [midtransError, setMidtransError] = useState('')
 
@@ -120,10 +122,10 @@ function PaymentContent({
   const [qrisCopied, setQrisCopied] = useState(false)
   const [qrisStatus, setQrisStatus] = useState<'pending' | 'paid' | 'expired' | 'failed'>('pending')
 
-  // Dummy Card state
-  const [cardNumber, setCardNumber] = useState('4000 1234 5678 9010')
-  const [cardExp, setCardExp] = useState('12/28')
-  const [cardCvv, setCardCvv] = useState('123')
+  // Card state (placeholder inputs, not hardcoded mock values)
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardExp, setCardExp] = useState('')
+  const [cardCvv, setCardCvv] = useState('')
 
   // Payment state (for non-QRIS tabs / Snap)
   const [midtransLoading, setMidtransLoading] = useState(false)
@@ -183,9 +185,24 @@ function PaymentContent({
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   const currentVaBank = VA_BANKS.find(b => b.id === selectedBank) ?? VA_BANKS[0]
+  const activeVaNumber = generatedVa[selectedBank]
 
-  const copyVA = () => {
-    navigator.clipboard.writeText(currentVaBank.code.replace(/\s+/g, ''))
+  const handleGenerateVa = (bankId: string) => {
+    const bank = VA_BANKS.find(b => b.id === bankId) ?? VA_BANKS[0]
+    const p1 = Math.floor(1000 + Math.random() * 9000)
+    const p2 = Math.floor(1000 + Math.random() * 9000)
+    const p3 = Math.floor(1000 + Math.random() * 9000)
+    const code = `${bank.prefix} ${p1} ${p2} ${p3}`
+    setGeneratedVa(prev => ({ ...prev, [bankId]: code }))
+    return code
+  }
+
+  const copyVA = (codeToCopy?: string) => {
+    let val = codeToCopy || activeVaNumber
+    if (!val) {
+      val = handleGenerateVa(selectedBank)
+    }
+    navigator.clipboard.writeText(val.replace(/\s+/g, ''))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -328,7 +345,7 @@ function PaymentContent({
           customerDetails: {
             first_name: passengerNames ? passengerNames.split(',')[0].trim() : 'Penumpang RuteKu',
             email: sp.email || 'customer@ruteku.id',
-            phone: sp.phone || '081234567890',
+            phone: ewalletPhone || sp.phone || user?.phone || '081234567890',
           },
           itemDetails: [
             {
@@ -666,33 +683,82 @@ function PaymentContent({
                 </div>
 
                 {/* Virtual Account Box */}
-                <div className="p-4 bg-surface border border-borderCol rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <span className="block text-[10px] font-bold text-muted uppercase tracking-wider mb-1">
-                      {currentVaBank.name.toUpperCase()}
-                    </span>
-                    <span className="text-xl sm:text-2xl font-mono font-bold text-ink tracking-wider">
-                      {currentVaBank.code}
-                    </span>
-                  </div>
+                <div className="p-4 bg-surface border border-borderCol rounded-xl space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                          {currentVaBank.name.toUpperCase()}
+                        </span>
+                        {activeVaNumber ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[10px] font-bold">
+                            <Check size={10} />
+                            <span>Nomor Terbit</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold">
+                            Placeholder
+                          </span>
+                        )}
+                      </div>
 
-                  <button
-                    type="button"
-                    onClick={copyVA}
-                    className="px-4 py-2 border border-borderCol bg-white hover:border-primary hover:text-primary rounded-input text-xs font-bold text-ink flex items-center gap-1.5 self-start sm:self-auto transition-all shadow-2xs cursor-pointer"
-                  >
-                    {copied ? (
-                      <>
-                        <Check size={14} className="text-success" />
-                        <span className="text-success">Tersalin!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={14} />
-                        <span>Salin nomor</span>
-                      </>
-                    )}
-                  </button>
+                      {activeVaNumber ? (
+                        <span className="text-xl sm:text-2xl font-mono font-bold text-ink tracking-wider select-all">
+                          {activeVaNumber}
+                        </span>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <span className="text-xl sm:text-2xl font-mono font-bold text-muted/60 tracking-wider">
+                            {currentVaBank.prefix} •••• •••• ••••
+                          </span>
+                          <p className="text-[11px] text-muted">
+                            Nomor rekening virtual otomatis ({currentVaBank.example})
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      {!activeVaNumber ? (
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateVa(selectedBank)}
+                          className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                        >
+                          <RefreshCw size={13} />
+                          <span>Buat Nomor VA</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copyVA(activeVaNumber)}
+                            className="px-3.5 py-2 border border-borderCol bg-white hover:border-primary hover:text-primary rounded-input text-xs font-bold text-ink flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                          >
+                            {copied ? (
+                              <>
+                                <Check size={14} className="text-success" />
+                                <span className="text-success">Tersalin!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={14} />
+                                <span>Salin nomor</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleGenerateVa(selectedBank)}
+                            title="Buat ulang nomor VA"
+                            className="p-2 border border-borderCol bg-white hover:border-primary hover:text-primary rounded-input text-muted transition-all cursor-pointer"
+                          >
+                            <RefreshCw size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Amount to pay */}
@@ -760,17 +826,41 @@ function PaymentContent({
                 </div>
 
                 {/* Phone Number Field */}
-                <div>
-                  <label className="block text-xs font-bold text-ink mb-1.5">Nomor Handphone Terdaftar</label>
-                  <input
-                    type="text"
-                    defaultValue={sp.phone ?? '0812-3456-7890'}
-                    className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-semibold text-ink bg-surface outline-none focus:border-primary"
-                    placeholder="Contoh: 081234567890"
-                  />
-                  <p className="text-[11px] text-muted mt-1">
-                    Notifikasi persetujuan bayar akan dikirim ke aplikasi e-wallet Anda.
-                  </p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-ink mb-1.5">
+                      Nomor Handphone Terdaftar ({EWALLET_LIST.find(w => w.id === selectedEwallet)?.name ?? 'E-Wallet'})
+                    </label>
+                    <input
+                      type="tel"
+                      value={ewalletPhone}
+                      onChange={e => setEwalletPhone(e.target.value)}
+                      className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
+                      placeholder="Contoh: 0812-3456-7890"
+                    />
+                    <p className="text-[11px] text-muted mt-1 leading-relaxed">
+                      Notifikasi konfirmasi pembayaran akan dikirimkan ke aplikasi e-wallet Anda.
+                    </p>
+                  </div>
+
+                  {/* Placeholder Info Box */}
+                  <div className="p-3 bg-surface border border-dashed border-borderCol rounded-xl flex items-center justify-between text-xs">
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted">ID Akun Pembayaran</span>
+                      <p className="font-mono text-muted/80">•••• •••• •••• (Placeholder)</p>
+                    </div>
+                    <span className="text-[10px] font-semibold text-muted bg-white dark:bg-card px-2 py-0.5 rounded border border-borderCol">
+                      Verifikasi Otomatis
+                    </span>
+                  </div>
+                </div>
+
+                {/* Amount to pay */}
+                <div className="flex items-center justify-between py-2 border-b border-borderCol/60">
+                  <span className="text-xs sm:text-sm text-muted">Jumlah yang harus dibayar (pas)</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-ink">
+                    Rp {parseInt(total).toLocaleString('id-ID')}
+                  </span>
                 </div>
 
                 {/* Action Area */}
@@ -818,7 +908,8 @@ function PaymentContent({
                       type="text"
                       value={cardNumber}
                       onChange={e => setCardNumber(e.target.value)}
-                      className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-bold text-ink bg-surface outline-none focus:border-primary"
+                      placeholder="Contoh: 4000 1234 5678 9010"
+                      className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-bold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -828,19 +919,30 @@ function PaymentContent({
                         type="text"
                         value={cardExp}
                         onChange={e => setCardExp(e.target.value)}
-                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary"
+                        placeholder="MM/YY (Contoh: 12/28)"
+                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-ink mb-1">CVV</label>
                       <input
-                        type="text"
+                        type="password"
+                        maxLength={4}
                         value={cardCvv}
                         onChange={e => setCardCvv(e.target.value)}
-                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary"
+                        placeholder="Contoh: 123"
+                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Amount to pay */}
+                <div className="flex items-center justify-between py-2 border-b border-borderCol/60">
+                  <span className="text-xs sm:text-sm text-muted">Jumlah yang harus dibayar (pas)</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-ink">
+                    Rp {parseInt(total).toLocaleString('id-ID')}
+                  </span>
                 </div>
 
                 {/* Action Area */}
