@@ -38,5 +38,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## Referensi
 
 Pola arsitektur dan desain sistem dalam proyek ini terinspirasi dari beberapa referensi sumber terbuka (pola desain & arsitektur, bukan penyalinan kode):
-1. **[Skybus](https://github.com/doaesque/skybus)** (Lisensi: *GNU General Public License v3.0*) — Pola alur antarmuka pencarian tiket, visualisasi pemilihan kursi bus berbagai layout (2-2, 2-3, 1-1), serta presentasi kartu e-ticket digital.
-2. **[WarTicket](https://github.com/ramdhey/WarTicket)** (Lisensi: *ISC*) — Pola concurrency control pada tingkat database PostgreSQL menggunakan row-level locking (`SELECT ... FOR UPDATE`), tingkat isolasi transaksi `Serializable`, queue background worker (BullMQ/Redis) untuk promosi waitlist, serta pengujian ketat anti-double booking.
+- **skybus**: LICENSE file GPL-3.0 (README badge menyebut MIT, bertentangan). Dipelajari untuk pola saja, tidak ada kode yang disalin.
+- **WarTicket**: tidak ada file LICENSE, README menyebut MIT. Dipelajari untuk pola saja, tidak ada kode yang disalin.
