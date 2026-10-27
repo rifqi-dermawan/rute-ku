@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getGoogleRedirectUri } from '../url/route'
 
 /**
  * GET /api/auth/google/callback
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const returnTo = state ? decodeURIComponent(state) : '/'
 
   if (error) {
-    return NextResponse.redirect(new URL(`/?auth_error=${encodeURIComponent('Login Google dibatalkan atau ditolak.')}`, req.url))
+    return NextResponse.redirect(new URL(`/?auth_error=${encodeURIComponent('Login Google dibatalkan atau ditolak: ' + error)}`, req.url))
   }
 
   if (!code) {
@@ -29,8 +30,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const origin = req.headers.get('origin') || req.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const redirectUri = `${origin}/api/auth/google/callback`
+  const redirectUri = getGoogleRedirectUri(req)
 
   try {
     // 1. Tukar authorization code dengan Google Token
