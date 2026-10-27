@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle } from 'lucide-react'
+import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle, ArrowRight, Calendar, Users } from 'lucide-react'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -11,6 +11,39 @@ const POPULAR_ROUTES = [
   { from: 'Jakarta', to: 'Bandung', duration: '3 jam 30 menit', schedules: 8, minPrice: 95000 },
   { from: 'Bandung', to: 'Yogyakarta', duration: '9 jam', schedules: 3, minPrice: 180000 },
   { from: 'Surabaya', to: 'Malang', duration: '2 jam 30 menit', schedules: 10, minPrice: 70000 },
+]
+
+const QUICK_CONTINUES = [
+  {
+    id: 'qc-1',
+    badge: 'Pencarian Terakhir',
+    isReorder: false,
+    from: 'Jakarta',
+    to: 'Bandung',
+    dateLabel: 'Sab, 10 Okt',
+    passengersLabel: '2 Orang',
+    href: '/schedules?from=Jakarta&to=Bandung&date=2026-10-10&passengers=2',
+  },
+  {
+    id: 'qc-2',
+    badge: 'Pencarian Terakhir',
+    isReorder: false,
+    from: 'Surabaya',
+    to: 'Yogyakarta',
+    dateLabel: 'Sab, 10 Okt',
+    passengersLabel: '1 Orang',
+    href: '/schedules?from=Surabaya&to=Yogyakarta&date=2026-10-10&passengers=1',
+  },
+  {
+    id: 'qc-3',
+    badge: 'Pesan Lagi',
+    isReorder: true,
+    from: 'Jakarta',
+    to: 'Bandung',
+    dateLabel: 'Kam, 8 Okt',
+    passengersLabel: '1 Orang',
+    href: '/schedules?from=Jakarta&to=Bandung&date=2026-10-08&passengers=1',
+  },
 ]
 
 const HOW_STEPS = [
@@ -337,31 +370,69 @@ function HomeContent() {
 
       {/* ── Lanjutkan Cepat ─────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-8">
-        <h2 className="text-sm font-bold text-ink mb-3">Lanjutkan cepat</h2>
-        <div className="flex flex-wrap gap-2.5">
-          <Link
-            href="/schedules?from=Jakarta&to=Bandung&date=2026-10-10&passengers=2"
-            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
-          >
-            <Clock size={14} className="text-muted group-hover:text-primary transition-colors" />
-            <span>Jakarta → Bandung · Sab, 10 Okt · 2 orang</span>
-          </Link>
+        <div className="flex items-center justify-between mb-3.5">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-ink dark:text-white">
+              Lanjutkan cepat
+            </h2>
+            <p className="text-xs text-muted dark:text-gray-400 mt-0.5">
+              Pencarian terakhir dan pemesanan ulang rute favoritmu
+            </p>
+          </div>
+        </div>
 
-          <Link
-            href="/schedules?from=Surabaya&to=Yogyakarta&date=2026-10-10&passengers=1"
-            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
-          >
-            <Clock size={14} className="text-muted group-hover:text-primary transition-colors" />
-            <span>Surabaya → Yogyakarta · 1 orang</span>
-          </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {QUICK_CONTINUES.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="group relative bg-white dark:bg-[#152733] border border-borderCol dark:border-white/10 rounded-2xl p-4 sm:p-4.5 hover:border-primary dark:hover:border-primary/60 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 overflow-hidden"
+            >
+              {/* Header Card: Tag Status & Icon Action */}
+              <div className="flex items-center justify-between">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight ${
+                    item.isReorder
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
+                      : 'bg-primary-tint/70 dark:bg-primary/20 text-primary dark:text-primary-tint border border-primary/20'
+                  }`}
+                >
+                  {item.isReorder ? (
+                    <RotateCcw size={11} className="stroke-[2.5]" />
+                  ) : (
+                    <Clock size={11} className="stroke-[2.5]" />
+                  )}
+                  <span>{item.badge}</span>
+                </span>
 
-          <Link
-            href="/schedules?from=Jakarta&to=Bandung&date=2026-10-08&passengers=1"
-            className="group flex items-center gap-2 px-4 py-2 border border-borderCol bg-white rounded-full text-xs sm:text-sm font-medium text-ink hover:bg-primary-tint hover:border-primary hover:text-primary transition-all shadow-2xs cursor-pointer"
-          >
-            <RotateCcw size={14} className="text-muted group-hover:text-primary transition-colors" />
-            <span>Pesan lagi: Jakarta → Bandung (8 Okt)</span>
-          </Link>
+                <div className="w-7 h-7 rounded-full bg-surface dark:bg-white/5 flex items-center justify-center text-muted dark:text-gray-400 group-hover:bg-primary group-hover:text-white transition-all duration-200">
+                  <ArrowRight size={13} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                </div>
+              </div>
+
+              {/* Rute (Kota Asal -> Tujuan) */}
+              <div>
+                <div className="flex items-center gap-2 text-base font-bold text-ink dark:text-white group-hover:text-primary transition-colors">
+                  <span>{item.from}</span>
+                  <ArrowRight size={14} className="text-primary flex-shrink-0" />
+                  <span>{item.to}</span>
+                </div>
+
+                {/* Info Tanggal & Penumpang */}
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Calendar size={12} className="text-primary/70 flex-shrink-0" />
+                    <span>{item.dateLabel}</span>
+                  </div>
+                  <span className="text-borderCol dark:text-white/20">•</span>
+                  <div className="flex items-center gap-1">
+                    <Users size={12} className="text-primary/70 flex-shrink-0" />
+                    <span>{item.passengersLabel}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

@@ -87,13 +87,13 @@ export default function Navbar() {
   const isHelpActive = pathname?.startsWith('/help')
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-borderCol print:hidden">
-      <div className="max-w-7xl mx-auto px-3 sm:px-8 h-16 flex items-center justify-between gap-2">
+    <header className="sticky top-0 z-50 bg-white dark:bg-[#0F2332] border-b border-borderCol dark:border-white/10 print:hidden">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Left: Brand & Nav Links */}
-        <div className="flex items-center gap-2.5 sm:gap-6 min-w-0">
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-xs">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink min-w-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-xs flex-shrink-0">
+              <svg width="16" height="16" className="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M8 6v6" />
                 <path d="M16 6v6" />
                 <path d="M4 6h16" />
@@ -104,19 +104,19 @@ export default function Navbar() {
                 <path d="M17 18v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
               </svg>
             </div>
-            <span className="text-lg sm:text-xl font-black text-ink tracking-tight">
+            <span className="text-base sm:text-xl font-black text-ink dark:text-white tracking-tight flex-shrink-0">
               Rute<span className="text-primary">Ku</span>
             </span>
           </Link>
 
           {/* Navigation Links */}
-          <nav className="flex items-center gap-1 sm:gap-2">
+          <nav className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             <Link
               href="/"
-              className={`px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 isCariTiketActive
-                  ? 'bg-primary-tint text-primary'
-                  : 'text-ink hover:text-primary'
+                  ? 'bg-primary-tint dark:bg-primary/20 text-primary'
+                  : 'text-ink dark:text-gray-300 hover:text-primary dark:hover:text-primary'
               }`}
             >
               <span>Cari</span>
@@ -124,10 +124,10 @@ export default function Navbar() {
             </Link>
             <Link
               href="/history"
-              className={`px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 isHistoryActive
-                  ? 'bg-primary-tint text-primary'
-                  : 'text-ink hover:text-primary font-medium'
+                  ? 'bg-primary-tint dark:bg-primary/20 text-primary'
+                  : 'text-ink dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium'
               }`}
             >
               <span>Riwayat</span>
@@ -137,7 +137,7 @@ export default function Navbar() {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
           {/* Header countdown timer badge on booking screens */}
           {isBookingFlow && (
             isPaymentStep ? (
@@ -153,20 +153,20 @@ export default function Navbar() {
             )
           )}
 
-          {/* Tombol Masuk & Daftar (terpisah seperti web travel asli) */}
+          {/* Tombol Masuk & Daftar (terpisah di desktop, ringkas di mobile) */}
           {!user ? (
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 type="button"
                 onClick={() => openAuthModal({ mode: 'login' })}
-                className="px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full text-ink dark:text-white hover:text-primary hover:bg-surface dark:hover:bg-white/5 border border-borderCol dark:border-white/10 transition-all cursor-pointer"
+                className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-full text-ink dark:text-white hover:text-primary hover:bg-surface dark:hover:bg-white/5 border border-borderCol dark:border-white/10 transition-all cursor-pointer whitespace-nowrap"
               >
                 Masuk
               </button>
               <button
                 type="button"
                 onClick={() => openAuthModal({ mode: 'register' })}
-                className="px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary hover:bg-primary-dark text-white shadow-2xs transition-all cursor-pointer"
+                className="hidden sm:inline-flex px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary hover:bg-primary-dark text-white shadow-2xs transition-all cursor-pointer whitespace-nowrap"
               >
                 Daftar
               </button>
@@ -176,10 +176,10 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary-tint/80 dark:bg-primary-dark/40 border border-primary/30 text-primary dark:text-primary-tint hover:bg-primary-tint transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary-tint/80 dark:bg-primary-dark/40 border border-primary/30 text-primary dark:text-primary-tint hover:bg-primary-tint transition-all cursor-pointer shadow-2xs"
                 title={`Akun: ${user.name}`}
               >
-                <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+                <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="hidden sm:inline max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
@@ -230,22 +230,22 @@ export default function Navbar() {
           {/* Bantuan Button -> links to /help */}
           <Link
             href="/help"
-            className={`flex items-center justify-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all cursor-pointer ${
+            className={`w-7 h-7 sm:w-auto sm:h-auto sm:px-3.5 sm:py-1.5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all cursor-pointer ${
               isHelpActive
-                ? 'bg-primary-tint border-primary text-primary font-bold'
-                : 'text-ink border-borderCol hover:border-primary hover:text-primary hover:bg-surface'
+                ? 'bg-primary-tint border-primary text-primary font-bold dark:bg-primary/20'
+                : 'text-ink dark:text-white border-borderCol dark:border-white/10 hover:border-primary hover:text-primary hover:bg-surface dark:hover:bg-white/5'
             }`}
             title="Bantuan & FAQ"
           >
-            <HelpCircle size={16} />
+            <HelpCircle size={15} />
             <span className="hidden sm:inline">Bantuan</span>
           </Link>
 
-          {/* Theme Toggle: 1 logo (Bulan / Matahari) dengan efek animasi klik & rotasi */}
+          {/* Theme Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-borderCol bg-white dark:bg-black text-ink hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center transition-all duration-300 transform active:scale-75 active:rotate-45 shadow-2xs cursor-pointer group relative overflow-hidden"
+            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border border-borderCol dark:border-white/10 bg-white dark:bg-black text-ink hover:text-primary hover:border-primary hover:bg-surface flex items-center justify-center transition-all duration-300 transform active:scale-75 active:rotate-45 shadow-2xs cursor-pointer group relative overflow-hidden flex-shrink-0"
             title={mounted ? (isDark ? 'Beralih ke Mode Putih' : 'Beralih ke Mode Dark') : 'Ganti Tema'}
             aria-label="Ganti mode tema"
             suppressHydrationWarning
@@ -256,9 +256,9 @@ export default function Navbar() {
               }`}
             >
               {mounted && isDark ? (
-                <Sun size={16} className="transition-transform duration-300 group-hover:rotate-45" />
+                <Sun size={15} className="transition-transform duration-300 group-hover:rotate-45" />
               ) : (
-                <Moon size={16} className="transition-transform duration-300 group-hover:-rotate-12" />
+                <Moon size={15} className="transition-transform duration-300 group-hover:-rotate-12" />
               )}
             </span>
           </button>
