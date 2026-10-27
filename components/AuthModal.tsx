@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   AlertCircle,
   ArrowRight,
+  CheckCircle2,
 } from 'lucide-react'
 
 function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
@@ -60,6 +61,7 @@ export default function AuthModal() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // Sync mode with modal config when opened
@@ -67,6 +69,7 @@ export default function AuthModal() {
     if (isAuthModalOpen) {
       setMode(authModalConfig?.mode || 'login')
       setError(null)
+      setSuccessMessage(null)
       setRegConfirmPassword('')
     }
   }, [isAuthModalOpen, authModalConfig])
@@ -78,6 +81,7 @@ export default function AuthModal() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setSuccessMessage(null)
     if (!emailOrPhone.trim()) {
       setError('Silakan masukkan email atau nomor HP Anda.')
       return
@@ -97,13 +101,14 @@ export default function AuthModal() {
         window.location.href = authModalConfig.redirectUrl
       }
     } else {
-      setError(res.error || 'Gagal masuk. Periksa kembali data Anda.')
+      setError(res.error || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.')
     }
   }
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setSuccessMessage(null)
 
     if (!name.trim()) {
       setError('Nama lengkap wajib diisi.')
@@ -144,14 +149,20 @@ export default function AuthModal() {
     setIsLoading(false)
 
     if (res.success) {
-      closeAuthModal()
-      const activeUser = res.user || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('ruteku_auth_user') || 'null') : null)
-      if (authModalConfig?.onSuccess && activeUser) {
-        authModalConfig.onSuccess(activeUser)
-      }
-      if (authModalConfig?.redirectUrl && typeof window !== 'undefined') {
-        window.location.href = authModalConfig.redirectUrl
-      }
+      // Pindahkan ke form login dan isi otomatis email yang baru dibuat
+      const createdEmail = regEmail.trim()
+      setMode('login')
+      setEmailOrPhone(createdEmail)
+      setPassword('')
+      setSuccessMessage('Akun Anda berhasil dibuat! Silakan masukkan kata sandi yang tadi dibuat untuk masuk ke akun Anda.')
+      setError(null)
+
+      // Reset data form registrasi
+      setName('')
+      setRegEmail('')
+      setRegPhone('')
+      setRegPassword('')
+      setRegConfirmPassword('')
     } else {
       setError(res.error || 'Gagal mendaftar.')
     }
@@ -317,6 +328,17 @@ export default function AuthModal() {
               </span>
             </div>
           </div>
+
+          {/* Success Message Alert */}
+          {successMessage && (
+            <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-start gap-2.5 animate-in fade-in">
+              <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold text-ink dark:text-white">Pendaftaran Berhasil!</p>
+                <p className="mt-0.5 leading-relaxed">{successMessage}</p>
+              </div>
+            </div>
+          )}
 
           {/* Error Message Alert */}
           {error && (

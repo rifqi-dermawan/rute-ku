@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}))
-    const { id, name, email, phone } = body
+    const { id, name, email, phone, noCookie } = body
 
     if (!email || !name) {
       return NextResponse.json(
@@ -53,21 +53,23 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      message: 'Pendaftaran berhasil dan otomatis masuk.',
+      message: 'Pendaftaran berhasil. Silakan masuk menggunakan akun Anda.',
       user,
     })
 
-    // Pasang cookie sesi agar pengguna langsung terautentikasi di level server
-    response.cookies.set('ruteku_user_id', user.id, {
-      path: '/',
-      maxAge: 604800,
-      sameSite: 'lax',
-    })
-    response.cookies.set('ruteku_user_role', 'USER', {
-      path: '/',
-      maxAge: 604800,
-      sameSite: 'lax',
-    })
+    // Pasang cookie sesi hanya jika tidak dinonaktifkan (misal bukan alur redirect ke form login)
+    if (!noCookie) {
+      response.cookies.set('ruteku_user_id', user.id, {
+        path: '/',
+        maxAge: 604800,
+        sameSite: 'lax',
+      })
+      response.cookies.set('ruteku_user_role', 'USER', {
+        path: '/',
+        maxAge: 604800,
+        sameSite: 'lax',
+      })
+    }
 
     return response
   } catch (err: any) {

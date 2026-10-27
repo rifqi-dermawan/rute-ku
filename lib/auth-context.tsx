@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // 2. Check registered users in localStorage
-      let customUsers: AuthUser[] = []
+      let customUsers: (AuthUser & { password?: string })[] = []
       try {
         const stored = localStorage.getItem(USERS_STORAGE_KEY)
         if (stored) customUsers = JSON.parse(stored)
@@ -146,6 +146,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         u => u.email.toLowerCase() === normalized || u.phone === normalized
       )
       if (customMatch) {
+        if (customMatch.password && _password && customMatch.password !== _password) {
+          return { success: false, error: 'Kata sandi salah. Silakan coba lagi.' }
+        }
         saveUserSession(customMatch)
         return { success: true, user: customMatch }
       }
@@ -208,6 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cleanName = data.name.trim()
       const cleanEmail = data.email.trim().toLowerCase()
       const cleanPhone = data.phone.trim()
+      const password = data.password ? data.password.trim() : ''
 
       if (!cleanName || cleanName.length < 2) {
         return { success: false, error: 'Nama lengkap minimal 2 karakter.' }
@@ -219,68 +223,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (phoneDigits.length < 10) {
         return { success: false, error: 'Nomor HP minimal 10 digit angka.' }
       }
+      if (!password || password.length < 6) {
+        return { success: false, error: 'Kata sandi minimal 6 karakter.' }
+      }
 
       // 1. Cek apakah ada di DEMO_USERS
       const demoMatch = DEMO_USERS.find(u => u.email.toLowerCase() === cleanEmail)
       if (demoMatch) {
-        saveUserSession(demoMatch)
-        return { success: true, user: demoMatch }
+        return { success: false, error: 'Email ini sudah terdaftar. Silakan gunakan tab Masuk.' }
       }
 
       // 2. Ambil registered users dari localStorage
-      let customUsers: AuthUser[] = []
+      let customUsers: (AuthUser & { password?: string })[] = []
       try {
         const stored = localStorage.getItem(USERS_STORAGE_KEY)
         if (stored) customUsers = JSON.parse(stored)
       } catch {}
 
-      // Jika user sudah pernah terdaftar, jangan suruh pindah ke tab masuk!
-      // Langsung loginkan dengan data yang telah ada atau perbarui namanya.
-      const existingIndex = customUsers.findIndex(u => u.email.toLowerCase() === cleanEmail)
-      let activeUser: AuthUser
-
-      if (existingIndex >= 0) {
-        activeUser = {
-          ...customUsers[existingIndex],
-          name: cleanName || customUsers[existingIndex].name,
-          phone: cleanPhone || customUsers[existingIndex].phone,
-        }
-        customUsers[existingIndex] = activeUser
-      } else {
-        // Pengguna baru
-        activeUser = {
-          id: `usr-${Date.now()}`,
-          name: cleanName,
-          email: cleanEmail,
-          phone: cleanPhone,
-          role: 'USER',
-        }
-        customUsers.push(activeUser)
+      // Cek duplicate email
+      const existing = customUsers.find(u => u.email.toLowerCase() === cleanEmail)
+      if (existing) {
+        return { success: false, error: 'Email ini sudah terdaftar. Silakan gunakan tab Masuk.' }
       }
+
+      // Buat akun baru
+      const newUser: AuthUser & { password?: string } = {
+        id: `usr-${Date.now()}`,
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        role: 'USER',
+        password: password,
+      }
+      customUsers.push(newUser)
 
       try {
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(customUsers))
       } catch {}
 
-      // Sinkronkan ke API backend untuk persistensi DB Prisma dan pasang HttpOnly cookies
+      // Sinkronkan ke API backend tanpa session cookies
       try {
-        const apiRes = await fetch('/api/auth/register', {
+        await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(activeUser),
+          body: JSON.stringify({ ...newUser, noCookie: true }),
         })
-        const apiData = await apiRes.json().catch(() => ({}))
-        if (apiData?.user?.id) {
-          activeUser.id = apiData.user.id
-        }
       } catch (e) {
         console.warn('Sync register API skipped:', e)
       }
 
-      // Langsung aktifkan sesi login (auto-login)!
-      saveUserSession(activeUser)
-
-      return { success: true, user: activeUser }
+      // TIDAK ADA auto-login di sini: user harus diarahkan ke form login untuk login dengan akun barunya
+      return { success: true, user: newUser }
     } catch (err: any) {
       return { success: false, error: err?.message || 'Gagal mendaftarkan akun.' }
     } finally {
