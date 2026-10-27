@@ -56,7 +56,9 @@ export default function AuthModal() {
   const [regEmail, setRegEmail] = useState('')
   const [regPhone, setRegPhone] = useState('')
   const [regPassword, setRegPassword] = useState('')
+  const [regConfirmPassword, setRegConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -65,6 +67,7 @@ export default function AuthModal() {
     if (isAuthModalOpen) {
       setMode(authModalConfig?.mode || 'login')
       setError(null)
+      setRegConfirmPassword('')
     }
   }, [isAuthModalOpen, authModalConfig])
 
@@ -112,6 +115,22 @@ export default function AuthModal() {
     }
     if (!regPhone.trim()) {
       setError('Nomor HP wajib diisi.')
+      return
+    }
+    if (!regPassword) {
+      setError('Kata sandi wajib diisi.')
+      return
+    }
+    if (regPassword.length < 6) {
+      setError('Kata sandi minimal 6 karakter.')
+      return
+    }
+    if (!regConfirmPassword) {
+      setError('Konfirmasi kata sandi wajib diisi.')
+      return
+    }
+    if (regPassword !== regConfirmPassword) {
+      setError('Konfirmasi kata sandi tidak cocok. Pastikan kata sandi sama.')
       return
     }
 
@@ -244,6 +263,7 @@ export default function AuthModal() {
               onClick={() => {
                 setMode('register')
                 setError(null)
+                setRegConfirmPassword('')
               }}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 mode === 'register'
@@ -452,7 +472,7 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                  Kata Sandi
+                  Kata Sandi <span className="text-error">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
@@ -463,6 +483,7 @@ export default function AuthModal() {
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="Buat kata sandi minimal 6 karakter"
+                    required
                     className="w-full h-10 pl-9 pr-10 border border-borderCol dark:border-white/15 dark:bg-black/20 rounded-input text-ink dark:text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   />
                   <button
@@ -473,6 +494,48 @@ export default function AuthModal() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Konfirmasi Kata Sandi <span className="text-error">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    placeholder="Ulangi kata sandi Anda"
+                    required
+                    className={`w-full h-10 pl-9 pr-10 border rounded-input text-ink dark:text-white text-sm outline-none transition-all dark:bg-black/20 ${
+                      regConfirmPassword && regPassword && regConfirmPassword !== regPassword
+                        ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-400'
+                        : regConfirmPassword && regPassword && regConfirmPassword === regPassword
+                        ? 'border-emerald-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                        : 'border-borderCol dark:border-white/15 focus:border-primary focus:ring-1 focus:ring-primary'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-ink cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {regConfirmPassword && regPassword && regConfirmPassword !== regPassword && (
+                  <p className="text-[11px] text-red-500 mt-1 font-medium animate-in fade-in">
+                    Kata sandi tidak cocok
+                  </p>
+                )}
+                {regConfirmPassword && regPassword && regConfirmPassword === regPassword && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium animate-in fade-in">
+                    ✓ Kata sandi cocok
+                  </p>
+                )}
               </div>
 
               <button
