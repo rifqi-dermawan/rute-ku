@@ -30,8 +30,8 @@ export default function Footer() {
     <footer className={`bg-white border-t border-borderCol mt-auto print:hidden ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
       {/* ── Top Highlights / Trust Bar ─────────────────────────────── */}
       <div className="border-b border-borderCol/70 bg-surface/50 footer-grey-bar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-primary-tint border border-primary/25 text-primary flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5" />
@@ -84,8 +84,8 @@ export default function Footer() {
       </div>
 
       {/* ── Main Footer Directory ──────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10">
           {/* Brand Info (2 Columns on Large Screens) */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-flex items-center gap-2.5">
@@ -242,7 +242,7 @@ export default function Footer() {
 
       {/* ── Bottom Legal & Copyright Bar ────────────────────────────── */}
       <div className="border-t border-borderCol bg-surface/70 footer-grey-bar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted dark:!text-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs text-muted dark:!text-black">
           <p className="dark:!text-black">
             © {new Date().getFullYear()} <span className="font-bold text-ink dark:!text-black">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.
           </p>

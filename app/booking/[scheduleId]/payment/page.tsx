@@ -402,9 +402,9 @@ function PaymentContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={5} />
 
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-3 sm:py-8">
         {/* Title */}
-        <div className="mb-5">
+        <div className="mb-3 sm:mb-5">
           <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
             Pembayaran
           </h1>
@@ -416,7 +416,7 @@ function PaymentContent({
 
         {/* Error Banner jika terjadi kendala gateway */}
         {midtransError && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
             <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-0.5">
               <strong className="font-bold text-red-950 dark:text-red-100">Kendala Pembayaran</strong>
@@ -426,7 +426,7 @@ function PaymentContent({
         )}
 
         {/* Amber Alert Banner */}
-        <div className="mb-6 p-4 rounded-xl bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] text-[#93370D] dark:text-[#FDB022] flex items-start gap-3 shadow-2xs">
+        <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] text-[#93370D] dark:text-[#FDB022] flex items-start gap-3 shadow-2xs">
           <Clock size={18} className="text-[#93370D] dark:text-[#FDB022] flex-shrink-0 mt-0.5" />
           <div className="text-xs sm:text-sm leading-relaxed">
             <strong className="font-bold text-[#7A271A] dark:text-[#FEDF89]">
@@ -439,12 +439,12 @@ function PaymentContent({
         </div>
 
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-3.5 sm:gap-6 items-start">
           {/* Left Column */}
-          <div className="flex-1 w-full space-y-6">
+          <div className="flex-1 w-full space-y-3.5 sm:space-y-6">
             {/* Card 1: Pilih Metode Pembayaran */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
-              <h2 className="text-base font-bold text-ink mb-4">Pilih metode pembayaran</h2>
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
+              <h2 className="text-base font-bold text-ink mb-2.5 sm:mb-4">Pilih metode pembayaran</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {PAYMENT_METHODS.map(m => {
                   const isSel = selectedMethod === m.id
@@ -486,7 +486,7 @@ function PaymentContent({
 
             {/* Card 2: QRIS Tab — QR Real dari Midtrans */}
             {selectedMethod === 'qris' && (
-              <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-5">
+              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <h2 className="text-base font-bold text-ink flex items-center gap-2">
@@ -649,7 +649,7 @@ function PaymentContent({
             )}
 
             {selectedMethod === 'va' && (
-              <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-5">
+              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h2 className="text-base font-bold text-ink flex items-center gap-2">
                     <Building2 size={18} className="text-primary" />
@@ -794,7 +794,7 @@ function PaymentContent({
             )}
 
             {selectedMethod === 'ewallet' && (
-              <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-5">
+              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h2 className="text-base font-bold text-ink flex items-center gap-2">
                     <Smartphone size={18} className="text-primary" />
@@ -888,7 +888,7 @@ function PaymentContent({
             )}
 
             {selectedMethod === 'card' && (
-              <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-5">
+              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h2 className="text-base font-bold text-ink flex items-center gap-2">
                     <CreditCard size={18} className="text-primary" />
@@ -1002,12 +1002,12 @@ function PaymentContent({
           </div>
 
           {/* Right Column */}
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-3 sm:space-y-4">
             {/* Amber Timer Card */}
-            <div className="bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] rounded-card p-5">
+            <div className="bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] rounded-card p-3.5 sm:p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-[#93370D] dark:text-[#FDB022]">Sisa waktu tahan</span>
-                <span className="text-3xl font-mono font-extrabold text-[#7A271A] dark:text-[#FEDF89] tracking-tight">
+                <span className="text-2xl sm:text-3xl font-mono font-extrabold text-[#7A271A] dark:text-[#FEDF89] tracking-tight">
                   {fmtTime(secondsLeft)}
                 </span>
               </div>
@@ -1017,7 +1017,7 @@ function PaymentContent({
             </div>
 
             {/* Keamanan Transaksi Card */}
-            <div className="bg-white border border-borderCol rounded-card p-4 shadow-2xs space-y-2">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-4 shadow-2xs space-y-2">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} className="text-success" />
                 <span className="text-xs font-bold text-ink">Jaminan Pembayaran Aman</span>
@@ -1028,7 +1028,7 @@ function PaymentContent({
             </div>
 
             {/* Trip Summary Card */}
-            <div className="bg-white border border-borderCol rounded-card p-5 shadow-2xs space-y-4">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 shadow-2xs space-y-3 sm:space-y-4">
               <div>
                 <h3 className="font-black text-ink text-base">
                   {from} → {to}

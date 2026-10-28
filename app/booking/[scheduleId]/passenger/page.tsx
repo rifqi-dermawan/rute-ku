@@ -332,9 +332,9 @@ function PassengerContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={3} />
 
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-3 sm:py-8">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5 sm:mb-6">
           <div>
             <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
               Data penumpang
@@ -354,7 +354,7 @@ function PassengerContent({
 
         {/* User Authentication Status Banner */}
         {user ? (
-          <div className="mb-6 p-3.5 sm:p-4 rounded-2xl bg-primary-tint/60 dark:bg-primary-dark/30 border border-primary/25 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
+          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-primary-tint/60 dark:bg-primary-dark/30 border border-primary/25 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-2xs">
                 {user.name.charAt(0).toUpperCase()}
@@ -375,7 +375,7 @@ function PassengerContent({
             </div>
           </div>
         ) : (
-          <div className="mb-6 p-3.5 sm:p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-700/60 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
+          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-700/60 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
                 !
@@ -421,7 +421,7 @@ function PassengerContent({
         {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
           <div
             id="passenger-validation-banner"
-            className="mb-6 p-4 rounded-2xl bg-red-50 border-2 border-red-300 text-red-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200"
+            className="mb-3.5 sm:mb-6 p-3.5 sm:p-4 rounded-2xl bg-red-50 border-2 border-red-300 text-red-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200"
           >
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -445,9 +445,9 @@ function PassengerContent({
         )}
 
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-3.5 sm:gap-6 items-start">
           {/* Left Column: Passenger Cards & Contacts */}
-          <div className="flex-1 w-full space-y-5 sm:space-y-6">
+          <div className="flex-1 w-full space-y-3 sm:space-y-6">
             {passengers.map((passenger, index) => {
               const isAdult = passenger.type !== 'anak'
               const rawKtp = (passenger.ktp || '').replace(/\s+/g, '')
@@ -459,12 +459,12 @@ function PassengerContent({
               return (
                 <div
                   key={passenger.seat}
-                  className={`bg-white border rounded-card p-4 sm:p-6 shadow-2xs transition-all ${
+                  className={`bg-white border rounded-card p-3.5 sm:p-6 shadow-2xs transition-all ${
                     nameError || (isAdult && ktpError) ? 'border-red-300 ring-1 ring-red-200' : 'border-borderCol'
                   }`}
                 >
                   {/* Card Header: Seat & Tipe Penumpang Selector */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-borderCol/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 mb-3.5 sm:pb-4 sm:mb-5 border-b border-borderCol/50">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-ink text-base">
                         Penumpang {index + 1} · Kursi
@@ -591,13 +591,13 @@ function PassengerContent({
             })}
 
             {/* Kontak Pemesan Card */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
               <h2 className="text-base font-bold text-ink">Kontak pemesan</h2>
-              <p className="text-xs text-muted mt-0.5 mb-5">
+              <p className="text-xs text-muted mt-0.5 mb-3 sm:mb-5">
                 E-tiket dan kabar perubahan jadwal akan dikirim ke kontak ini.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-ink mb-1.5">
                     Email Pemesan <span className="text-error">*</span>

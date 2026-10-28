@@ -223,11 +223,11 @@ function SchedulesContent({
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-12" suppressHydrationWarning>
+    <div className="min-h-screen bg-surface pb-8 sm:pb-12" suppressHydrationWarning>
       <Stepper currentStep={1} />
 
       {/* ── Route header ─────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 flex items-start sm:items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-3 sm:py-5 flex items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-ink flex items-center gap-2 flex-wrap">
             {from && to ? (
@@ -468,7 +468,7 @@ function SchedulesContent({
         {/* ── Schedule list ────────────────────────────────── */}
         <div className="flex-1 min-w-0">
           {/* Mobile Filter Bar (Visible on mobile < md) */}
-          <div className="md:hidden mb-4">
+          <div className="md:hidden mb-2.5 sm:mb-4">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar text-xs">
               <span className="text-muted font-bold flex items-center gap-1 flex-shrink-0 mr-0.5">
                 <SlidersHorizontal size={12} /> Filter:
@@ -570,7 +570,7 @@ function SchedulesContent({
                       handleSelectSchedule(s)
                     }
                   }}
-                  className={`bg-white border border-borderCol rounded-card p-4 sm:p-5 transition-all ${
+                  className={`bg-white border border-borderCol rounded-card p-3.5 sm:p-5 transition-all ${
                     isFull ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
                   }`}
                 >

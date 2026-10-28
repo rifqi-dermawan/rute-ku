@@ -116,10 +116,10 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-20">
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-3.5 sm:py-8">
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-medium flex items-center justify-between shadow-2xs">
+          <div className="mb-4 sm:mb-5 p-3 sm:p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-medium flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-2">
               <Check size={16} className="text-emerald-600 flex-shrink-0" />
               <span>{toastMessage}</span>
@@ -135,7 +135,7 @@ export default function HistoryPage() {
         )}
 
         {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="mb-3.5 sm:mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-3">
           <div>
             <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
               Riwayat booking
@@ -157,7 +157,7 @@ export default function HistoryPage() {
 
         {/* ── UNATHENTICATED STATE: ZERO TICKET LEAKAGE GUARANTEE ── */}
         {!user ? (
-          <div className="bg-white border border-borderCol rounded-2xl p-6 sm:p-10 text-center shadow-xs space-y-5">
+          <div className="bg-white border border-borderCol rounded-2xl p-4 sm:p-10 text-center shadow-xs space-y-3.5 sm:space-y-5">
             <div className="w-16 h-16 rounded-2xl bg-primary-tint flex items-center justify-center mx-auto text-primary">
               <ShieldCheck size={32} />
             </div>
@@ -187,7 +187,7 @@ export default function HistoryPage() {
           /* ── AUTHENTICATED STATE: DISPLAY USER'S REAL TICKETS ONLY ── */
           <>
             {/* Tabs */}
-            <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-2 mb-3.5 sm:mb-6 overflow-x-auto pb-1 no-scrollbar">
               <button
                 type="button"
                 onClick={() => setTab('active')}
@@ -303,7 +303,7 @@ export default function HistoryPage() {
                   return (
                     <div
                       key={booking.id || booking.bookingCode}
-                      className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-4 transition-all hover:border-primary/40"
+                      className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3 sm:space-y-4 transition-all hover:border-primary/40"
                     >
                       {/* Top Row */}
                       <div className="flex items-start justify-between flex-wrap gap-2">

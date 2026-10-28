@@ -166,16 +166,16 @@ function HomeContent() {
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-20">
+    <div className="min-h-screen bg-surface pb-10 sm:pb-20">
       {/* ── Hero Section ─────────────────────────────────────────────── */}
-      <section className="relative bg-secondary px-4 sm:px-12 pt-10 sm:pt-14 pb-20 sm:pb-24 overflow-hidden text-white">
+      <section className="relative bg-secondary px-4 sm:px-12 pt-6 sm:pt-14 pb-14 sm:pb-24 overflow-hidden text-white">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 sm:gap-8 relative z-10">
           <div className="max-w-xl">
             <h1 className="text-2xl sm:text-4xl lg:text-[44px] font-black leading-tight tracking-tight text-white">
               Pesan kursi bus antarkota.<br />
               Kursimu aman, tanpa rebutan.
             </h1>
-            <p className="mt-3 sm:mt-4 text-borderCol text-xs sm:text-base leading-relaxed max-w-lg">
+            <p className="mt-2.5 sm:mt-4 text-borderCol text-xs sm:text-base leading-relaxed max-w-lg">
               Pilih kursi sendiri di denah, kami tahan 10 menit untukmu, lalu bayar dengan tenang.
             </p>
           </div>
@@ -209,16 +209,16 @@ function HomeContent() {
       </section>
 
       {/* ── Search Form Card ────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-3.5 sm:px-8 -mt-10 sm:-mt-12 relative z-20">
+      <section className="max-w-6xl mx-auto px-3.5 sm:px-8 -mt-8 sm:-mt-12 relative z-20">
         <form
           onSubmit={handleSearch}
-          className="bg-white rounded-card shadow-lg border border-borderCol p-4 sm:p-7"
+          className="bg-white rounded-card shadow-lg border border-borderCol p-3.5 sm:p-7"
         >
           {/* Validation Warning Banner */}
           {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
             <div
               id="search-validation-banner"
-              className="mb-5 p-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-900 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200"
+              className="mb-4 sm:mb-5 p-3.5 sm:p-4 rounded-xl bg-red-50 border-2 border-red-300 text-red-900 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200"
             >
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -234,7 +234,7 @@ function HomeContent() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-start">
             {/* Asal */}
             <div>
               <label className="block text-xs font-bold text-ink mb-1.5">
@@ -243,7 +243,7 @@ function HomeContent() {
               <select
                 value={from}
                 onChange={e => handleFromChange(e.target.value)}
-                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
                   errors['from']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
@@ -272,7 +272,7 @@ function HomeContent() {
               <select
                 value={to}
                 onChange={e => handleToChange(e.target.value)}
-                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
                   errors['to']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
@@ -303,7 +303,7 @@ function HomeContent() {
                 value={date}
                 min={new Date().toISOString().split('T')[0]}
                 onChange={e => handleDateChange(e.target.value)}
-                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
                   errors['date']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
@@ -325,7 +325,7 @@ function HomeContent() {
               <select
                 value={passengers}
                 onChange={e => handlePassengersChange(e.target.value)}
-                className={`w-full h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
                   errors['passengers']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
@@ -347,7 +347,7 @@ function HomeContent() {
           </div>
 
           {/* Bottom Bar: Swap link & Cari jadwal button */}
-          <div className="mt-5 pt-4 border-t border-borderCol/60 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div className="mt-3.5 sm:mt-5 pt-3 sm:pt-4 border-t border-borderCol/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4">
             <button
               type="button"
               onClick={handleSwap}
@@ -359,7 +359,7 @@ function HomeContent() {
 
             <button
               type="submit"
-              className="w-full sm:w-auto h-12 sm:h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center justify-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
+              className="w-full sm:w-auto h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center justify-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
             >
               <Search size={16} />
               <span>Cari jadwal</span>
@@ -369,8 +369,8 @@ function HomeContent() {
       </section>
 
       {/* ── Lanjutkan Cepat ─────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-8">
-        <div className="flex items-center justify-between mb-3.5">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-5 sm:mt-8">
+        <div className="flex items-center justify-between mb-2.5 sm:mb-3.5">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-ink dark:text-white">
               Lanjutkan cepat
@@ -381,12 +381,12 @@ function HomeContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
           {QUICK_CONTINUES.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="group relative bg-white dark:bg-[#152733] border border-borderCol dark:border-white/10 rounded-2xl p-4 sm:p-4.5 hover:border-primary dark:hover:border-primary/60 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 overflow-hidden"
+              className="group relative bg-white dark:bg-[#152733] border border-borderCol dark:border-white/10 rounded-2xl p-3 sm:p-4.5 hover:border-primary dark:hover:border-primary/60 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between gap-2 sm:gap-3 overflow-hidden"
             >
               {/* Header Card: Tag Status & Icon Action */}
               <div className="flex items-center justify-between">
@@ -437,14 +437,14 @@ function HomeContent() {
       </section>
 
       {/* ── Rute Populer ────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-9">
-        <h2 className="text-base sm:text-lg font-bold text-ink mb-3.5">Rute populer</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-5 sm:mt-9">
+        <h2 className="text-base sm:text-lg font-bold text-ink mb-2.5 sm:mb-3.5">Rute populer</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {POPULAR_ROUTES.map(route => (
             <Link
               key={`${route.from}-${route.to}`}
               href={`/schedules?from=${route.from}&to=${route.to}&date=2026-10-10&passengers=2`}
-              className="bg-white border border-borderCol rounded-card p-5 hover:border-primary hover:shadow-md transition-all group block cursor-pointer"
+              className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 hover:border-primary hover:shadow-md transition-all group block cursor-pointer"
             >
               <h3 className="text-base font-bold text-ink group-hover:text-primary transition-colors">
                 {route.from} → {route.to}
@@ -452,7 +452,7 @@ function HomeContent() {
               <p className="text-xs text-muted mt-1">
                 ± {route.duration} · {route.schedules} jadwal per hari
               </p>
-              <p className="text-sm font-extrabold text-primary mt-3">
+              <p className="text-sm font-extrabold text-primary mt-2.5 sm:mt-3">
                 Mulai Rp {route.minPrice.toLocaleString('id-ID')}
               </p>
             </Link>
@@ -461,12 +461,12 @@ function HomeContent() {
       </section>
 
       {/* ── Bagaimana Kursimu Diamankan ─────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-9">
-        <div className="bg-white border border-borderCol rounded-card p-6 sm:p-7">
-          <h2 className="text-base font-bold text-ink mb-4">Bagaimana kursimu diamankan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 mt-5 sm:mt-9">
+        <div className="bg-white border border-borderCol rounded-card p-4 sm:p-7">
+          <h2 className="text-base font-bold text-ink mb-3 sm:mb-4">Bagaimana kursimu diamankan</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6">
             {HOW_STEPS.map(step => (
-              <div key={step.n} className="flex items-start gap-3.5">
+              <div key={step.n} className="flex items-start gap-3 sm:gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-primary-tint border border-primary/30 text-primary font-bold text-sm flex items-center justify-center flex-shrink-0">
                   {step.n}
                 </div>

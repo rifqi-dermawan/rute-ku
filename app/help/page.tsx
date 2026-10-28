@@ -45,7 +45,7 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-20">
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8 space-y-6 sm:space-y-7">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-3.5 sm:py-8 space-y-3.5 sm:space-y-7">
         {/* Title & Search */}
         <div>
           <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
@@ -72,7 +72,7 @@ export default function HelpPage() {
         </div>
 
         {/* Section 1: Arti Warna & Simbol Kursi */}
-        <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-4">
           <h2 className="text-base font-bold text-ink">Arti warna dan simbol kursi</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -127,7 +127,7 @@ export default function HelpPage() {
         </div>
 
         {/* Section 2: Aturan Tahan Kursi 10 Menit */}
-        <div className="bg-[#EBF5F6] border border-primary/20 rounded-card p-5 sm:p-6 text-ink space-y-3">
+        <div className="bg-[#EBF5F6] border border-primary/20 rounded-card p-3.5 sm:p-6 text-ink space-y-2.5 sm:space-y-3">
           <h2 className="text-base font-bold text-ink">Aturan tahan kursi 10 menit</h2>
           <ul className="space-y-2 text-xs sm:text-sm text-ink leading-relaxed list-disc list-inside">
             <li>Begitu kamu memilih kursi, kursi itu ditahan 10 menit. Orang lain tidak bisa mengambilnya.</li>
@@ -139,7 +139,7 @@ export default function HelpPage() {
 
         {/* Section 3: Pertanyaan yang sering muncul */}
         <div className="bg-white border border-borderCol rounded-card overflow-hidden shadow-2xs">
-          <div className="p-5 sm:p-6 border-b border-borderCol">
+          <div className="p-3.5 sm:p-6 border-b border-borderCol">
             <h2 className="text-base font-bold text-ink">Pertanyaan yang sering muncul</h2>
           </div>
 
@@ -147,7 +147,7 @@ export default function HelpPage() {
             {filteredFaqs.map((faq, idx) => {
               const isOpen = openIndex === idx
               return (
-                <div key={faq.q} className="p-5 sm:p-6">
+                <div key={faq.q} className="p-3.5 sm:p-6">
                   <button
                     type="button"
                     onClick={() => toggleAccordion(idx)}
@@ -171,7 +171,7 @@ export default function HelpPage() {
         </div>
 
         {/* Section 4: Masih butuh bantuan? */}
-        <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-4">
           <h2 className="text-base font-bold text-ink">Masih butuh bantuan?</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

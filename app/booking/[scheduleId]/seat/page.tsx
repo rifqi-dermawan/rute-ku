@@ -210,81 +210,81 @@ function SeatContent({
   }
 
   return (
-    <div className="min-h-screen bg-surface pb-36 lg:pb-16">
+    <div className="min-h-screen bg-surface pb-28 lg:pb-16">
       <Stepper currentStep={2} />
 
       {/* ── Layar M Mobile Banner: Kursi Ditahan Timer ──────────────── */}
-      <div className="lg:hidden bg-primary-tint/60 border-y border-primary/20 px-4 py-2.5 flex items-center justify-between text-xs">
+      <div className="lg:hidden bg-primary-tint/60 border-y border-primary/20 px-3.5 sm:px-4 py-1.5 sm:py-2.5 flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5 font-mono text-ink">
-          <Clock size={15} className="text-primary flex-shrink-0" />
-          <span>Kursi ditahan <strong className="font-mono text-sm text-primary font-bold">{fmtTime(timeLeft)}</strong></span>
+          <Clock size={14} className="text-primary flex-shrink-0" />
+          <span>Kursi ditahan <strong className="font-mono text-xs sm:text-sm text-primary font-bold">{fmtTime(timeLeft)}</strong></span>
         </div>
         <button
           type="button"
           onClick={() => setShowTimerModal(true)}
-          className="text-primary hover:underline text-xs font-bold cursor-pointer"
+          className="text-primary hover:underline text-[11px] sm:text-xs font-bold cursor-pointer"
         >
           Kenapa ada timer?
         </button>
       </div>
 
       {/* ── Layar M Mobile Horizontal Status Legends ────────────────── */}
-      <div className="lg:hidden px-4 py-3 bg-white border-b border-borderCol overflow-x-auto flex items-center gap-3 text-[11px] font-semibold text-ink whitespace-nowrap scrollbar-none">
+      <div className="lg:hidden px-3.5 sm:px-4 py-1.5 sm:py-3 bg-white border-b border-borderCol overflow-x-auto flex items-center gap-2.5 sm:gap-3 text-[10px] sm:text-[11px] font-semibold text-ink whitespace-nowrap scrollbar-none">
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md border border-borderCol bg-white flex-shrink-0" />
+          <span className="w-3.5 h-3.5 rounded border border-borderCol bg-white flex-shrink-0" />
           <span>Tersedia</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0">
-            <Check size={10} strokeWidth={3} />
+          <span className="w-3.5 h-3.5 rounded bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0">
+            <Check size={9} strokeWidth={3} />
           </span>
           <span>Dipilih</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center text-[10px] flex-shrink-0">
-            <Clock size={10} />
+          <span className="w-3.5 h-3.5 rounded bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center text-[9px] flex-shrink-0">
+            <Clock size={9} />
           </span>
-          <span>Ditahan orang lain</span>
+          <span>Ditahan</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-ink text-white flex items-center justify-center flex-shrink-0">
-            <X size={10} strokeWidth={2.5} />
+          <span className="w-3.5 h-3.5 rounded bg-ink text-white flex items-center justify-center flex-shrink-0">
+            <X size={9} strokeWidth={2.5} />
           </span>
           <span>Terisi</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded-md bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center flex-shrink-0">
-            <Ban size={10} />
+          <span className="w-3.5 h-3.5 rounded bg-surface border border-dashed border-borderCol text-muted flex items-center justify-center flex-shrink-0">
+            <Ban size={9} />
           </span>
-          <span>Tidak tersedia</span>
+          <span>Tidak dijual</span>
         </div>
       </div>
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 py-4 sm:py-5 flex items-start sm:items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 py-2.5 sm:py-5 flex items-start sm:items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-black text-ink">Pilih kursi</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-ink">Pilih kursi</h1>
           <p className="text-xs sm:text-sm text-muted mt-0.5 truncate">
             {from} → {to} · {tripDate} · {depTime} · {busName}
           </p>
         </div>
         <button
           onClick={() => router.push(`/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(tripDate)}&passengers=${maxSelect}`)}
-          className="flex-shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold border border-primary text-primary hover:bg-primary-tint/30 rounded-input transition-all"
+          className="flex-shrink-0 px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold border border-primary text-primary hover:bg-primary-tint/30 rounded-input transition-all"
         >
           Ganti jadwal
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 flex flex-col lg:flex-row gap-6 items-start">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-8 flex flex-col lg:flex-row gap-3.5 sm:gap-6 items-start">
         {/* ── Seat Map Area (Left) ─────────────────────────────────── */}
         <div className="flex-1 w-full min-w-0">
 
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
             {/* Bus Grid Layout */}
-            <div className="bg-white border border-borderCol rounded-2xl p-3.5 sm:p-6 mx-auto w-full max-w-[340px] sm:max-w-none sm:w-[280px] shadow-2xs flex-shrink-0">
+            <div className="bg-white border border-borderCol rounded-2xl p-3 sm:p-6 mx-auto w-full max-w-[340px] sm:max-w-none sm:w-[280px] shadow-2xs flex-shrink-0">
               {/* Bus Front */}
-              <div className="flex items-center justify-between text-[11px] font-bold text-muted mb-4 pb-2 border-b border-borderCol">
+              <div className="flex items-center justify-between text-[11px] font-bold text-muted mb-2.5 sm:mb-4 pb-1.5 sm:pb-2 border-b border-borderCol">
                 <span className="flex items-center gap-1.5 text-ink">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -523,7 +523,7 @@ function SeatContent({
       </div>
 
       {/* ── Demo Controls (Bottom) ─────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-4 sm:mt-8">
         <div className="border border-dashed border-borderCol rounded-card p-3 sm:p-4 bg-white/60 flex items-center gap-3 flex-wrap text-sm">
           <span className="font-bold text-muted text-[11px] uppercase tracking-wider">
             KONTROL DEMO (bukan bagian UI)

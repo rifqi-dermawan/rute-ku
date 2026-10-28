@@ -107,9 +107,9 @@ function ETicketContent({
     <div className={`min-h-screen bg-surface pb-20 ${showInvoiceModal ? 'print:p-0 print:bg-white print:m-0' : ''}`}>
       <Stepper currentStep={6} />
 
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8 print:p-0 print:max-w-none print:w-full print:m-0">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-3.5 sm:py-8 print:p-0 print:max-w-none print:w-full print:m-0">
         {/* Top Success Banner */}
-        <div className="mb-6 p-4 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs print:hidden">
+        <div className="mb-3.5 sm:mb-6 p-3 sm:p-5 rounded-card bg-[#EDFDF2] dark:bg-[#063826]/70 border border-[#A6F4C5] dark:border-[#0B6E48] flex items-start gap-3.5 shadow-2xs print:hidden">
           <div className="w-8 h-8 rounded-full bg-[#12B76A] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
             <Check size={18} strokeWidth={3} />
           </div>
@@ -124,12 +124,12 @@ function ETicketContent({
         </div>
 
         {/* Content Layout */}
-        <div className={`flex flex-col lg:flex-row gap-6 items-start ${showInvoiceModal ? 'print:hidden' : ''}`}>
+        <div className={`flex flex-col lg:flex-row gap-3.5 sm:gap-6 items-start ${showInvoiceModal ? 'print:hidden' : ''}`}>
           {/* Left: Ticket Card */}
-          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-4 sm:p-7 shadow-2xs print:border-slate-300 print:shadow-none print:p-6 print:rounded-xl">
+          <div className="flex-1 w-full bg-white border border-borderCol rounded-card p-3.5 sm:p-7 shadow-2xs print:border-slate-300 print:shadow-none print:p-6 print:rounded-xl">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_220px] gap-6 items-center">
               {/* Left Details */}
-              <div className="space-y-6">
+              <div className="space-y-3.5 sm:space-y-6">
                 {/* Kode Booking & Badge */}
                 <div>
                   <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
@@ -246,7 +246,7 @@ function ETicketContent({
           </div>
 
           {/* Right: Langkah Berikutnya Card */}
-          <div className="w-full lg:w-80 flex-shrink-0 bg-white border border-borderCol rounded-card p-6 shadow-2xs space-y-5 print:hidden">
+          <div className="w-full lg:w-80 flex-shrink-0 bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5 print:hidden">
             <h2 className="text-base font-bold text-ink">Langkah berikutnya</h2>
 
             <div className="space-y-4 text-xs text-ink leading-relaxed">

@@ -136,9 +136,9 @@ function ReviewContent({
     <div className="min-h-screen bg-surface pb-20">
       <Stepper currentStep={4} />
 
-      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-5 sm:py-8">
+      <main className="max-w-6xl mx-auto px-3.5 sm:px-8 py-3 sm:py-8">
         {/* Page Title */}
-        <div className="mb-6">
+        <div className="mb-3.5 sm:mb-6">
           <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
             Review &amp; konfirmasi
           </h1>
@@ -148,12 +148,12 @@ function ReviewContent({
         </div>
 
         {/* Content Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-3.5 sm:gap-6 items-start">
           {/* Left Column: Review Cards */}
-          <div className="flex-1 w-full space-y-5">
+          <div className="flex-1 w-full space-y-3 sm:space-y-5">
             {/* 1. Card Jadwal */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
                 <h2 className="text-base font-bold text-ink">Jadwal</h2>
                 <Link
                   href={`/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(dateStr)}&passengers=${seatsList.length}`}
@@ -163,7 +163,7 @@ function ReviewContent({
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4 border-b border-borderCol/50">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 pb-3 sm:pb-4 border-b border-borderCol/50">
                 <div>
                   <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                     RUTE
@@ -184,7 +184,7 @@ function ReviewContent({
                 </div>
               </div>
 
-              <div className="pt-3">
+              <div className="pt-2.5 sm:pt-3">
                 <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                   BUS
                 </span>
@@ -193,8 +193,8 @@ function ReviewContent({
             </div>
 
             {/* 2. Card Kursi & Penumpang */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-4">
                 <h2 className="text-base font-bold text-ink">Kursi &amp; penumpang</h2>
                 <Link
                   href={`/booking/${scheduleId}/passenger?seats=${seatsParam}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(
@@ -208,13 +208,13 @@ function ReviewContent({
                 </Link>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {passengers.map(p => (
                   <div
                     key={p.seat}
-                    className="flex items-center justify-between gap-3 p-3 bg-surface border border-borderCol/60 rounded-xl"
+                    className="flex items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-surface border border-borderCol/60 rounded-xl"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
                       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                         <Check size={12} strokeWidth={3} />
                         <span>{p.seat}</span>
@@ -243,15 +243,15 @@ function ReviewContent({
                 ))}
               </div>
 
-              <p className="text-xs text-muted mt-4">
+              <p className="text-xs text-muted mt-2.5 sm:mt-4">
                 E-tiket resmi akan dikirimkan ke <span className="font-semibold text-ink">{email}</span> setelah pembayaran berhasil.
               </p>
             </div>
 
             {/* 3. Card Rincian Harga */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
-              <h2 className="text-base font-bold text-ink mb-4">Rincian harga</h2>
-              <div className="space-y-2.5">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
+              <h2 className="text-base font-bold text-ink mb-2.5 sm:mb-4">Rincian harga</h2>
+              <div className="space-y-2 sm:space-y-2.5">
                 <div className="flex items-center justify-between text-sm text-ink">
                   <span>Tiket {seatsList.length} x Rp {pricePerSeat.toLocaleString('id-ID')}</span>
                   <span className="font-semibold">Rp {totalPrice.toLocaleString('id-ID')}</span>
@@ -260,9 +260,9 @@ function ReviewContent({
                   <span>Biaya layanan</span>
                   <span className="font-bold text-success">Gratis</span>
                 </div>
-                <div className="pt-3 border-t border-borderCol flex items-center justify-between">
+                <div className="pt-2.5 sm:pt-3 border-t border-borderCol flex items-center justify-between">
                   <span className="text-base font-bold text-ink">Total bayar</span>
-                  <span className="text-2xl font-black text-ink">
+                  <span className="text-xl sm:text-2xl font-black text-ink">
                     Rp {totalPrice.toLocaleString('id-ID')}
                   </span>
                 </div>
@@ -270,15 +270,15 @@ function ReviewContent({
             </div>
 
             {/* 4. Card Aturan Pembatalan */}
-            <div className="bg-white border border-borderCol rounded-card p-5 sm:p-6 shadow-2xs">
-              <h2 className="text-base font-bold text-ink mb-3">Aturan pembatalan</h2>
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
+              <h2 className="text-base font-bold text-ink mb-2 sm:mb-3">Aturan pembatalan</h2>
               <div className="space-y-1.5 text-xs text-muted leading-relaxed">
                 <p>Lebih dari 24 jam sebelum berangkat: refund 90%</p>
                 <p>2–24 jam sebelum berangkat: refund 50%</p>
                 <p>Kurang dari 2 jam: tidak ada refund</p>
               </div>
 
-              <label className="flex items-start gap-2.5 mt-5 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 mt-3.5 sm:mt-5 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={agreed}
@@ -314,9 +314,9 @@ function ReviewContent({
           </div>
 
           {/* Right Column: Timer & Note */}
-          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-3 sm:space-y-4">
             {/* Timer Box */}
-            <div className="bg-primary-tint/50 border border-primary/20 rounded-card p-4 sm:p-5">
+            <div className="bg-primary-tint/50 border border-primary/20 rounded-card p-3.5 sm:p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted">Sisa waktu tahan kursi</span>
                 <span className="text-2xl sm:text-3xl font-mono font-extrabold text-ink tracking-tight">
@@ -326,7 +326,7 @@ function ReviewContent({
             </div>
 
             {/* Summary Box */}
-            <div className="bg-white border border-borderCol rounded-card p-5 shadow-2xs space-y-4">
+            <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 shadow-2xs space-y-3 sm:space-y-4">
               <div>
                 <h3 className="font-extrabold text-ink text-base">
                   {from} → {to}
