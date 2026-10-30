@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl
     const publicToken = searchParams.get('publicToken')
-    const email = searchParams.get('email')
+    const code = searchParams.get('code')?.trim().toUpperCase()
+    const email = searchParams.get('email')?.trim().toLowerCase()
     const cookieStore = await cookies()
     const holdToken = searchParams.get('holdToken') || cookieStore.get('ruteku_hold_token')?.value
 
@@ -56,9 +57,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, booking })
     }
 
-    // Filter berdasarkan email atau holdToken
+    // Filter berdasarkan kode booking, email, atau holdToken
     const whereClause: any = {}
-    if (email) {
+    if (code) {
+      whereClause.code = code
+    } else if (email) {
       whereClause.contactEmail = email
     } else if (holdToken) {
       // Ambil booking yang kursi-kursinya memiliki hold_token terkait

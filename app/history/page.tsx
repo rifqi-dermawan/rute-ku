@@ -1,28 +1,31 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   Check,
   Clock,
   AlertCircle,
-  ShieldCheck,
   Ticket,
-  User as UserIcon,
   ArrowRight,
   RefreshCw,
+  Search,
   X,
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
 import type { BookingRecord } from '@/lib/booking-store'
 
 type TabType = 'active' | 'completed' | 'cancelled'
 
-export default function HistoryPage() {
-  const { user, openAuthModal } = useAuth()
+function HistoryContent() {
+  const searchParams = useSearchParams()
+  const initialCode = searchParams?.get('code') || ''
+
+  const [searchQuery, setSearchQuery] = useState(initialCode)
   const [tab, setTab] = useState<TabType>('active')
   const [bookings, setBookings] = useState<BookingRecord[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState('')
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [cancelLoading, setCancelLoading] = useState(false)
@@ -35,6 +38,109 @@ export default function HistoryPage() {
     reason: string
   } | null>(null)
 
+  // Fetch bookings by code or email
+  const fetchBookings = useCallback(async (query: string) => {
+    const q = query.trim()
+    if (!q) {
+      setBookings([])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setHasSearched(true)
+
+    try {
+      const isEmail = q.includes('@')
+      const url = isEmail
+        ? `/api/bookings?email=${encodeURIComponent(q.toLowerCase())}`
+        : `/api/bookings?code=${encodeURIComponent(q.toUpperCase())}`
+
+      const res = await fetch(url)
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal memuat riwayat booking.')
+      }
+
+      // Format data into BookingRecord
+      const rawList = data.bookings || (data.booking ? [data.booking] : [])
+      const mapped: BookingRecord[] = rawList.map((b: any) => {
+        const schedule = b.schedule || {}
+        const bus = schedule.bus || {}
+        const route = schedule.route || {}
+        const stops = schedule.scheduleStops || []
+        const originStop = stops.find((s: any) => s.stopSequence === 1)
+        const destStop = stops.find((s: any) => s.stopSequence === stops.length)
+
+        const depTime = originStop?.departureAt
+          ? new Date(originStop.departureAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+          : '08:00'
+        const arrTime = destStop?.arrivalAt
+          ? new Date(destStop.arrivalAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+          : '16:00'
+
+        const dateStr = originStop?.departureAt
+          ? new Date(originStop.departureAt).toLocaleDateString('id-ID', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+          : 'Jadwal Reguler'
+
+        const seatList = (b.seats || []).map((s: any) => s.seatNumber).join(', ')
+        const paxList = (b.passengers || []).map((p: any) => p.fullName).join(', ')
+
+        return {
+          id: b.id,
+          bookingCode: b.code,
+          publicToken: b.publicToken,
+          scheduleId: b.scheduleId,
+          from: route.originCity?.name?.replace(/^Kota\s+/i, '') || 'Asal',
+          to: route.destinationCity?.name?.replace(/^Kota\s+/i, '') || 'Tujuan',
+          date: dateStr,
+          dep: depTime,
+          arr: arrTime,
+          bus: bus.operator?.name || 'Bus Executive',
+          cls: bus.busClass || 'Executive 2–2',
+          seats: seatList || '-',
+          passengers: paxList || b.contactName || 'Penumpang',
+          price: b.ticketTotal || 0,
+          totalAmount: b.grandTotal || 0,
+          status: b.status,
+          createdAt: b.createdAt,
+          cancelledAt: b.cancelledAt,
+        }
+      })
+
+      setBookings(mapped)
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kendala saat mengambil data tiket.')
+      setBookings([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Auto-search on mount if code query parameter or recent bookings exist
+  useEffect(() => {
+    if (initialCode) {
+      fetchBookings(initialCode)
+    } else if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('ruteku_recent_bookings')
+        const list = raw ? JSON.parse(raw) : []
+        if (Array.isArray(list) && list.length > 0) {
+          setSearchQuery(list[0])
+          fetchBookings(list[0])
+        }
+      } catch {}
+    }
+  }, [initialCode, fetchBookings])
+
+  // Preview refund policy when cancel modal opens
   useEffect(() => {
     if (!cancellingId) {
       setCancelPreview(null)
@@ -52,46 +158,15 @@ export default function HistoryPage() {
       .catch(() => {})
   }, [cancellingId])
 
-  // Fetch strictly authenticated user bookings from backend API (Anti-IDOR)
-  const fetchUserBookings = useCallback(async () => {
-    if (!user) {
-      setBookings([])
-      setLoading(false)
-      return
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      fetchBookings(searchQuery)
     }
+  }
 
-    setLoading(true)
-    setError('')
-
-    try {
-      const res = await fetch(`/api/bookings?userId=${encodeURIComponent(user.id)}`, {
-        headers: {
-          'x-user-id': user.id,
-        },
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || data.error || 'Gagal memuat riwayat booking.')
-      }
-
-      setBookings(data.bookings || [])
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kendala saat mengambil tiket.')
-      setBookings([])
-    } finally {
-      setLoading(false)
-    }
-  }, [user])
-
-  useEffect(() => {
-    fetchUserBookings()
-  }, [fetchUserBookings])
-
-  // Handle Cancel Booking strictly for owned ticket
+  // Handle Cancel Booking
   const handleCancelBooking = async (idOrCode: string) => {
-    if (!user) return
     setCancelLoading(true)
 
     try {
@@ -99,7 +174,6 @@ export default function HistoryPage() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user.id,
         },
         body: JSON.stringify({ action: 'cancel' }),
       })
@@ -109,9 +183,8 @@ export default function HistoryPage() {
         throw new Error(data.error || 'Gagal membatalkan booking.')
       }
 
-      // Update state locally
-      setBookings(prev =>
-        prev.map(b =>
+      setBookings((prev) =>
+        prev.map((b) =>
           b.id === idOrCode || b.bookingCode === idOrCode
             ? { ...b, status: 'CANCELLED', cancelledAt: new Date().toISOString() }
             : b
@@ -128,24 +201,24 @@ export default function HistoryPage() {
     }
   }
 
-  // Segment user's bookings by tab
+  // Segment bookings by tab
   const activeList = bookings.filter(
-    b => b.status === 'CONFIRMED' || b.status === 'PAID' || b.status === 'PENDING_PAYMENT'
+    (b) => b.status === 'CONFIRMED' || b.status === 'PAID' || b.status === 'PENDING_PAYMENT'
   )
-  const completedList = bookings.filter(b => (b.status as string) === 'COMPLETED')
-  const cancelledList = bookings.filter(b => b.status === 'CANCELLED')
+  const completedList = bookings.filter((b) => (b.status as string) === 'COMPLETED')
+  const cancelledList = bookings.filter((b) => b.status === 'CANCELLED')
 
   const currentList =
     tab === 'active' ? activeList : tab === 'completed' ? completedList : cancelledList
 
   return (
     <div className="min-h-screen bg-surface pb-20">
-      <main className="max-w-4xl mx-auto px-3.5 sm:px-8 py-3.5 sm:py-8">
+      <main className="max-w-4xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8">
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="mb-4 sm:mb-5 p-3 sm:p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-medium flex items-center justify-between shadow-2xs">
+          <div className="mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-2xs animate-in fade-in">
             <div className="flex items-center gap-2">
-              <Check size={16} className="text-emerald-600 flex-shrink-0" />
+              <Check size={16} className="text-emerald-600" />
               <span>{toastMessage}</span>
             </div>
             <button
@@ -159,59 +232,114 @@ export default function HistoryPage() {
         )}
 
         {/* Header */}
-        <div className="mb-3.5 sm:mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-3">
-          <div>
-            <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
-              Riwayat booking
-            </h1>
-            <p className="text-xs sm:text-sm text-muted mt-0.5">
-              {user
-                ? `Tiket perjalanan terdaftar untuk akun ${user.name} (${user.email}).`
-                : 'Kelola e-tiket dan perjalanan bus antarkota Anda.'}
-            </p>
-          </div>
-
-          {user && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold w-fit">
-              <ShieldCheck size={14} className="text-emerald-600" />
-              <span>Akses Privat & Terlindungi (Anti-IDOR)</span>
-            </div>
-          )}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
+            Riwayat booking &amp; cek e-tiket
+          </h1>
+          <p className="text-xs sm:text-sm text-muted mt-1">
+            Cek status pesanan, unduh e-tiket resmi, atau kelola pembatalan perjalanan bus Anda.
+          </p>
         </div>
 
-        {/* ── UNATHENTICATED STATE: ZERO TICKET LEAKAGE GUARANTEE ── */}
-        {!user ? (
-          <div className="bg-white border border-borderCol rounded-2xl p-4 sm:p-10 text-center shadow-xs space-y-3.5 sm:space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-primary-tint flex items-center justify-center mx-auto text-primary">
-              <ShieldCheck size={32} />
+        {/* Pencarian Tiket Tamu */}
+        <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 mb-5 shadow-2xs">
+          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Masukkan Kode Booking (contoh: RK-ABCDEF) atau Email Pemesan"
+                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-surface border border-borderCol rounded-input focus:outline-none focus:border-primary text-ink font-medium"
+              />
             </div>
+            <button
+              type="submit"
+              disabled={loading || !searchQuery.trim()}
+              className="px-6 py-2.5 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm rounded-input shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              {loading ? <RefreshCw size={14} className="animate-spin" /> : <Search size={14} />}
+              <span>Cari Tiket</span>
+            </button>
+          </form>
+        </div>
 
-            <div className="max-w-md mx-auto space-y-1.5">
-              <h2 className="text-lg sm:text-xl font-black text-ink">
-                Riwayat Booking Bersifat Privat
-              </h2>
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-error text-xs flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => fetchBookings(searchQuery)}
+              className="font-bold underline ml-2 cursor-pointer"
+            >
+              Coba lagi
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-white border border-borderCol rounded-card p-5 animate-pulse space-y-3"
+              >
+                <div className="h-5 bg-borderCol/60 rounded w-1/3"></div>
+                <div className="h-3 bg-borderCol/40 rounded w-1/2"></div>
+                <div className="h-8 bg-borderCol/30 rounded w-28 mt-2"></div>
+              </div>
+            ))}
+          </div>
+        ) : !hasSearched && bookings.length === 0 ? (
+          /* Initial Guidance State */
+          <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
+            <div className="w-14 h-14 rounded-full bg-primary-tint border border-primary/20 flex items-center justify-center mx-auto text-primary">
+              <Ticket size={28} />
+            </div>
+            <div className="max-w-md mx-auto space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-ink">
+                Lacak Tiket Perjalanan Anda
+              </h3>
               <p className="text-xs sm:text-sm text-muted leading-relaxed">
-                Untuk melindungi privasi tiket Anda dan mencegah kebocoran data, tiket hanya dapat
-                dilihat oleh pemilik akun yang sah.
+                Pemesanan di RuteKu tidak memerlukan akun. Masukkan kode booking Anda (misal{' '}
+                <strong className="text-ink font-mono">RK-XXXXXX</strong>) atau alamat email pemesan
+                pada formulir di atas untuk melihat detail tiket.
               </p>
             </div>
-
             <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => openAuthModal({ mode: 'login' })}
-                className="px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-full shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-full text-xs sm:text-sm font-bold shadow-xs transition-colors"
               >
-                <UserIcon size={16} />
-                <span>Masuk ke Akun Anda</span>
-              </button>
+                <span>Cari Tiket Bus Baru</span>
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+        ) : currentList.length === 0 ? (
+          /* Empty Search Result */
+          <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
+            <div className="w-12 h-12 rounded-full bg-surface border border-borderCol flex items-center justify-center mx-auto text-muted">
+              <AlertCircle size={24} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-ink">
+                Tiket tidak ditemukan
+              </h3>
+              <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
+                Tidak ada data booking yang cocok dengan kata kunci{' '}
+                <strong className="text-ink font-mono">&quot;{searchQuery}&quot;</strong>. Pastikan kode booking atau alamat email sudah sesuai.
+              </p>
             </div>
           </div>
         ) : (
-          /* ── AUTHENTICATED STATE: DISPLAY USER'S REAL TICKETS ONLY ── */
+          /* Results View */
           <>
             {/* Tabs */}
-            <div className="flex items-center gap-2 mb-3.5 sm:mb-6 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               <button
                 type="button"
                 onClick={() => setTab('active')}
@@ -247,158 +375,77 @@ export default function HistoryPage() {
               >
                 Dibatalkan ({cancelledList.length})
               </button>
-
-              <button
-                type="button"
-                onClick={fetchUserBookings}
-                title="Segarkan riwayat tiket"
-                className="ml-auto p-2 rounded-full border border-borderCol bg-white hover:bg-surface text-muted hover:text-ink transition-colors cursor-pointer"
-              >
-                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-              </button>
             </div>
 
-            {/* Error Banner */}
-            {error && (
-              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-error text-xs flex items-center justify-between">
-                <span>{error}</span>
-                <button
-                  type="button"
-                  onClick={fetchUserBookings}
-                  className="font-bold underline ml-2"
-                >
-                  Coba lagi
-                </button>
-              </div>
-            )}
+            {/* Ticket Cards */}
+            <div className="space-y-4">
+              {currentList.map((booking) => {
+                const isPaid = booking.status === 'CONFIRMED' || booking.status === 'PAID'
+                const isPending = booking.status === 'PENDING_PAYMENT'
+                const isCancelled = booking.status === 'CANCELLED'
 
-            {/* Loading Skeleton */}
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2].map(i => (
+                return (
                   <div
-                    key={i}
-                    className="bg-white border border-borderCol rounded-card p-5 animate-pulse space-y-3"
+                    key={booking.id || booking.bookingCode}
+                    className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3 sm:space-y-4 transition-all hover:border-primary/40"
                   >
-                    <div className="h-5 bg-borderCol/60 rounded w-1/3"></div>
-                    <div className="h-3 bg-borderCol/40 rounded w-1/2"></div>
-                    <div className="h-8 bg-borderCol/30 rounded w-28 mt-2"></div>
-                  </div>
-                ))}
-              </div>
-            ) : currentList.length === 0 ? (
-              /* Empty State */
-              <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
-                <div className="w-12 h-12 rounded-full bg-surface border border-borderCol flex items-center justify-center mx-auto text-muted">
-                  <Ticket size={24} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-ink">
-                    {tab === 'active'
-                      ? 'Belum ada tiket aktif'
-                      : tab === 'completed'
-                      ? 'Belum ada perjalanan selesai'
-                      : 'Tidak ada tiket yang dibatalkan'}
-                  </h3>
-                  <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
-                    {tab === 'active'
-                      ? 'Anda belum memiliki tiket bus yang aktif. Pesan tiket perjalanan Anda sekarang.'
-                      : 'Tiket riwayat perjalanan Anda akan tercatat di sini secara otomatis.'}
-                  </p>
-                </div>
-                {tab === 'active' && (
-                  <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary-dark text-white rounded-full text-xs font-bold shadow-2xs transition-colors"
-                  >
-                    <span>Cari Tiket Bus</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                )}
-              </div>
-            ) : (
-              /* Ticket List */
-              <div className="space-y-4">
-                {currentList.map(booking => {
-                  const isPaid = booking.status === 'CONFIRMED' || booking.status === 'PAID'
-                  const isPending = booking.status === 'PENDING_PAYMENT'
-                  const isCancelled = booking.status === 'CANCELLED'
-
-                  return (
-                    <div
-                      key={booking.id || booking.bookingCode}
-                      className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3 sm:space-y-4 transition-all hover:border-primary/40"
-                    >
-                      {/* Top Row */}
-                      <div className="flex items-start justify-between flex-wrap gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-base sm:text-lg font-black text-ink">
-                              {booking.from} → {booking.to}
-                            </h2>
-                            <span className="px-2 py-0.5 rounded bg-surface border border-borderCol text-[10px] font-bold text-muted font-mono">
-                              {booking.bookingCode || booking.id}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted mt-1 font-medium">
-                            {booking.date} · Kursi <strong className="text-ink">{booking.seats}</strong>
-                            {booking.passengers && (
-                              <span>
-                                {' '}
-                                · Penumpang: <strong className="text-ink">{booking.passengers}</strong>
-                              </span>
-                            )}
-                            {booking.bus && <span> · {booking.bus}</span>}
-                          </p>
+                    {/* Top Row */}
+                    <div className="flex items-start justify-between flex-wrap gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base sm:text-lg font-black text-ink">
+                            {booking.from} → {booking.to}
+                          </h2>
+                          <span className="px-2 py-0.5 rounded bg-surface border border-borderCol text-[10px] font-bold text-muted font-mono">
+                            {booking.bookingCode || booking.id}
+                          </span>
                         </div>
-
-                        <div className="flex items-center gap-3">
-                          {isPaid ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                              <Check size={12} strokeWidth={3} /> Terbayar
-                            </span>
-                          ) : isPending ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-300 text-xs font-bold">
-                              <Clock size={12} /> Menunggu bayar
-                            </span>
-                          ) : isCancelled ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold">
-                              Dibatalkan
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-0.5 rounded-full bg-surface text-muted border border-borderCol text-xs font-bold">
-                              Selesai
+                        <p className="text-xs text-muted mt-1 font-medium">
+                          {booking.date} · Kursi <strong className="text-ink">{booking.seats}</strong>
+                          {booking.passengers && (
+                            <span>
+                              {' '}
+                              · Penumpang: <strong className="text-ink">{booking.passengers}</strong>
                             </span>
                           )}
-
-                          <span className="text-base sm:text-lg font-black text-ink">
-                            Rp {(booking.totalAmount || booking.price || 0).toLocaleString('id-ID')}
-                          </span>
-                        </div>
+                          {booking.bus && <span> · {booking.bus}</span>}
+                        </p>
                       </div>
 
-                      {/* Waiting payment warning banner */}
-                      {isPending && (
-                        <div className="p-3 rounded-xl bg-[#FEF6EE] border border-[#F9DBAF] text-[#93370D] text-xs flex items-center justify-between">
-                          <span>
-                            Kursi Anda ditahan sementara. Selesaikan pembayaran agar pesanan tidak dilepas.
+                      <div className="flex items-center gap-3">
+                        {isPaid ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                            <Check size={12} strokeWidth={3} /> Terbayar
                           </span>
-                          <span className="text-[11px] font-bold">Khusus Akun Anda</span>
-                        </div>
-                      )}
+                        ) : isPending ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold">
+                            <Clock size={12} /> Menunggu Bayar
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold">
+                            Dibatalkan
+                          </span>
+                        )}
 
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2.5 pt-1">
+                        <span className="text-sm sm:text-base font-black text-ink">
+                          Rp {booking.totalAmount.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Actions */}
+                    <div className="pt-2 border-t border-borderCol/50 flex items-center justify-between flex-wrap gap-2">
+                      <div className="text-[11px] text-muted font-mono">
+                        {booking.dep} – {booking.arr} WIB
+                      </div>
+
+                      <div className="flex items-center gap-2">
                         {isPaid && (
                           <>
                             <Link
-                              href={`/booking/${booking.scheduleId}/eticket?code=${booking.bookingCode}&seats=${encodeURIComponent(
-                                booking.seats
-                              )}&from=${encodeURIComponent(booking.from)}&to=${encodeURIComponent(
-                                booking.to
-                              )}&bus=${encodeURIComponent(booking.bus)}&cls=${encodeURIComponent(
-                                booking.cls
-                              )}&total=${booking.totalAmount}`}
+                              href={`/booking/${booking.scheduleId}/eticket?code=${encodeURIComponent(
+                                booking.bookingCode
+                              )}&publicToken=${encodeURIComponent(booking.publicToken || '')}`}
                               className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold shadow-2xs transition-colors inline-flex items-center gap-1.5"
                             >
                               <Ticket size={13} />
@@ -438,26 +485,17 @@ export default function HistoryPage() {
                           </>
                         )}
 
-                        {tab === 'completed' && (
-                          <Link
-                            href="/"
-                            className="inline-block px-4 py-2 border border-primary text-primary hover:bg-primary-tint/30 rounded-input text-xs font-bold transition-all"
-                          >
-                            Pesan lagi rute ini
-                          </Link>
-                        )}
-
                         {isCancelled && (
                           <span className="text-[11px] text-muted font-medium">
-                            Tiket ini dibatalkan secara aman dan tidak dapat digunakan.
+                            Tiket ini telah dibatalkan dan tidak dapat digunakan.
                           </span>
                         )}
                       </div>
                     </div>
-                  )
-                })}
-              </div>
-            )}
+                  </div>
+                )
+              })}
+            </div>
           </>
         )}
       </main>
@@ -524,5 +562,19 @@ export default function HistoryPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function HistoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-surface p-8 text-center text-muted">
+          Memuat riwayat booking...
+        </div>
+      }
+    >
+      <HistoryContent />
+    </Suspense>
   )
 }

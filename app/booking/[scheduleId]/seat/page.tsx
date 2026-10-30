@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, Clock, Ban, X } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
 import { holdSeatAction, releaseSeatAction, fetchScheduleSeatsAction } from '@/app/actions/seat-actions'
 
 /* ─── Types ──────────────────────────────────────────────────── */
@@ -103,7 +102,6 @@ function SeatContent({
   const tripDate = sp.date ? decodeURIComponent(sp.date) : 'Sab, 10 Okt 2026'
 
   const router = useRouter()
-  const { user, openAuthModal } = useAuth()
 
   /* Seat state - default preselection matches chosen passengers */
   const [seatMap, setSeatMap] = useState<Record<string, SeatStatus>>({ ...INITIAL_MAP })

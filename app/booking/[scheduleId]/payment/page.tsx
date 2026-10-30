@@ -3,7 +3,6 @@
 import { use, useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Stepper from '@/components/Stepper'
-import { useAuth } from '@/lib/auth-context'
 import {
   ArrowLeft,
   Clock,
@@ -234,6 +233,17 @@ function PaymentContent({
 
     const dynamicCode = currentBooking?.code || `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     const publicToken = currentBooking?.publicToken || ''
+
+    if (typeof window !== 'undefined') {
+      try {
+        const rawList = localStorage.getItem('ruteku_recent_bookings')
+        const list = rawList ? JSON.parse(rawList) : []
+        if (!list.includes(dynamicCode)) {
+          list.unshift(dynamicCode)
+          localStorage.setItem('ruteku_recent_bookings', JSON.stringify(list.slice(0, 10)))
+        }
+      } catch {}
+    }
 
     // Trigger asynchronous official E-Ticket Email dispatch
     const targetEmail = sp.email

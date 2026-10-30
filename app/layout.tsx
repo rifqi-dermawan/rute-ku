@@ -5,7 +5,6 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-import { AuthProvider } from "@/lib/auth-context";
 
 // Font sesuai Design System RuteKu
 const jakarta = Plus_Jakarta_Sans({
@@ -66,19 +65,17 @@ export default function RootLayout({
         className="font-sans bg-surface text-ink antialiased min-h-screen flex flex-col selection:bg-primary-tint selection:text-primary"
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <Suspense fallback={<div className="h-16 bg-white border-b border-borderCol" />}>
-            <Navbar />
+        <Suspense fallback={<div className="h-16 bg-white border-b border-borderCol" />}>
+          <Navbar />
+        </Suspense>
+        <main className="flex-1">
+          <Suspense fallback={<div className="p-8 text-center text-muted">Memuat halaman...</div>}>
+            {children}
           </Suspense>
-          <main className="flex-1">
-            <Suspense fallback={<div className="p-8 text-center text-muted">Memuat halaman...</div>}>
-              {children}
-            </Suspense>
-          </main>
-          <Suspense fallback={null}>
-            <Footer />
-          </Suspense>
-        </AuthProvider>
+        </main>
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </body>
     </html>
   );
