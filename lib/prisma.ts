@@ -17,10 +17,7 @@ function createPrismaClient(): PrismaClient {
     process.env.DATABASE_URL_UNPOOLED ||
     ''
 
-  const pool = globalForPrisma.pool ?? new Pool({ connectionString })
-  if (process.env.NODE_ENV !== 'production') globalForPrisma.pool = pool
-
-  const adapter = new PrismaNeon(pool)
+  const adapter = new PrismaNeon({ connectionString })
 
   return new PrismaClient({
     adapter,

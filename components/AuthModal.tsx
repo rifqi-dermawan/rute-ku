@@ -288,11 +288,10 @@ export default function AuthModal() {
                 setError(null)
                 setSuccessMessage(null)
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                mode === 'login'
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${mode === 'login'
                   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
                   : 'text-muted dark:text-gray-400 hover:text-ink'
-              }`}
+                }`}
             >
               Masuk
             </button>
@@ -303,11 +302,10 @@ export default function AuthModal() {
                 setError(null)
                 setSuccessMessage(null)
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                mode === 'register'
+              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${mode === 'register'
                   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
                   : 'text-muted dark:text-gray-400 hover:text-ink'
-              }`}
+                }`}
             >
               Daftar
             </button>
@@ -339,11 +337,10 @@ export default function AuthModal() {
                     setAuthMethod('password')
                     setError(null)
                   }}
-                  className={`pb-0.5 border-b-2 transition-all ${
-                    authMethod === 'password'
+                  className={`pb-0.5 border-b-2 transition-all ${authMethod === 'password'
                       ? 'border-primary text-primary font-bold'
                       : 'border-transparent hover:text-ink'
-                  }`}
+                    }`}
                 >
                   Kata Sandi
                 </button>
@@ -354,11 +351,10 @@ export default function AuthModal() {
                     setAuthMethod('otp')
                     setError(null)
                   }}
-                  className={`pb-0.5 border-b-2 transition-all ${
-                    authMethod === 'otp'
+                  className={`pb-0.5 border-b-2 transition-all ${authMethod === 'otp'
                       ? 'border-primary text-primary font-bold'
                       : 'border-transparent hover:text-ink'
-                  }`}
+                    }`}
                 >
                   Kode OTP Email
                 </button>

@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,9 +8,7 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-// ==========================================
 // ENUMS
-// ==========================================
 
 enum BusClass {
   EXECUTIVE_2_2
