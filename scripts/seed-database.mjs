@@ -21,8 +21,8 @@ try {
 
 console.log(`[SEED SAFETY GUARD] Target Database Hostname: ${seedTargetHostname}`);
 
-if (seedTargetHostname.includes('ep-raspy-boat-az11ci0v')) {
-  console.error(`❌ [SEED BLOCKED] DATABASE_URL mengarah ke database PRODUCTION (${seedTargetHostname})! Seeding dibatalkan.`);
+if (seedTargetHostname.includes('ep-raspy-boat-az11ci0v') && process.env.ALLOW_PRODUCTION_SEED !== 'true') {
+  console.error(`❌ [SEED BLOCKED] DATABASE_URL mengarah ke database PRODUCTION (${seedTargetHostname})! Untuk mengizinkan, setel ALLOW_PRODUCTION_SEED="true".`);
   process.exit(1);
 }
 
@@ -40,6 +40,24 @@ const prisma = new PrismaClient({
     }
   }
 });
+
+async function retryQuery(fn, maxRetries = 5) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err) {
+      attempt++;
+      if (attempt >= maxRetries) throw err;
+      console.warn(`[RETRY] Terjadi kendala koneksi (${err.code || err.message}). Menghubungkan ulang (${attempt}/${maxRetries})...`);
+      try {
+        await prisma.$disconnect();
+        await prisma.$connect();
+      } catch {}
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+}
 
 const BUS_DURATION_FACTOR = 1.3;
 const TICKET_PRICE_PER_KM = 700;
@@ -483,63 +501,86 @@ async function seedSchedulesAndSeats(buses) {
 
       for (const depTime of departureTimes) {
         const key = `${bus.id}_${depTime.toISOString()}`;
-        if (existingMap.has(key)) {
-          continue; // Already seeded
-        }
-
         const arrTime = new Date(depTime.getTime() + durationMinutes * 60000);
 
-        // Create missing Schedule
-        const schedule = await prisma.schedule.create({
-          data: {
-            busId: bus.id,
-            routeId: item.route.id,
-            departureTime: depTime,
-            arrivalTime: arrTime,
-            price,
-            status: 'ACTIVE'
+        let scheduleId = existingMap.get(key);
+        if (!scheduleId) {
+          const schedule = await retryQuery(() =>
+            prisma.schedule.create({
+              data: {
+                busId: bus.id,
+                routeId: item.route.id,
+                departureTime: depTime,
+                arrivalTime: arrTime,
+                price,
+                status: 'ACTIVE',
+              },
+            })
+          );
+          scheduleId = schedule.id;
+          existingMap.set(key, scheduleId);
+          totalSchedulesCreated++;
+
+          if (item.originTerminal) {
+            await retryQuery(() =>
+              prisma.scheduleStop.create({
+                data: {
+                  scheduleId,
+                  terminalId: item.originTerminal.id,
+                  stopSequence: 1,
+                  arrivalAt: depTime,
+                  departureAt: depTime,
+                },
+              })
+            );
+            totalStopsCreated++;
           }
-        });
-        existingMap.set(key, schedule.id);
-        totalSchedulesCreated++;
 
-        // Stops
-        if (item.originTerminal) {
-          await prisma.scheduleStop.create({
-            data: {
-              scheduleId: schedule.id,
-              terminalId: item.originTerminal.id,
-              stopSequence: 1,
-              arrivalAt: depTime,
-              departureAt: depTime
-            }
-          });
-          totalStopsCreated++;
+          if (item.destinationTerminal) {
+            await retryQuery(() =>
+              prisma.scheduleStop.create({
+                data: {
+                  scheduleId,
+                  terminalId: item.destinationTerminal.id,
+                  stopSequence: 2,
+                  arrivalAt: arrTime,
+                  departureAt: arrTime,
+                },
+              })
+            );
+            totalStopsCreated++;
+          }
         }
 
-        if (item.destinationTerminal) {
-          await prisma.scheduleStop.create({
-            data: {
-              scheduleId: schedule.id,
-              terminalId: item.destinationTerminal.id,
-              stopSequence: 2,
-              arrivalAt: arrTime,
-              departureAt: arrTime
-            }
-          });
-          totalStopsCreated++;
+        // Ensure 32 seats exist for this schedule
+        const currentSeatCount = await retryQuery(() =>
+          prisma.scheduleSeat.count({ where: { scheduleId } })
+        );
+        if (currentSeatCount < 32) {
+          const existingSeats = await retryQuery(() =>
+            prisma.scheduleSeat.findMany({
+              where: { scheduleId },
+              select: { seatNumber: true },
+            })
+          );
+          const existingSeatNumbers = new Set(existingSeats.map((s) => s.seatNumber));
+          const missingSeats = seatNumbers
+            .filter((s) => !existingSeatNumbers.has(s))
+            .map((s) => ({
+              scheduleId,
+              seatNumber: s,
+              status: 'AVAILABLE',
+            }));
+          if (missingSeats.length > 0) {
+            await retryQuery(() =>
+              prisma.scheduleSeat.createMany({
+                data: missingSeats,
+                skipDuplicates: true,
+              })
+            );
+            totalSeatsCreated += missingSeats.length;
+          }
         }
-
-        // 32 seats with createMany
-        const seatsData = seatNumbers.map(s => ({
-          scheduleId: schedule.id,
-          seatNumber: s,
-          status: 'AVAILABLE'
-        }));
-        await prisma.scheduleSeat.createMany({
-          data: seatsData
-        });
-        totalSeatsCreated += seatsData.length;
       }
     }
   }
