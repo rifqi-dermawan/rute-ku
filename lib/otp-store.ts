@@ -41,3 +41,4 @@ export function verifyOtp(email: string, enteredOtp: string): { valid: boolean; 
   otpStore.delete(normalized)
   return { valid: true }
 }
+

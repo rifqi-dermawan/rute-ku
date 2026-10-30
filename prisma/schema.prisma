@@ -67,15 +67,15 @@ enum RefundStatus {
 // 1. OPERATORS
 // ==========================================
 model Operator {
-  id           String    @id @default(uuid())
-  code         String    @unique
+  id           String   @id @default(uuid())
+  code         String   @unique
   name         String
-  contactPhone String?   @map("contact_phone")
-  contactEmail String?   @map("contact_email")
-  createdAt    DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt    DateTime  @updatedAt @db.Timestamptz(3) @map("updated_at")
+  contactPhone String?  @map("contact_phone")
+  contactEmail String?  @map("contact_email")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  buses        Bus[]
+  buses Bus[]
 
   @@map("operators")
 }
@@ -84,17 +84,17 @@ model Operator {
 // 2. BUSES
 // ==========================================
 model Bus {
-  id         String     @id @default(uuid())
-  operatorId String     @map("operator_id")
+  id         String   @id @default(uuid())
+  operatorId String   @map("operator_id")
   name       String
-  busClass   BusClass   @map("bus_class")
-  totalSeats Int        @map("total_seats")
+  busClass   BusClass @map("bus_class")
+  totalSeats Int      @map("total_seats")
   facilities Json
-  createdAt  DateTime   @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt  DateTime   @updatedAt @db.Timestamptz(3) @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  operator   Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
-  schedules  Schedule[]
+  operator  Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
+  schedules Schedule[]
 
   @@unique([operatorId, name])
   @@index([operatorId])
@@ -105,15 +105,15 @@ model Bus {
 // 3. CITIES
 // ==========================================
 model City {
-  id           String    @id @default(uuid())
-  code         String    @unique
+  id           String   @id @default(uuid())
+  code         String   @unique
   name         String
-  provinceCode String    @map("province_code")
-  provinceName String    @map("province_name")
+  provinceCode String   @map("province_code")
+  provinceName String   @map("province_name")
   lat          Float?
   lng          Float?
-  isHub        Boolean   @default(false) @map("is_hub")
-  createdAt    DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+  isHub        Boolean  @default(false) @map("is_hub")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   terminals         Terminal[]
   originRoutes      Route[]    @relation("OriginCity")
@@ -133,12 +133,12 @@ model Route {
   distanceKm          Int       @map("distance_km")
   osrmDurationMinutes Int       @map("osrm_duration_minutes")
   provider            String    @default("osrm")
-  computedAt          DateTime? @db.Timestamptz(3) @map("computed_at")
-  createdAt           DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+  computedAt          DateTime? @map("computed_at") @db.Timestamptz(3)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  originCity          City      @relation("OriginCity", fields: [originCityId], references: [id], onDelete: Restrict)
-  destinationCity     City      @relation("DestinationCity", fields: [destinationCityId], references: [id], onDelete: Restrict)
-  schedules           Schedule[]
+  originCity      City       @relation("OriginCity", fields: [originCityId], references: [id], onDelete: Restrict)
+  destinationCity City       @relation("DestinationCity", fields: [destinationCityId], references: [id], onDelete: Restrict)
+  schedules       Schedule[]
 
   @@unique([originCityId, destinationCityId])
   @@map("routes")
@@ -148,16 +148,16 @@ model Route {
 // 5. TERMINALS
 // ==========================================
 model Terminal {
-  id             String         @id @default(uuid())
-  cityId         String         @map("city_id")
+  id             String   @id @default(uuid())
+  cityId         String   @map("city_id")
   name           String
   lat            Float
   lng            Float
-  coordsVerified Boolean        @default(false) @map("coords_verified")
-  createdAt      DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
+  coordsVerified Boolean  @default(false) @map("coords_verified")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  city           City           @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  scheduleStops  ScheduleStop[]
+  city          City           @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  scheduleStops ScheduleStop[]
 
   @@unique([cityId, name])
   @@index([cityId])
@@ -171,11 +171,11 @@ model Schedule {
   id            String         @id @default(uuid())
   busId         String         @map("bus_id")
   routeId       String         @map("route_id")
-  departureTime DateTime       @db.Timestamptz(3) @map("departure_time")
-  arrivalTime   DateTime       @db.Timestamptz(3) @map("arrival_time")
-  price         Int            // Integer Rupiah
+  departureTime DateTime       @map("departure_time") @db.Timestamptz(3)
+  arrivalTime   DateTime       @map("arrival_time") @db.Timestamptz(3)
+  price         Int // Integer Rupiah
   status        ScheduleStatus @default(ACTIVE)
-  createdAt     DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
 
   bus           Bus            @relation(fields: [busId], references: [id], onDelete: Restrict)
   route         Route          @relation(fields: [routeId], references: [id], onDelete: Restrict)
@@ -194,15 +194,15 @@ model Schedule {
 // 7. SCHEDULE STOPS
 // ==========================================
 model ScheduleStop {
-  id           String    @id @default(uuid())
-  scheduleId   String    @map("schedule_id")
-  terminalId   String    @map("terminal_id")
-  stopSequence Int       @map("stop_sequence")
-  arrivalAt    DateTime  @db.Timestamptz(3) @map("arrival_at")
-  departureAt  DateTime  @db.Timestamptz(3) @map("departure_at")
+  id           String   @id @default(uuid())
+  scheduleId   String   @map("schedule_id")
+  terminalId   String   @map("terminal_id")
+  stopSequence Int      @map("stop_sequence")
+  arrivalAt    DateTime @map("arrival_at") @db.Timestamptz(3)
+  departureAt  DateTime @map("departure_at") @db.Timestamptz(3)
 
-  schedule     Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  terminal     Terminal  @relation(fields: [terminalId], references: [id], onDelete: Restrict)
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  terminal Terminal @relation(fields: [terminalId], references: [id], onDelete: Restrict)
 
   @@unique([scheduleId, stopSequence])
   @@index([scheduleId])
@@ -214,18 +214,18 @@ model ScheduleStop {
 // 8. SCHEDULE SEATS (Opsi B - Holding & Status)
 // ==========================================
 model ScheduleSeat {
-  id            String      @id @default(uuid())
-  scheduleId    String      @map("schedule_id")
-  seatNumber    String      @map("seat_number")
-  status        SeatStatus  @default(AVAILABLE)
-  holdToken     String?     @map("hold_token")
-  holdExpiresAt DateTime?   @db.Timestamptz(3) @map("hold_expires_at")
-  bookingId     String?     @map("booking_id")
-  createdAt     DateTime    @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt     DateTime    @updatedAt @db.Timestamptz(3) @map("updated_at")
+  id            String     @id @default(uuid())
+  scheduleId    String     @map("schedule_id")
+  seatNumber    String     @map("seat_number")
+  status        SeatStatus @default(AVAILABLE)
+  holdToken     String?    @map("hold_token")
+  holdExpiresAt DateTime?  @map("hold_expires_at") @db.Timestamptz(3)
+  bookingId     String?    @map("booking_id")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  schedule      Schedule    @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  booking       Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@unique([scheduleId, seatNumber])
   @@index([scheduleId, status])
@@ -238,26 +238,26 @@ model ScheduleSeat {
 // 9. BOOKINGS (Tanpa Login / Guest Model)
 // ==========================================
 model Booking {
-  id           String             @id @default(uuid())
-  code         String             @unique
-  publicToken  String             @unique @default(uuid()) @db.Uuid @map("public_token")
-  scheduleId   String             @map("schedule_id")
-  status       BookingStatus      @default(PENDING_PAYMENT)
-  contactName  String             @map("contact_name")
-  contactEmail String             @map("contact_email")
-  contactPhone String             @map("contact_phone")
-  ticketTotal  Int                @map("ticket_total") // Integer Rupiah
-  serviceFee   Int                @default(0) @map("service_fee")
-  grandTotal   Int                @map("grand_total")  // ticket_total + service_fee
-  cancelledAt  DateTime?          @db.Timestamptz(3) @map("cancelled_at")
-  createdAt    DateTime           @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt    DateTime           @updatedAt @db.Timestamptz(3) @map("updated_at")
+  id           String        @id @default(uuid())
+  code         String        @unique
+  publicToken  String        @unique @default(uuid()) @map("public_token") @db.Uuid
+  scheduleId   String        @map("schedule_id")
+  status       BookingStatus @default(PENDING_PAYMENT)
+  contactName  String        @map("contact_name")
+  contactEmail String        @map("contact_email")
+  contactPhone String        @map("contact_phone")
+  ticketTotal  Int           @map("ticket_total") // Integer Rupiah
+  serviceFee   Int           @default(0) @map("service_fee")
+  grandTotal   Int           @map("grand_total") // ticket_total + service_fee
+  cancelledAt  DateTime?     @map("cancelled_at") @db.Timestamptz(3)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  schedule     Schedule           @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
-  seats        ScheduleSeat[]
-  passengers   BookingPassenger[]
-  payments     Payment[]
-  refund       Refund?
+  schedule   Schedule           @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
+  seats      ScheduleSeat[]
+  passengers BookingPassenger[]
+  payments   Payment[]
+  refund     Refund?
 
   @@index([scheduleId])
   @@index([contactEmail])
@@ -268,14 +268,14 @@ model Booking {
 // 10. BOOKING PASSENGERS (Tanpa NIK/KTP)
 // ==========================================
 model BookingPassenger {
-  id            String    @id @default(uuid())
-  bookingId     String    @map("booking_id")
-  seatNumber    String    @map("seat_number")
-  passengerType String    @default("adult") @map("passenger_type")
-  fullName      String    @map("full_name")
-  createdAt     DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+  id            String   @id @default(uuid())
+  bookingId     String   @map("booking_id")
+  seatNumber    String   @map("seat_number")
+  passengerType String   @default("adult") @map("passenger_type")
+  fullName      String   @map("full_name")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, seatNumber])
   @@index([bookingId])
@@ -286,24 +286,24 @@ model BookingPassenger {
 // 11. PAYMENTS
 // ==========================================
 model Payment {
-  id                    String         @id @default(uuid())
-  bookingId             String         @map("booking_id")
-  orderId               String         @unique @map("order_id")
-  paymentMethod         String         @map("payment_method")
-  amount                Int            // Integer Rupiah
-  status                PaymentStatus  @default(PENDING)
-  vaNumber              String?        @map("va_number")
-  qrString              String?        @map("qr_string")
-  qrUrl                 String?        @map("qr_url")
-  midtransTransactionId String?        @map("midtrans_transaction_id")
-  expiryTime            DateTime?      @db.Timestamptz(3) @map("expiry_time")
-  paidAt                DateTime?      @db.Timestamptz(3) @map("paid_at")
-  createdAt             DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt             DateTime       @updatedAt @db.Timestamptz(3) @map("updated_at")
+  id                    String        @id @default(uuid())
+  bookingId             String        @map("booking_id")
+  orderId               String        @unique @map("order_id")
+  paymentMethod         String        @map("payment_method")
+  amount                Int // Integer Rupiah
+  status                PaymentStatus @default(PENDING)
+  vaNumber              String?       @map("va_number")
+  qrString              String?       @map("qr_string")
+  qrUrl                 String?       @map("qr_url")
+  midtransTransactionId String?       @map("midtrans_transaction_id")
+  expiryTime            DateTime?     @map("expiry_time") @db.Timestamptz(3)
+  paidAt                DateTime?     @map("paid_at") @db.Timestamptz(3)
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  booking               Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
-  paymentEvents         PaymentEvent[]
-  refunds               Refund[]
+  booking       Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  paymentEvents PaymentEvent[]
+  refunds       Refund[]
 
   @@index([bookingId])
   @@map("payments")
@@ -313,19 +313,19 @@ model Payment {
 // 12. REFUNDS
 // ==========================================
 model Refund {
-  id               String        @id @default(uuid())
-  bookingId        String        @unique @map("booking_id")
-  paymentId        String?       @map("payment_id")
-  refundPercentage Int           @map("refund_percentage")
-  amount           Int           // Integer Rupiah
+  id               String       @id @default(uuid())
+  bookingId        String       @unique @map("booking_id")
+  paymentId        String?      @map("payment_id")
+  refundPercentage Int          @map("refund_percentage")
+  amount           Int // Integer Rupiah
   reason           String
-  status           RefundStatus  @default(PENDING)
-  processedAt      DateTime?     @db.Timestamptz(3) @map("processed_at")
-  createdAt        DateTime      @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt        DateTime      @updatedAt @db.Timestamptz(3) @map("updated_at")
+  status           RefundStatus @default(PENDING)
+  processedAt      DateTime?    @map("processed_at") @db.Timestamptz(3)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
-  payment          Payment?      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  booking Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@index([paymentId])
   @@map("refunds")
@@ -335,13 +335,13 @@ model Refund {
 // 13. PAYMENT EVENTS
 // ==========================================
 model PaymentEvent {
-  id        String    @id @default(uuid())
-  paymentId String    @map("payment_id")
-  eventType String    @map("event_type")
+  id        String   @id @default(uuid())
+  paymentId String   @map("payment_id")
+  eventType String   @map("event_type")
   payload   Json
-  createdAt DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  payment   Payment   @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@index([paymentId])
   @@map("payment_events")
