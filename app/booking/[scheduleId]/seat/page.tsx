@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, Clock, Ban, X } from 'lucide-react'
 import { holdSeatAction, releaseSeatAction, fetchScheduleSeatsAction } from '@/app/actions/seat-actions'
+import { useAuth } from '@/lib/auth-context'
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type SeatStatus = 'available' | 'selected' | 'held' | 'booked' | 'blocked'
@@ -102,6 +103,7 @@ function SeatContent({
   const tripDate = sp.date ? decodeURIComponent(sp.date) : 'Sab, 10 Okt 2026'
 
   const router = useRouter()
+  const { user } = useAuth()
 
   /* Seat state - default preselection matches chosen passengers */
   const [seatMap, setSeatMap] = useState<Record<string, SeatStatus>>({ ...INITIAL_MAP })
@@ -185,7 +187,7 @@ function SeatContent({
 
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
-  /* ─── Lanjut ke Data Penumpang (Model Tamu Tanpa Login Wajib) ───────── */
+  /* ─── Lanjut ke Data Penumpang (Wajib Login untuk Akses Privat) ───────── */
   const handleProceedToPassenger = () => {
     if (selected.length < maxSelect || expired) return
 
@@ -197,7 +199,18 @@ function SeatContent({
       busName
     )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
 
-    router.push(targetUrl)
+    if (user) {
+      router.push(targetUrl)
+    } else {
+      const authUrl = `/booking/${scheduleId}/auth?seats=${selected.join(
+        ','
+      )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(
+        tripDate
+      )}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(
+        busName
+      )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}&timeLeft=${timeLeft}`
+      router.push(authUrl)
+    }
   }
 
   /* Legend counts */

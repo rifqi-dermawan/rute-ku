@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, AlertCircle, ArrowLeft, UserCheck } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 export type PassengerType = 'dewasa' | 'anak'
 
@@ -53,6 +54,7 @@ function PassengerContent({
   const pricePerSeat = sp.price ? parseInt(sp.price) : 125000
 
   const router = useRouter()
+  const { user } = useAuth()
 
   // Passenger state: start completely blank per seat with default type
   const [passengers, setPassengers] = useState<Passenger[]>(() => {
@@ -139,6 +141,22 @@ function PassengerContent({
       } catch {}
     }
   }, [sp.passengersData, seatsParam])
+
+  // Auto-fill from authenticated user session
+  useEffect(() => {
+    if (user) {
+      if (!email && user.email) setEmail(user.email)
+      if (!phone && user.phone) setPhone(user.phone)
+      setPassengers(prev => {
+        if (prev.length > 0 && !prev[0].name && user.name) {
+          const next = [...prev]
+          next[0] = { ...next[0], name: user.name }
+          return next
+        }
+        return prev
+      })
+    }
+  }, [user])
 
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('')

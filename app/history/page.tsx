@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import {
   Check,
   Clock,
@@ -12,20 +11,19 @@ import {
   RefreshCw,
   Search,
   X,
+  ShieldCheck,
+  User as UserIcon,
 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 import type { BookingRecord } from '@/lib/booking-store'
 
 type TabType = 'active' | 'completed' | 'cancelled'
 
 function HistoryContent() {
-  const searchParams = useSearchParams()
-  const initialCode = searchParams?.get('code') || ''
-
-  const [searchQuery, setSearchQuery] = useState(initialCode)
+  const { user, openAuthModal } = useAuth()
   const [tab, setTab] = useState<TabType>('active')
   const [bookings, setBookings] = useState<BookingRecord[]>([])
   const [loading, setLoading] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState('')
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [cancelLoading, setCancelLoading] = useState(false)
@@ -38,10 +36,9 @@ function HistoryContent() {
     reason: string
   } | null>(null)
 
-  // Fetch bookings by code or email
-  const fetchBookings = useCallback(async (query: string) => {
-    const q = query.trim()
-    if (!q) {
+  // Fetch bookings strictly for authenticated user (Anti-IDOR)
+  const fetchUserBookings = useCallback(async () => {
+    if (!user) {
       setBookings([])
       setLoading(false)
       return
@@ -49,22 +46,16 @@ function HistoryContent() {
 
     setLoading(true)
     setError('')
-    setHasSearched(true)
 
     try {
-      const isEmail = q.includes('@')
-      const url = isEmail
-        ? `/api/bookings?email=${encodeURIComponent(q.toLowerCase())}`
-        : `/api/bookings?code=${encodeURIComponent(q.toUpperCase())}`
-
-      const res = await fetch(url)
+      const emailQuery = encodeURIComponent(user.email.toLowerCase())
+      const res = await fetch(`/api/bookings?email=${emailQuery}`)
       const data = await res.json()
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Gagal memuat riwayat booking.')
       }
 
-      // Format data into BookingRecord
       const rawList = data.bookings || (data.booking ? [data.booking] : [])
       const mapped: BookingRecord[] = rawList.map((b: any) => {
         const schedule = b.schedule || {}
@@ -122,23 +113,11 @@ function HistoryContent() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [user])
 
-  // Auto-search on mount if code query parameter or recent bookings exist
   useEffect(() => {
-    if (initialCode) {
-      fetchBookings(initialCode)
-    } else if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('ruteku_recent_bookings')
-        const list = raw ? JSON.parse(raw) : []
-        if (Array.isArray(list) && list.length > 0) {
-          setSearchQuery(list[0])
-          fetchBookings(list[0])
-        }
-      } catch {}
-    }
-  }, [initialCode, fetchBookings])
+    fetchUserBookings()
+  }, [fetchUserBookings])
 
   // Preview refund policy when cancel modal opens
   useEffect(() => {
@@ -157,13 +136,6 @@ function HistoryContent() {
       })
       .catch(() => {})
   }, [cancellingId])
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      fetchBookings(searchQuery)
-    }
-  }
 
   // Handle Cancel Booking
   const handleCancelBooking = async (idOrCode: string) => {
@@ -224,7 +196,7 @@ function HistoryContent() {
             <button
               type="button"
               onClick={() => setToastMessage(null)}
-              className="text-emerald-700 hover:text-emerald-900 text-xs"
+              className="text-emerald-700 hover:text-emerald-900 text-xs cursor-pointer"
             >
               <X size={14} />
             </button>
@@ -232,130 +204,74 @@ function HistoryContent() {
         )}
 
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
-            Riwayat booking &amp; cek e-tiket
-          </h1>
-          <p className="text-xs sm:text-sm text-muted mt-1">
-            Cek status pesanan, unduh e-tiket resmi, atau kelola pembatalan perjalanan bus Anda.
-          </p>
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-3">
+          <div>
+            <h1 className="text-xl sm:text-3xl font-black text-ink tracking-tight">
+              Riwayat booking
+            </h1>
+            <p className="text-xs sm:text-sm text-muted mt-1">
+              {user
+                ? `Tiket perjalanan terdaftar untuk akun ${user.name} (${user.email}).`
+                : 'Kelola e-tiket dan perjalanan bus antarkota Anda.'}
+            </p>
+          </div>
+
+          {user && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold w-fit">
+              <ShieldCheck size={14} className="text-emerald-600" />
+              <span>Akses Privat &amp; Terlindungi</span>
+            </div>
+          )}
         </div>
 
-        {/* Pencarian Tiket Tamu */}
-        <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 mb-5 shadow-2xs">
-          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
-            <div className="relative flex-1">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Masukkan Kode Booking (contoh: RK-ABCDEF) atau Email Pemesan"
-                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-surface border border-borderCol rounded-input focus:outline-none focus:border-primary text-ink font-medium"
-              />
+        {/* ── UNATHENTICATED STATE: ZERO TICKET LEAKAGE GUARANTEE ── */}
+        {!user ? (
+          <div className="bg-white border border-borderCol rounded-2xl p-6 sm:p-12 text-center shadow-xs space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary-tint flex items-center justify-center mx-auto text-primary shadow-xs">
+              <ShieldCheck size={32} />
             </div>
-            <button
-              type="submit"
-              disabled={loading || !searchQuery.trim()}
-              className="px-6 py-2.5 bg-primary hover:bg-primary-dark disabled:bg-borderCol disabled:text-muted disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm rounded-input shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
-            >
-              {loading ? <RefreshCw size={14} className="animate-spin" /> : <Search size={14} />}
-              <span>Cari Tiket</span>
-            </button>
-          </form>
-        </div>
 
-        {/* Error Banner */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-error text-xs flex items-center justify-between">
-            <span>{error}</span>
-            <button
-              type="button"
-              onClick={() => fetchBookings(searchQuery)}
-              className="font-bold underline ml-2 cursor-pointer"
-            >
-              Coba lagi
-            </button>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="bg-white border border-borderCol rounded-card p-5 animate-pulse space-y-3"
-              >
-                <div className="h-5 bg-borderCol/60 rounded w-1/3"></div>
-                <div className="h-3 bg-borderCol/40 rounded w-1/2"></div>
-                <div className="h-8 bg-borderCol/30 rounded w-28 mt-2"></div>
-              </div>
-            ))}
-          </div>
-        ) : !hasSearched && bookings.length === 0 ? (
-          /* Initial Guidance State */
-          <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
-            <div className="w-14 h-14 rounded-full bg-primary-tint border border-primary/20 flex items-center justify-center mx-auto text-primary">
-              <Ticket size={28} />
-            </div>
-            <div className="max-w-md mx-auto space-y-1">
-              <h3 className="text-base sm:text-lg font-bold text-ink">
-                Lacak Tiket Perjalanan Anda
-              </h3>
+            <div className="max-w-md mx-auto space-y-2">
+              <h2 className="text-lg sm:text-xl font-black text-ink">
+                Riwayat Booking Bersifat Privat
+              </h2>
               <p className="text-xs sm:text-sm text-muted leading-relaxed">
-                Pemesanan di RuteKu tidak memerlukan akun. Masukkan kode booking Anda (misal{' '}
-                <strong className="text-ink font-mono">RK-XXXXXX</strong>) atau alamat email pemesan
-                pada formulir di atas untuk melihat detail tiket.
+                Untuk melindungi privasi tiket Anda dan mencegah kebocoran data penumpang, riwayat
+                pemesanan hanya dapat diakses oleh pemilik akun yang sah.
               </p>
             </div>
-            <div className="pt-2">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-full text-xs sm:text-sm font-bold shadow-xs transition-colors"
+
+            <div className="pt-3">
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: 'login' })}
+                className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-full shadow-xs transition-all cursor-pointer inline-flex items-center gap-2 active:scale-95"
               >
-                <span>Cari Tiket Bus Baru</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        ) : currentList.length === 0 ? (
-          /* Empty Search Result */
-          <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
-            <div className="w-12 h-12 rounded-full bg-surface border border-borderCol flex items-center justify-center mx-auto text-muted">
-              <AlertCircle size={24} />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-ink">
-                Tiket tidak ditemukan
-              </h3>
-              <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
-                Tidak ada data booking yang cocok dengan kata kunci{' '}
-                <strong className="text-ink font-mono">&quot;{searchQuery}&quot;</strong>. Pastikan kode booking atau alamat email sudah sesuai.
-              </p>
+                <UserIcon size={16} />
+                <span>Masuk ke Akun Anda</span>
+              </button>
             </div>
           </div>
         ) : (
-          /* Results View */
           <>
-            {/* Tabs */}
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+            {/* Tabs & Refresh */}
+            <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1 scrollbar-none">
               <button
                 type="button"
                 onClick={() => setTab('active')}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   tab === 'active'
                     ? 'bg-primary text-white shadow-xs'
                     : 'border border-borderCol bg-white text-ink hover:border-primary'
                 }`}
               >
-                Aktif ({activeList.length})
+                Tiket Aktif ({activeList.length})
               </button>
 
               <button
                 type="button"
                 onClick={() => setTab('completed')}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   tab === 'completed'
                     ? 'bg-primary text-white shadow-xs'
                     : 'border border-borderCol bg-white text-ink hover:border-primary'
@@ -367,7 +283,7 @@ function HistoryContent() {
               <button
                 type="button"
                 onClick={() => setTab('cancelled')}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   tab === 'cancelled'
                     ? 'bg-primary text-white shadow-xs'
                     : 'border border-borderCol bg-white text-ink hover:border-primary'
@@ -375,81 +291,161 @@ function HistoryContent() {
               >
                 Dibatalkan ({cancelledList.length})
               </button>
+
+              <button
+                type="button"
+                onClick={fetchUserBookings}
+                title="Segarkan riwayat tiket"
+                className="ml-auto p-2 rounded-full border border-borderCol bg-white hover:bg-surface text-muted hover:text-ink transition-colors cursor-pointer flex-shrink-0"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              </button>
             </div>
 
-            {/* Ticket Cards */}
-            <div className="space-y-4">
-              {currentList.map((booking) => {
-                const isPaid = booking.status === 'CONFIRMED' || booking.status === 'PAID'
-                const isPending = booking.status === 'PENDING_PAYMENT'
-                const isCancelled = booking.status === 'CANCELLED'
+            {/* Error Banner */}
+            {error && (
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-error text-xs flex items-center justify-between">
+                <span>{error}</span>
+                <button
+                  type="button"
+                  onClick={fetchUserBookings}
+                  className="font-bold underline ml-2 cursor-pointer"
+                >
+                  Coba lagi
+                </button>
+              </div>
+            )}
 
-                return (
+            {/* Loading State */}
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
                   <div
-                    key={booking.id || booking.bookingCode}
-                    className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3 sm:space-y-4 transition-all hover:border-primary/40"
+                    key={i}
+                    className="bg-white border border-borderCol rounded-card p-5 animate-pulse space-y-3"
                   >
-                    {/* Top Row */}
-                    <div className="flex items-start justify-between flex-wrap gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base sm:text-lg font-black text-ink">
-                            {booking.from} → {booking.to}
-                          </h2>
-                          <span className="px-2 py-0.5 rounded bg-surface border border-borderCol text-[10px] font-bold text-muted font-mono">
-                            {booking.bookingCode || booking.id}
-                          </span>
+                    <div className="h-5 bg-borderCol/60 rounded w-1/3"></div>
+                    <div className="h-3 bg-borderCol/40 rounded w-1/2"></div>
+                    <div className="h-8 bg-borderCol/30 rounded w-28 mt-2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : currentList.length === 0 ? (
+              /* Empty State */
+              <div className="bg-white border border-borderCol rounded-card p-8 sm:p-12 text-center shadow-2xs space-y-4">
+                <div className="w-12 h-12 rounded-full bg-surface border border-borderCol flex items-center justify-center mx-auto text-muted">
+                  <Ticket size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-ink">
+                    {tab === 'active'
+                      ? 'Belum ada tiket aktif'
+                      : tab === 'completed'
+                      ? 'Belum ada perjalanan selesai'
+                      : 'Tidak ada tiket yang dibatalkan'}
+                  </h3>
+                  <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
+                    {tab === 'active'
+                      ? 'Anda belum memiliki tiket bus yang aktif di akun ini. Pesan tiket perjalanan Anda sekarang.'
+                      : 'Tiket riwayat perjalanan Anda akan tercatat di sini secara otomatis.'}
+                  </p>
+                </div>
+                {tab === 'active' && (
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-full text-xs font-bold shadow-2xs transition-colors"
+                  >
+                    <span>Cari Tiket Bus</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                )}
+              </div>
+            ) : (
+              /* Ticket List */
+              <div className="space-y-4">
+                {currentList.map((booking) => {
+                  const isPaid = booking.status === 'CONFIRMED' || booking.status === 'PAID'
+                  const isPending = booking.status === 'PENDING_PAYMENT'
+                  const isCancelled = booking.status === 'CANCELLED'
+
+                  return (
+                    <div
+                      key={booking.id || booking.bookingCode}
+                      className="bg-white border border-borderCol rounded-card p-4 sm:p-6 shadow-2xs space-y-3 sm:space-y-4 transition-all hover:border-primary/40"
+                    >
+                      {/* Top Row */}
+                      <div className="flex items-start justify-between flex-wrap gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-base sm:text-lg font-black text-ink">
+                              {booking.from} → {booking.to}
+                            </h2>
+                            <span className="px-2 py-0.5 rounded bg-surface border border-borderCol text-[10px] font-bold text-muted font-mono">
+                              {booking.bookingCode}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted mt-1 font-medium">
+                            {booking.date} · Kursi <strong className="text-ink">{booking.seats}</strong>
+                            {booking.passengers && (
+                              <span>
+                                {' '}
+                                · Penumpang: <strong className="text-ink">{booking.passengers}</strong>
+                              </span>
+                            )}
+                            {booking.bus && <span> · {booking.bus}</span>}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted mt-1 font-medium">
-                          {booking.date} · Kursi <strong className="text-ink">{booking.seats}</strong>
-                          {booking.passengers && (
-                            <span>
-                              {' '}
-                              · Penumpang: <strong className="text-ink">{booking.passengers}</strong>
+
+                        <div className="flex items-center gap-3">
+                          {isPaid ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                              <Check size={12} strokeWidth={3} /> Terbayar
+                            </span>
+                          ) : isPending ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-300 text-xs font-bold">
+                              <Clock size={12} /> Menunggu bayar
+                            </span>
+                          ) : isCancelled ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold">
+                              Dibatalkan
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full bg-surface text-muted border border-borderCol text-xs font-bold">
+                              Selesai
                             </span>
                           )}
-                          {booking.bus && <span> · {booking.bus}</span>}
-                        </p>
+
+                          <span className="text-base sm:text-lg font-black text-ink">
+                            Rp {(booking.totalAmount || booking.price || 0).toLocaleString('id-ID')}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        {isPaid ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                            <Check size={12} strokeWidth={3} /> Terbayar
+                      {/* Waiting payment warning banner */}
+                      {isPending && (
+                        <div className="p-3 rounded-xl bg-[#FEF6EE] border border-[#F9DBAF] text-[#93370D] text-xs flex items-center justify-between">
+                          <span>
+                            Kursi Anda ditahan sementara. Selesaikan pembayaran sebelum waktu habis.
                           </span>
-                        ) : isPending ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold">
-                            <Clock size={12} /> Menunggu Bayar
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 text-error border border-red-200 text-xs font-bold">
-                            Dibatalkan
-                          </span>
-                        )}
+                        </div>
+                      )}
 
-                        <span className="text-sm sm:text-base font-black text-ink">
-                          Rp {booking.totalAmount.toLocaleString('id-ID')}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom Actions */}
-                    <div className="pt-2 border-t border-borderCol/50 flex items-center justify-between flex-wrap gap-2">
-                      <div className="text-[11px] text-muted font-mono">
-                        {booking.dep} – {booking.arr} WIB
-                      </div>
-
-                      <div className="flex items-center gap-2">
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2.5 pt-1">
                         {isPaid && (
                           <>
                             <Link
-                              href={`/booking/${booking.scheduleId}/eticket?code=${encodeURIComponent(
-                                booking.bookingCode
-                              )}&publicToken=${encodeURIComponent(booking.publicToken || '')}`}
+                              href={`/booking/${booking.scheduleId}/eticket?code=${booking.bookingCode}&publicToken=${booking.publicToken || ''}&seats=${encodeURIComponent(
+                                booking.seats
+                              )}&from=${encodeURIComponent(booking.from)}&to=${encodeURIComponent(
+                                booking.to
+                              )}&bus=${encodeURIComponent(booking.bus)}&cls=${encodeURIComponent(
+                                booking.cls
+                              )}&total=${booking.totalAmount}`}
                               className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold shadow-2xs transition-colors inline-flex items-center gap-1.5"
                             >
                               <Ticket size={13} />
-                              <span>Lihat e-tiket</span>
+                              <span>Lihat E-Tiket</span>
                             </Link>
 
                             <button
@@ -463,98 +459,90 @@ function HistoryContent() {
                         )}
 
                         {isPending && (
-                          <>
-                            <Link
-                              href={`/booking/${booking.scheduleId}/payment?seats=${encodeURIComponent(
-                                booking.seats
-                              )}&from=${encodeURIComponent(booking.from)}&to=${encodeURIComponent(
-                                booking.to
-                              )}&total=${booking.totalAmount}`}
-                              className="px-5 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold shadow-2xs transition-colors cursor-pointer"
-                            >
-                              Lanjutkan pembayaran
-                            </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => setCancellingId(booking.bookingCode || booking.id)}
-                              className="px-4 py-2 border border-borderCol text-muted hover:text-ink hover:bg-surface rounded-input text-xs font-bold transition-colors cursor-pointer"
-                            >
-                              Batal
-                            </button>
-                          </>
-                        )}
-
-                        {isCancelled && (
-                          <span className="text-[11px] text-muted font-medium">
-                            Tiket ini telah dibatalkan dan tidak dapat digunakan.
-                          </span>
+                          <Link
+                            href={`/booking/${booking.scheduleId}/payment?seats=${encodeURIComponent(
+                              booking.seats
+                            )}&from=${encodeURIComponent(booking.from)}&to=${encodeURIComponent(
+                              booking.to
+                            )}&total=${booking.totalAmount}`}
+                            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold shadow-2xs transition-colors inline-flex items-center gap-1.5"
+                          >
+                            <span>Lanjutkan bayar</span>
+                            <ArrowRight size={13} />
+                          </Link>
                         )}
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </>
         )}
       </main>
 
-      {/* Cancel Confirmation Modal */}
+      {/* ── Cancel Booking Modal ── */}
       {cancellingId && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-card border border-borderCol p-6 max-w-md w-full shadow-lg space-y-4">
-            <div className="flex items-center gap-2 text-error">
-              <AlertCircle size={22} />
-              <h3 className="font-bold text-base text-ink">Konfirmasi Pembatalan Tiket</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-borderCol space-y-4 animate-in zoom-in-95">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-base font-bold text-ink">Konfirmasi Pembatalan Tiket</h3>
+                <p className="text-xs text-muted mt-0.5">Kode: {cancellingId}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCancellingId(null)}
+                className="p-1 rounded-full text-muted hover:text-ink cursor-pointer"
+              >
+                <X size={16} />
+              </button>
             </div>
-            <p className="text-xs sm:text-sm text-muted leading-relaxed">
-              Apakah Anda yakin ingin membatalkan booking{' '}
-              <strong className="text-ink font-mono">{cancellingId}</strong>?
-            </p>
 
             {cancelPreview ? (
-              <div className="p-3 bg-surface rounded-xl border border-borderCol space-y-1.5 text-xs">
-                <div className="flex justify-between font-bold text-ink">
-                  <span>Status Pengembalian:</span>
-                  <span className={cancelPreview.eligible ? 'text-emerald-700' : 'text-error'}>
-                    {cancelPreview.eligible
-                      ? `${cancelPreview.refundPercentage}% Refund`
-                      : 'Tidak Dapat Dibatalkan'}
+              <div className="p-3.5 rounded-xl bg-surface border border-borderCol space-y-2 text-xs">
+                <div className="flex justify-between font-semibold">
+                  <span>Kebijakan Pengembalian Dana:</span>
+                  <span className={cancelPreview.eligible ? 'text-primary font-bold' : 'text-error'}>
+                    {cancelPreview.refundPercentage}% Refund
                   </span>
                 </div>
-                <div className="flex justify-between text-muted">
+                <div className="flex justify-between font-bold text-ink text-sm">
                   <span>Estimasi Pengembalian:</span>
-                  <span className="font-bold text-ink">
-                    Rp {cancelPreview.refundAmount.toLocaleString('id-ID')}
-                  </span>
+                  <span className="text-emerald-700">Rp {cancelPreview.refundAmount.toLocaleString('id-ID')}</span>
                 </div>
-                <p className="text-[11px] text-muted pt-1 border-t border-borderCol/50">
+                <p className="text-muted text-[11px] leading-relaxed pt-1 border-t border-borderCol/60">
                   {cancelPreview.policyText}
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-muted">Memuat rincian aturan pembatalan...</p>
+              <div className="py-4 text-center text-xs text-muted flex items-center justify-center gap-2">
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Memuat kebijakan pembatalan...</span>
+              </div>
             )}
-            <div className="flex items-center justify-end gap-3 pt-2">
+
+            <div className="flex gap-2.5 pt-2">
               <button
                 type="button"
-                disabled={cancelLoading}
                 onClick={() => setCancellingId(null)}
-                className="px-4 py-2 border border-borderCol rounded-input text-xs font-bold text-ink hover:bg-surface cursor-pointer"
+                className="flex-1 py-2.5 rounded-input border border-borderCol text-xs font-bold text-ink hover:bg-surface cursor-pointer"
               >
-                Kembali
+                Batal
               </button>
               <button
                 type="button"
                 disabled={cancelLoading}
                 onClick={() => handleCancelBooking(cancellingId)}
-                className="px-4 py-2 bg-error hover:bg-red-700 text-white rounded-input text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                className="flex-1 py-2.5 rounded-input bg-error hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {cancelLoading ? (
-                  <RefreshCw size={14} className="animate-spin" />
+                  <>
+                    <RefreshCw size={13} className="animate-spin" />
+                    <span>Memproses...</span>
+                  </>
                 ) : (
-                  <span>Ya, Batalkan Booking</span>
+                  <span>Ya, Batalkan Tiket</span>
                 )}
               </button>
             </div>
@@ -567,13 +555,7 @@ function HistoryContent() {
 
 export default function HistoryPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-surface p-8 text-center text-muted">
-          Memuat riwayat booking...
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-surface p-8 text-center text-muted">Memuat riwayat booking...</div>}>
       <HistoryContent />
     </Suspense>
   )

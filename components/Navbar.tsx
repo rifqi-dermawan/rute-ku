@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HelpCircle, Clock, Sun, Moon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { HelpCircle, Clock, Sun, Moon, LogIn, LogOut, Ticket, ChevronDown } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { useAuth } from '@/lib/auth-context'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -11,8 +12,23 @@ export default function Navbar() {
   const isPaymentStep = pathname?.includes('/payment')
   const isAdmin = pathname?.startsWith('/admin')
 
+  const { user, openAuthModal, logout } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
   const [mounted, setMounted] = useState(false)
   const [isDark, setIsDark] = useState(false)
+
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -135,6 +151,72 @@ export default function Navbar() {
                 <span>Kursi ditahan {fmtTime(timeLeft)}</span>
               </div>
             )
+          )}
+
+          {/* Tombol Masuk & Daftar / Profil User */}
+          {!user ? (
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: 'login' })}
+                className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-full text-ink dark:text-white hover:text-primary hover:bg-surface dark:hover:bg-white/5 border border-borderCol dark:border-white/10 transition-all cursor-pointer whitespace-nowrap"
+              >
+                Masuk
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: 'register' })}
+                className="hidden sm:inline-flex px-3 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary hover:bg-primary-dark text-white shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+              >
+                Daftar
+              </button>
+            </div>
+          ) : (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-full bg-primary-tint/80 dark:bg-primary-dark/40 border border-primary/30 text-primary dark:text-primary-tint hover:bg-primary-tint transition-all cursor-pointer shadow-2xs"
+                title={`Akun: ${user.name}`}
+              >
+                <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden sm:inline max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
+                <ChevronDown size={13} className={`transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showUserMenu && (
+                <div 
+                  className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1A2E3B] rounded-xl shadow-xl border border-borderCol dark:border-white/10 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <div className="px-3.5 py-2 border-b border-borderCol/60 dark:border-white/10">
+                    <p className="text-xs font-bold text-ink dark:text-white truncate">{user.name}</p>
+                    <p className="text-[11px] text-muted dark:text-gray-400 truncate">{user.email || user.phone}</p>
+                  </div>
+
+                  <Link
+                    href="/history"
+                    className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-ink dark:text-white hover:bg-surface dark:hover:bg-white/5 transition-colors"
+                  >
+                    <Ticket size={14} className="text-primary" />
+                    <span>Riwayat Pemesanan</span>
+                  </Link>
+
+                  <div className="border-t border-borderCol/60 dark:border-white/10 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left cursor-pointer"
+                  >
+                    <LogOut size={14} />
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Bantuan Button -> links to /help */}
