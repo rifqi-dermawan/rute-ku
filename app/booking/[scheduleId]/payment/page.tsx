@@ -97,6 +97,8 @@ function PaymentContent({
     return () => clearInterval(t)
   }, [])
 
+  const [simulating, setSimulating] = useState(false)
+
   // Polling status QRIS setiap 3 detik setelah QR berhasil dibuat
   useEffect(() => {
     if (!qrisData || qrisStatus !== 'pending') return
@@ -105,14 +107,21 @@ function PaymentContent({
       try {
         const res = await fetch(`/api/payment/qris/status/${encodeURIComponent(qrisData.orderId)}`)
         const json = await res.json()
-        const s: 'pending' | 'paid' | 'expired' | 'failed' = json.status ?? 'pending'
-        setQrisStatus(s)
-        if (s === 'paid') {
+        const rawStatus = (json.status || '').toUpperCase()
+
+        if (rawStatus === 'SUCCESS' || rawStatus === 'PAID') {
+          setQrisStatus('paid')
           clearInterval(poll)
           navigateToEticket()
-        } else if (s === 'expired' || s === 'failed') {
+        } else if (rawStatus === 'EXPIRED') {
+          setQrisStatus('expired')
           clearInterval(poll)
-          setQrisError(s === 'expired' ? 'QR Code telah kedaluwarsa. Buat QR baru.' : 'Pembayaran gagal atau dibatalkan.')
+          setQrisError('QR Code telah kedaluwarsa. Silakan buat QR baru.')
+          setQrisData(null)
+        } else if (rawStatus === 'FAILED' || rawStatus === 'CANCEL' || rawStatus === 'DENY') {
+          setQrisStatus('failed')
+          clearInterval(poll)
+          setQrisError('Pembayaran gagal atau dibatalkan.')
           setQrisData(null)
         }
       } catch {
@@ -123,6 +132,30 @@ function PaymentContent({
     return () => clearInterval(poll)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrisData, qrisStatus])
+
+  const handleSimulatePayment = async () => {
+    if (!qrisData) return
+    setSimulating(true)
+    setQrisError('')
+    try {
+      const res = await fetch('/api/payment/qris/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: qrisData.orderId }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setQrisStatus('paid')
+        navigateToEticket()
+      } else {
+        setQrisError(json.error || 'Gagal memproses simulasi pembayaran.')
+      }
+    } catch {
+      setQrisError('Kendala koneksi saat menghubungi simulator pembayaran.')
+    } finally {
+      setSimulating(false)
+    }
+  }
 
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -465,7 +498,27 @@ function PaymentContent({
                 </div>
 
                 {/* Action Area */}
-                <div className="pt-2">
+                <div className="pt-2 space-y-2">
+                  {qrisData && qrisStatus === 'pending' && (
+                    <button
+                      type="button"
+                      disabled={simulating}
+                      onClick={handleSimulatePayment}
+                      className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs sm:text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      {simulating ? (
+                        <>
+                          <RefreshCw size={15} className="animate-spin" />
+                          <span>Menghubungi Simulator Midtrans...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>⚡ Simulasi Bayar Sukses (Uji Coba Sandbox)</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
                   {!qrisData || qrisStatus === 'expired' || qrisStatus === 'failed' ? (
                     <button
                       type="button"
@@ -486,31 +539,31 @@ function PaymentContent({
                       )}
                     </button>
                   ) : (
-                    <div className="text-center text-xs text-muted py-2">
-                      Scan QR di atas, lalu kunjungi{' '}
+                    <div className="text-center text-xs text-muted py-1">
+                      Atau salin URL QR dan buka{' '}
                       <a
                         href="https://simulator.sandbox.midtrans.com/v2/qris/index"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary font-semibold hover:underline"
                       >
-                        QRIS Simulator
-                      </a>{' '}
-                      untuk menyelesaikan pembayaran.
+                        QRIS Simulator Midtrans
+                      </a>.
                     </div>
                   )}
                 </div>
 
-                {/* Instructions */}
-                <div className="pt-2 border-t border-borderCol/60">
-                  <p className="text-xs font-bold text-ink mb-2">Cara Pembayaran QRIS Sandbox:</p>
-                  <ol className="space-y-1.5 text-xs text-muted leading-relaxed">
-                    <li>1. Klik <strong>Buat QR Code QRIS</strong> di atas untuk mendapatkan QR dari Midtrans.</li>
-                    <li>2. Klik <strong>Salin URL QR</strong>, lalu buka{' '}
-                      <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">QRIS Simulator Midtrans</a>.
-                    </li>
-                    <li>3. Tempel URL, tekan tombol scan, lalu selesaikan sebagai <strong>sukses</strong>.</li>
-                    <li>4. Halaman akan otomatis berpindah ke e-tiket dalam beberapa detik.</li>
+                {/* Instructions & Warning */}
+                <div className="pt-2 border-t border-borderCol/60 space-y-2.5">
+                  <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] sm:text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                    <strong>⚠️ Perhatian Uji Coba:</strong> Ini adalah QRIS Sandbox Midtrans. <strong>JANGAN scan menggunakan aplikasi perbankan atau e-wallet asli di ponsel</strong> (BCA, GoPay, Dana, dll) karena pasti ditolak sistem bank. Klik tombol hijau <strong>⚡ Simulasi Bayar Sukses</strong> di atas untuk pengujian instan.
+                  </div>
+                  <p className="text-xs font-bold text-ink mb-1">Panduan Uji Coba Pembayaran:</p>
+                  <ol className="space-y-1 text-xs text-muted leading-relaxed">
+                    <li>1. Klik <strong>Buat QR Code QRIS</strong> untuk mendapatkan QR dari Midtrans Sandbox.</li>
+                    <li>2. Klik tombol hijau <strong>⚡ Simulasi Bayar Sukses</strong> untuk menyelesaikan transaksi secara instan.</li>
+                    <li>3. Atau salin URL QR dan selesaikan lewat <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">QRIS Simulator Midtrans</a>.</li>
+                    <li>4. Halaman akan otomatis beralih ke E-Tiket begitu transaksi sukses.</li>
                   </ol>
                 </div>
               </div>
