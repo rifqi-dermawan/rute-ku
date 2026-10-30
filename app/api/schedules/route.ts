@@ -17,7 +17,7 @@ async function resolveCity(input: string) {
   const q = input.trim().toLowerCase();
   if (!q) return null;
 
-  // Check aliases
+  // Check aliases & popular hub city names
   if (q === 'jakarta' || q === 'dki' || q === 'jkt') {
     return prisma.city.findFirst({
       where: { OR: [{ code: '31.71' }, { name: { contains: 'Jakarta Pusat', mode: 'insensitive' } }] }
@@ -33,8 +33,56 @@ async function resolveCity(input: string) {
       where: { OR: [{ code: '34.71' }, { name: { contains: 'Yogyakarta', mode: 'insensitive' } }] }
     });
   }
+  if (q === 'bandung') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '32.73' }, { name: { contains: 'Kota Bandung', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'semarang') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '33.74' }, { name: { contains: 'Kota Semarang', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'surabaya') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '35.78' }, { name: { contains: 'Kota Surabaya', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'malang') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '35.73' }, { name: { contains: 'Kota Malang', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'cirebon') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '32.74' }, { name: { contains: 'Kota Cirebon', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'bogor') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '32.71' }, { name: { contains: 'Kota Bogor', mode: 'insensitive' } }] }
+    });
+  }
+  if (q === 'tegal') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '33.76' }, { name: { contains: 'Kota Tegal', mode: 'insensitive' } }] }
+    });
+  }
 
-  // Exact or partial name match
+  // 1. Prioritize Hub City first if query matches
+  const hubMatch = await prisma.city.findFirst({
+    where: {
+      isHub: true,
+      OR: [
+        { id: input },
+        { code: input },
+        { name: { contains: q, mode: 'insensitive' } }
+      ]
+    }
+  });
+  if (hubMatch) return hubMatch;
+
+  // 2. Exact or partial name match across all 514 cities
   return prisma.city.findFirst({
     where: {
       OR: [
