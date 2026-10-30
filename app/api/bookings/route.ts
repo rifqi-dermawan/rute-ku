@@ -1,66 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getUserBookings, addBooking, BookingRecord } from '@/lib/booking-store'
+import crypto from 'crypto'
+import { prisma } from '@/lib/prisma'
+import { BookingStatus, SeatStatus } from '@prisma/client'
+import { HOLD_DURATION_MS } from '@/lib/seat-management'
 
 /**
- * Helper to resolve authenticated user ID from cookies, headers, or query params.
+ * Resolusi hold_token tamu dari cookie httpOnly atau header
  */
-async function getAuthenticatedUserId(req: NextRequest): Promise<string | null> {
+async function resolveHoldToken(req: NextRequest): Promise<string> {
   const cookieStore = await cookies()
-  const cookieUserId = cookieStore.get('ruteku_user_id')?.value
-  const headerUserId = req.headers.get('x-user-id')
-  const queryUserId = req.nextUrl.searchParams.get('userId')
-
-  return cookieUserId || headerUserId || queryUserId || null
+  const cookieToken = cookieStore.get('ruteku_hold_token')?.value
+  const headerToken = req.headers.get('x-hold-token')
+  return cookieToken || headerToken || crypto.randomUUID()
 }
 
 /**
  * GET /api/bookings
- * Retrieves booking history strictly filtered by the authenticated user's ID.
- * PREVENTS IDOR: Users can NEVER query or view other users' tickets.
- *
- * Contoh Query Prisma yang Dijalankan (Aman & Privat):
- * const riwayatBooking = await prisma.booking.findMany({
- *   where: {
- *     userId: session.user.id
- *   },
- *   orderBy: {
- *     createdAt: 'desc'
- *   }
- * });
+ * Mengambil daftar booking untuk tamu (berdasarkan publicToken, holdToken, atau email).
+ * Tanpa login paksa / tanpa dependensi tabel users.
  */
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getAuthenticatedUserId(req)
+    const { searchParams } = req.nextUrl
+    const publicToken = searchParams.get('publicToken')
+    const email = searchParams.get('email')
+    const cookieStore = await cookies()
+    const holdToken = searchParams.get('holdToken') || cookieStore.get('ruteku_hold_token')?.value
 
-    // Unauthenticated access: return 401 immediately to protect privacy
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Akses ditolak. Silakan login terlebih dahulu untuk melihat riwayat booking Anda.',
-          bookings: [],
+    if (publicToken) {
+      const booking = await prisma.booking.findUnique({
+        where: { publicToken },
+        include: {
+          schedule: {
+            include: {
+              bus: { include: { operator: true } },
+              route: { include: { originCity: true, destinationCity: true } },
+              scheduleStops: { include: { terminal: true } },
+            },
+          },
+          passengers: true,
+          seats: true,
+          payments: { orderBy: { createdAt: 'desc' } },
+          refund: true,
         },
-        { status: 401 }
-      )
+      })
+
+      if (!booking) {
+        return NextResponse.json(
+          { success: false, error: 'Booking tidak ditemukan.' },
+          { status: 404 }
+        )
+      }
+
+      return NextResponse.json({ success: true, booking })
     }
 
-    // Ambil data booking milik user ini saja (Anti-IDOR)
-    const userBookings = await getUserBookings(userId)
+    // Filter berdasarkan email atau holdToken
+    const whereClause: any = {}
+    if (email) {
+      whereClause.contactEmail = email
+    } else if (holdToken) {
+      // Ambil booking yang kursi-kursinya memiliki hold_token terkait
+      whereClause.seats = {
+        some: {
+          holdToken,
+        },
+      }
+    } else {
+      return NextResponse.json({ success: true, bookings: [] })
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where: whereClause,
+      include: {
+        schedule: {
+          include: {
+            bus: { include: { operator: true } },
+            route: { include: { originCity: true, destinationCity: true } },
+          },
+        },
+        passengers: true,
+        seats: true,
+        payments: { orderBy: { createdAt: 'desc' } },
+        refund: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    })
 
     return NextResponse.json({
       success: true,
-      userId,
-      count: userBookings.length,
-      bookings: userBookings,
+      count: bookings.length,
+      bookings,
     })
   } catch (error: any) {
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Gagal memuat riwayat booking.',
-        bookings: [],
-      },
+      { success: false, error: error?.message || 'Gagal memuat booking.' },
       { status: 500 }
     )
   }
@@ -68,80 +104,166 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/bookings
- * Creates a new booking strictly associated with the authenticated user ID.
+ * Membuat booking baru untuk tamu (guest) secara atomik.
  */
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getAuthenticatedUserId(req)
     const body = await req.json()
-
     const {
-      bookingCode,
       scheduleId,
-      from,
-      to,
-      date,
-      dep,
-      arr,
-      bus,
-      cls,
       seats,
       passengers,
       contactName,
       contactEmail,
       contactPhone,
-      price,
-      totalAmount,
-      paymentMethod,
-      status = 'PAID',
     } = body
 
-    // Require an authenticated user
-    const finalUserId = userId || body.userId
-    if (!finalUserId) {
+    if (!scheduleId || !seats || !Array.isArray(seats) || seats.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'User harus login untuk membuat booking.' },
-        { status: 401 }
+        { success: false, error: 'Data jadwal dan kursi wajib diisi.' },
+        { status: 400 }
       )
     }
 
-    const finalBookingCode =
-      bookingCode || `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-
-    const newBookingRecord: BookingRecord = {
-      id: finalBookingCode,
-      bookingCode: finalBookingCode,
-      userId: finalUserId, // STRICTLY TIED TO THIS USER
-      scheduleId: scheduleId || 'sch-002',
-      from: from || 'Jakarta',
-      to: to || 'Bandung',
-      date: date || 'Sab, 10 Okt 2026',
-      dep: dep || '08:00',
-      arr: arr || '11:30',
-      bus: bus || 'Nusa Trans',
-      cls: cls || 'Executive 2–2',
-      seats: Array.isArray(seats) ? seats.join(', ') : seats || '5A, 5B',
-      passengers: Array.isArray(passengers)
-        ? passengers.map((p: any) => p.name || p.fullName || p).join(', ')
-        : passengers || contactName || 'Penumpang RuteKu',
-      price: Number(totalAmount || price || 250000),
-      totalAmount: Number(totalAmount || price || 250000),
-      paymentMethod: paymentMethod || 'QRIS',
-      status: status || 'PAID',
-      paidAt: status === 'PAID' ? new Date().toISOString() : null,
-      createdAt: new Date().toISOString(),
+    if (!contactName || !contactEmail || !contactPhone) {
+      return NextResponse.json(
+        { success: false, error: 'Kontak pemesan (nama, email, no HP) wajib diisi.' },
+        { status: 400 }
+      )
     }
 
-    await addBooking(newBookingRecord)
+    const holdToken = body.holdToken || (await resolveHoldToken(req))
+    const now = new Date()
+    const holdExpiresAt = new Date(now.getTime() + HOLD_DURATION_MS)
+
+    // Dapatkan data jadwal dari database (JANGAN percaya harga dari client!)
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      include: { bus: true },
+    })
+
+    if (!schedule) {
+      return NextResponse.json(
+        { success: false, error: 'Jadwal bus tidak ditemukan.' },
+        { status: 404 }
+      )
+    }
+
+    // Hitung total harga sesuai schema baru (CHECK constraint: grand_total = ticket_total + service_fee)
+    const ticketTotal = schedule.price * seats.length
+    const serviceFee = 0 // Biaya layanan (non-refundable)
+    const grandTotal = ticketTotal + serviceFee
+
+    // Eksekusi atomik dalam transaksi Prisma
+    const newBooking = await prisma.$transaction(async (tx) => {
+      // 1. Validasi & update kursi: Pastikan kursi bisa di-hold/sudah di-hold oleh tamu ini
+      for (const seatNumber of seats) {
+        const rowsAffected: number = await tx.$executeRaw`
+          UPDATE schedule_seats
+          SET 
+            status = 'HOLD'::seat_status,
+            hold_token = ${holdToken},
+            hold_expires_at = ${holdExpiresAt},
+            updated_at = NOW()
+          WHERE schedule_id = ${scheduleId}
+            AND seat_number = ${seatNumber}
+            AND (
+              status = 'AVAILABLE'::seat_status
+              OR (status = 'HOLD'::seat_status AND hold_expires_at < ${now})
+              OR (status = 'HOLD'::seat_status AND hold_token = ${holdToken})
+            );
+        `
+
+        if (rowsAffected === 0) {
+          throw new Error(`SEAT_UNAVAILABLE:${seatNumber}`)
+        }
+      }
+
+      // 2. Generate kode booking acak (contoh: RK-7Q4M2X)
+      const code = `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+
+      // 3. Buat entitas Booking tamu (tanpa userId)
+      const booking = await tx.booking.create({
+        data: {
+          code,
+          scheduleId,
+          status: BookingStatus.PENDING_PAYMENT,
+          contactName: contactName.trim(),
+          contactEmail: contactEmail.trim().toLowerCase(),
+          contactPhone: contactPhone.trim(),
+          ticketTotal,
+          serviceFee,
+          grandTotal,
+        },
+      })
+
+      // 4. Kaitkan kursi dengan bookingId
+      await tx.$executeRaw`
+        UPDATE schedule_seats
+        SET 
+          booking_id = ${booking.id},
+          updated_at = NOW()
+        WHERE schedule_id = ${scheduleId}
+          AND seat_number = ANY(${seats}::text[]);
+      `
+
+      // 5. Tambahkan penumpang ke tabel booking_passengers
+      if (Array.isArray(passengers) && passengers.length > 0) {
+        for (const p of passengers) {
+          await tx.bookingPassenger.create({
+            data: {
+              bookingId: booking.id,
+              seatNumber: p.seatNumber || p.seat || seats[0],
+              fullName: p.fullName || p.name || contactName,
+              passengerType: p.passengerType || p.type || 'adult',
+            },
+          })
+        }
+      } else {
+        // Fallback: 1 penumpang per kursi menggunakan nama kontak
+        for (const seatNumber of seats) {
+          await tx.bookingPassenger.create({
+            data: {
+              bookingId: booking.id,
+              seatNumber,
+              fullName: contactName,
+              passengerType: 'adult',
+            },
+          })
+        }
+      }
+
+      return booking
+    })
 
     return NextResponse.json({
       success: true,
-      message: 'Booking berhasil disimpan secara privat untuk akun Anda.',
-      booking: newBookingRecord,
+      message: 'Booking berhasil dibuat. Silakan lanjutkan ke pembayaran.',
+      booking: {
+        id: newBooking.id,
+        code: newBooking.code,
+        publicToken: newBooking.publicToken,
+        ticketTotal: newBooking.ticketTotal,
+        serviceFee: newBooking.serviceFee,
+        grandTotal: newBooking.grandTotal,
+        status: newBooking.status,
+      },
     })
   } catch (error: any) {
+    if (error.message?.startsWith('SEAT_UNAVAILABLE:')) {
+      const takenSeat = error.message.split(':')[1]
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Kursi ${takenSeat} baru saja diambil oleh penumpang lain. Silakan pilih kursi lain.`,
+          code: 'SEAT_UNAVAILABLE',
+        },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json(
-      { success: false, error: error.message || 'Gagal menyimpan booking.' },
+      { success: false, error: error?.message || 'Gagal membuat booking.' },
       { status: 500 }
     )
   }

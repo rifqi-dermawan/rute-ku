@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, Clock, Ban, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { holdSeatAction, releaseSeatAction, fetchScheduleSeatsAction } from '@/app/actions/seat-actions'
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type SeatStatus = 'available' | 'selected' | 'held' | 'booked' | 'blocked'
@@ -135,22 +136,37 @@ function SeatContent({
 
   /* Toggle seat */
   const toggleSeat = useCallback(
-    (seatId: string) => {
+    async (seatId: string) => {
       const status = seatMap[seatId]
       if (status !== 'available' && !selected.includes(seatId)) return
 
-      setSelected(prev => {
-        if (prev.includes(seatId)) {
-          return prev.filter(s => s !== seatId)
+      if (selected.includes(seatId)) {
+        setSelected(prev => prev.filter(s => s !== seatId))
+        releaseSeatAction({ scheduleId, seatNumber: seatId }).catch(() => {})
+        return
+      }
+
+      // Tahan kursi secara atomik ke backend
+      const res = await holdSeatAction({ scheduleId, seatNumber: seatId })
+      if (!res.success) {
+        if (res.code === 'SEAT_UNAVAILABLE') {
+          setSeatMap(prev => ({ ...prev, [seatId]: 'held' }))
+          const sug = res.suggestions?.length ? ` Saran kursi lain: ${res.suggestions.join(', ')}` : ''
+          alert(`Kursi ${seatId} sedang tidak tersedia.${sug}`)
         }
+        return
+      }
+
+      setSelected(prev => {
         if (prev.length >= maxSelect) {
-          // Replace the oldest selection
+          const removed = prev[0]
+          releaseSeatAction({ scheduleId, seatNumber: removed }).catch(() => {})
           return [...prev.slice(1), seatId]
         }
         return [...prev, seatId]
       })
     },
-    [seatMap, selected, maxSelect]
+    [seatMap, selected, maxSelect, scheduleId]
   )
 
 
@@ -171,8 +187,7 @@ function SeatContent({
 
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
-  /* ─── Titik Paksaan Login / Lazy Registration Checkpoint ───────── */
-  /* Setelah Langkah 3 (Pilih Kursi) dan tepat sebelum Langkah 4 (Data Penumpang) */
+  /* ─── Lanjut ke Data Penumpang (Model Tamu Tanpa Login Wajib) ───────── */
   const handleProceedToPassenger = () => {
     if (selected.length < maxSelect || expired) return
 
@@ -184,20 +199,7 @@ function SeatContent({
       busName
     )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}`
 
-    if (user) {
-      // Pengguna sudah login -> langsung lanjutkan ke data penumpang
-      router.push(targetUrl)
-    } else {
-      // Pengguna belum login -> arahkan ke halaman autentikasi OAuth & OTP email
-      const authUrl = `/booking/${scheduleId}/auth?seats=${selected.join(
-        ','
-      )}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&passengers=${maxSelect}&date=${encodeURIComponent(
-        tripDate
-      )}&dep=${encodeURIComponent(depTime)}&arr=${encodeURIComponent(arrTime)}&bus=${encodeURIComponent(
-        busName
-      )}&cls=${encodeURIComponent(busClass)}&price=${pricePerSeat}&timeLeft=${timeLeft}`
-      router.push(authUrl)
-    }
+    router.push(targetUrl)
   }
 
   /* Legend counts */

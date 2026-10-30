@@ -1,0 +1,902 @@
+[
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 57,
+    "osrmDurationMinutes": 48,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:25.467Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 168,
+    "osrmDurationMinutes": 126,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:26.943Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 217,
+    "osrmDurationMinutes": 164,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:28.396Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 290,
+    "osrmDurationMinutes": 220,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:29.867Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 441,
+    "osrmDurationMinutes": 334,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:31.314Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 531,
+    "osrmDurationMinutes": 392,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:32.773Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 537,
+    "osrmDurationMinutes": 414,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:34.259Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 754,
+    "osrmDurationMinutes": 560,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:35.740Z"
+  },
+  {
+    "originHub": "Jakarta",
+    "originMatch": "Kota Jakarta Pusat",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 839,
+    "osrmDurationMinutes": 622,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:37.231Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 56,
+    "osrmDurationMinutes": 45,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:38.699Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 123,
+    "osrmDurationMinutes": 94,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:40.165Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 239,
+    "osrmDurationMinutes": 180,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:42.020Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 312,
+    "osrmDurationMinutes": 235,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:43.483Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 463,
+    "osrmDurationMinutes": 350,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:44.960Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 521,
+    "osrmDurationMinutes": 401,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:46.432Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 558,
+    "osrmDurationMinutes": 430,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:47.938Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 776,
+    "osrmDurationMinutes": 575,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:49.778Z"
+  },
+  {
+    "originHub": "Bogor",
+    "originMatch": "Kota Bogor",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 860,
+    "osrmDurationMinutes": 638,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:51.233Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 159,
+    "osrmDurationMinutes": 123,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:52.707Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 122,
+    "osrmDurationMinutes": 95,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:54.204Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 127,
+    "osrmDurationMinutes": 95,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:55.667Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 201,
+    "osrmDurationMinutes": 151,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:57.152Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 352,
+    "osrmDurationMinutes": 267,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:54:58.982Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 399,
+    "osrmDurationMinutes": 312,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:00.822Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 448,
+    "osrmDurationMinutes": 347,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:02.646Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 665,
+    "osrmDurationMinutes": 493,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:04.100Z"
+  },
+  {
+    "originHub": "Bandung",
+    "originMatch": "Kota Bandung",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 750,
+    "osrmDurationMinutes": 555,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:05.565Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 217,
+    "osrmDurationMinutes": 164,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:07.028Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 234,
+    "osrmDurationMinutes": 177,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:08.489Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 130,
+    "osrmDurationMinutes": 97,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:10.033Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 74,
+    "osrmDurationMinutes": 59,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:11.677Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 228,
+    "osrmDurationMinutes": 176,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:13.127Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 319,
+    "osrmDurationMinutes": 236,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:14.754Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 324,
+    "osrmDurationMinutes": 255,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:16.288Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 541,
+    "osrmDurationMinutes": 401,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:17.818Z"
+  },
+  {
+    "originHub": "Cirebon",
+    "originMatch": "Kota Cirebon",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 625,
+    "osrmDurationMinutes": 463,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:19.289Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 290,
+    "osrmDurationMinutes": 219,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:21.300Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 307,
+    "osrmDurationMinutes": 232,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:22.758Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 203,
+    "osrmDurationMinutes": 151,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:24.306Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 75,
+    "osrmDurationMinutes": 59,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:25.812Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 155,
+    "osrmDurationMinutes": 121,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:27.306Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 243,
+    "osrmDurationMinutes": 191,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:28.889Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 250,
+    "osrmDurationMinutes": 201,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:30.408Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 467,
+    "osrmDurationMinutes": 346,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:31.915Z"
+  },
+  {
+    "originHub": "Tegal",
+    "originMatch": "Kota Tegal",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 552,
+    "osrmDurationMinutes": 408,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:33.639Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 441,
+    "osrmDurationMinutes": 333,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:35.159Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 459,
+    "osrmDurationMinutes": 347,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:36.764Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 355,
+    "osrmDurationMinutes": 267,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:38.405Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 234,
+    "osrmDurationMinutes": 176,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:39.940Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 160,
+    "osrmDurationMinutes": 121,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:41.491Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 124,
+    "osrmDurationMinutes": 105,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:43.064Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 106,
+    "osrmDurationMinutes": 90,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:44.567Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 313,
+    "osrmDurationMinutes": 230,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:46.842Z"
+  },
+  {
+    "originHub": "Semarang",
+    "originMatch": "Kota Semarang",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 398,
+    "osrmDurationMinutes": 292,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:48.346Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 530,
+    "osrmDurationMinutes": 391,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:50.129Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 523,
+    "osrmDurationMinutes": 402,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:52.057Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 402,
+    "osrmDurationMinutes": 314,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:53.659Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 320,
+    "osrmDurationMinutes": 236,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:55.120Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 240,
+    "osrmDurationMinutes": 188,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:56.624Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 124,
+    "osrmDurationMinutes": 104,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:58.135Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 67,
+    "osrmDurationMinutes": 54,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:55:59.601Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 322,
+    "osrmDurationMinutes": 234,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:01.149Z"
+  },
+  {
+    "originHub": "Yogyakarta",
+    "originMatch": "Kota Yogyakarta",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 369,
+    "osrmDurationMinutes": 273,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:02.664Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 537,
+    "osrmDurationMinutes": 414,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:04.206Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 554,
+    "osrmDurationMinutes": 428,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:05.845Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 450,
+    "osrmDurationMinutes": 348,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:07.401Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 331,
+    "osrmDurationMinutes": 258,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:08.939Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 257,
+    "osrmDurationMinutes": 203,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:10.409Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 107,
+    "osrmDurationMinutes": 93,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:11.895Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 67,
+    "osrmDurationMinutes": 55,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:13.979Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 257,
+    "osrmDurationMinutes": 184,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:15.413Z"
+  },
+  {
+    "originHub": "Surakarta",
+    "originMatch": "Kota Surakarta",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 303,
+    "osrmDurationMinutes": 224,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:17.072Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 753,
+    "osrmDurationMinutes": 557,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:18.635Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 770,
+    "osrmDurationMinutes": 571,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:20.211Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 667,
+    "osrmDurationMinutes": 491,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:21.712Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 546,
+    "osrmDurationMinutes": 400,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:23.266Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 471,
+    "osrmDurationMinutes": 345,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:24.705Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 313,
+    "osrmDurationMinutes": 229,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:26.133Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 328,
+    "osrmDurationMinutes": 251,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:27.652Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 263,
+    "osrmDurationMinutes": 200,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:29.104Z"
+  },
+  {
+    "originHub": "Surabaya",
+    "originMatch": "Kota Surabaya",
+    "destinationHub": "Malang",
+    "destinationMatch": "Kota Malang",
+    "distanceKm": 88,
+    "osrmDurationMinutes": 70,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:31.158Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Jakarta",
+    "destinationMatch": "Kota Jakarta Pusat",
+    "distanceKm": 838,
+    "osrmDurationMinutes": 620,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:32.678Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Bogor",
+    "destinationMatch": "Kota Bogor",
+    "distanceKm": 855,
+    "osrmDurationMinutes": 633,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:34.240Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Bandung",
+    "destinationMatch": "Kota Bandung",
+    "distanceKm": 752,
+    "osrmDurationMinutes": 554,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:35.858Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Cirebon",
+    "destinationMatch": "Kota Cirebon",
+    "distanceKm": 631,
+    "osrmDurationMinutes": 463,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:37.489Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Tegal",
+    "destinationMatch": "Kota Tegal",
+    "distanceKm": 556,
+    "osrmDurationMinutes": 407,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:38.956Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Semarang",
+    "destinationMatch": "Kota Semarang",
+    "distanceKm": 398,
+    "osrmDurationMinutes": 292,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:40.390Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Yogyakarta",
+    "destinationMatch": "Kota Yogyakarta",
+    "distanceKm": 363,
+    "osrmDurationMinutes": 279,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:41.999Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Surakarta",
+    "destinationMatch": "Kota Surakarta",
+    "distanceKm": 300,
+    "osrmDurationMinutes": 229,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:43.557Z"
+  },
+  {
+    "originHub": "Malang",
+    "originMatch": "Kota Malang",
+    "destinationHub": "Surabaya",
+    "destinationMatch": "Kota Surabaya",
+    "distanceKm": 88,
+    "osrmDurationMinutes": 69,
+    "provider": "osrm",
+    "computedAt": "2026-10-29T03:56:45.213Z"
+  }
+]

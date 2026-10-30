@@ -11,41 +11,14 @@ import {
   Check,
   Info,
   QrCode,
-  Smartphone,
-  CreditCard,
-  Building2,
   ShieldCheck,
   RefreshCw,
   AlertCircle,
 } from 'lucide-react'
 
-declare global {
-  interface Window {
-    snap?: any
-  }
-}
-
 const PAYMENT_METHODS = [
-  { id: 'qris', label: 'QRIS', sub: 'Scan dari GoPay, OVO, Dana, BCA, dll' },
-  { id: 'va', label: 'Virtual Account', sub: 'BCA, Mandiri, BNI, BRI' },
-  { id: 'ewallet', label: 'E-wallet', sub: 'Bayar via aplikasi digital' },
-  { id: 'card', label: 'Kartu kredit / debit', sub: 'Visa, Mastercard, JCB' },
+  { id: 'qris', label: 'QRIS Sandbox Midtrans', sub: 'Bayar melalui Midtrans QRIS Simulator' },
 ]
-
-const VA_BANKS = [
-  { id: 'bca', name: 'BCA Virtual Account', prefix: '8277', example: '8277 0812 3456 7890' },
-  { id: 'mandiri', name: 'Mandiri Bill Payment', prefix: '8870', example: '8870 8123 4567 8901' },
-  { id: 'bni', name: 'BNI Virtual Account', prefix: '8241', example: '8241 0812 3456 7890' },
-  { id: 'bri', name: 'BRIVA (BRI)', prefix: '8021', example: '8021 0812 3456 7890' },
-]
-
-const EWALLET_LIST = [
-  { id: 'gopay', name: 'GoPay', color: 'bg-[#00AED6]' },
-  { id: 'ovo', name: 'OVO', color: 'bg-[#4C3494]' },
-  { id: 'dana', name: 'DANA', color: 'bg-[#118EEA]' },
-  { id: 'shopeepay', name: 'ShopeePay', color: 'bg-[#EE4D2D]' },
-]
-
 
 function PaymentContent({
   params,
@@ -101,14 +74,7 @@ function PaymentContent({
   } catch {}
 
   const router = useRouter()
-  const { user } = useAuth()
-  const [selectedMethod, setSelectedMethod] = useState('qris')
-  const [selectedBank, setSelectedBank] = useState('bca')
-  const [selectedEwallet, setSelectedEwallet] = useState('gopay')
-  const [ewalletPhone, setEwalletPhone] = useState('')
-  const [generatedVa, setGeneratedVa] = useState<Record<string, string>>({})
-  const [copied, setCopied] = useState(false)
-  const [midtransError, setMidtransError] = useState('')
+  const selectedMethod = 'qris'
 
   // QRIS sandbox state
   const [qrisData, setQrisData] = useState<{
@@ -122,14 +88,6 @@ function PaymentContent({
   const [qrisCopied, setQrisCopied] = useState(false)
   const [qrisStatus, setQrisStatus] = useState<'pending' | 'paid' | 'expired' | 'failed'>('pending')
 
-  // Card state (placeholder inputs, not hardcoded mock values)
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExp, setCardExp] = useState('')
-  const [cardCvv, setCardCvv] = useState('')
-
-  // Payment state (for non-QRIS tabs / Snap)
-  const [midtransLoading, setMidtransLoading] = useState(false)
-
   // Countdown timer: 15 menit (900 detik)
   const [secondsLeft, setSecondsLeft] = useState(900)
 
@@ -138,20 +96,6 @@ function PaymentContent({
       setSecondsLeft(prev => (prev > 0 ? prev - 1 : 0))
     }, 1000)
     return () => clearInterval(t)
-  }, [])
-
-  // Load Midtrans Snap Script (for other tabs)
-  useEffect(() => {
-    const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js'
-    const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ''
-
-    if (!document.querySelector(`script[src="${snapScriptUrl}"]`)) {
-      const script = document.createElement('script')
-      script.src = snapScriptUrl
-      script.setAttribute('data-client-key', clientKey)
-      script.async = true
-      document.body.appendChild(script)
-    }
   }, [])
 
   // Polling status QRIS setiap 3 detik setelah QR berhasil dibuat
@@ -184,30 +128,14 @@ function PaymentContent({
   const fmtTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
-  const currentVaBank = VA_BANKS.find(b => b.id === selectedBank) ?? VA_BANKS[0]
-  const activeVaNumber = generatedVa[selectedBank]
+  const [currentBooking, setCurrentBooking] = useState<{
+    id: string
+    code: string
+    publicToken: string
+    grandTotal: number
+  } | null>(null)
 
-  const handleGenerateVa = (bankId: string) => {
-    const bank = VA_BANKS.find(b => b.id === bankId) ?? VA_BANKS[0]
-    const p1 = Math.floor(1000 + Math.random() * 9000)
-    const p2 = Math.floor(1000 + Math.random() * 9000)
-    const p3 = Math.floor(1000 + Math.random() * 9000)
-    const code = `${bank.prefix} ${p1} ${p2} ${p3}`
-    setGeneratedVa(prev => ({ ...prev, [bankId]: code }))
-    return code
-  }
-
-  const copyVA = (codeToCopy?: string) => {
-    let val = codeToCopy || activeVaNumber
-    if (!val) {
-      val = handleGenerateVa(selectedBank)
-    }
-    navigator.clipboard.writeText(val.replace(/\s+/g, ''))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  // Generate QRIS via Midtrans Core API
+  // Generate QRIS via Midtrans Core API (Nominal strictly from Database grand_total)
   const handleGenerateQris = async () => {
     setQrisLoading(true)
     setQrisError('')
@@ -215,26 +143,64 @@ function PaymentContent({
     setQrisStatus('pending')
 
     try {
-      const orderId = `RUTEKU-QRIS-${scheduleId}-${Date.now().toString().slice(-8)}`
+      let activeBooking = currentBooking
+
+      // 1. Pastikan booking sudah tersimpan di database sebelum meminta pembayaran
+      if (!activeBooking) {
+        let raw = sp.passengersData ?? ''
+        if (typeof window !== 'undefined') {
+          const stored = sessionStorage.getItem('ruteku_passengers')
+          if (stored) raw = stored
+        }
+        let parsedPassengersList: any[] = []
+        try {
+          if (raw.includes('%')) raw = decodeURIComponent(raw)
+          parsedPassengersList = JSON.parse(raw)
+        } catch {}
+
+        const seatList = seatsParam.split(',').map((s) => s.trim()).filter(Boolean)
+        const passengersPayload =
+          Array.isArray(parsedPassengersList) && parsedPassengersList.length > 0
+            ? parsedPassengersList.map((p, idx) => ({
+                seatNumber: p.seat || seatList[idx] || seatList[0],
+                fullName: p.name || `Penumpang ${idx + 1}`,
+                passengerType: p.type || 'adult',
+              }))
+            : seatList.map((seatNumber) => ({
+                seatNumber,
+                fullName: passengerNames?.split(',')[0]?.trim() || 'Penumpang RuteKu',
+                passengerType: 'adult',
+              }))
+
+        const createBookingRes = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scheduleId,
+            seats: seatList,
+            passengers: passengersPayload,
+            contactName: (passengerNames?.split(',')[0] || 'Penumpang RuteKu').trim(),
+            contactEmail: (sp.email || 'customer@ruteku.id').trim(),
+            contactPhone: (sp.phone || '081234567890').trim(),
+          }),
+        })
+
+        const bookingData = await createBookingRes.json()
+        if (!createBookingRes.ok || !bookingData.booking) {
+          throw new Error(bookingData.error || 'Gagal menyimpan data pesanan.')
+        }
+
+        activeBooking = bookingData.booking
+        setCurrentBooking(activeBooking)
+      }
+
+      // 2. Minta QRIS berdasarkan database booking (nominal diambil otomatis dari grand_total di DB)
       const res = await fetch('/api/payment/qris', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId,
-          grossAmount: parseInt(total) || 100000,
-          customerDetails: {
-            first_name: passengerNames ? passengerNames.split(',')[0].trim() : 'Penumpang RuteKu',
-            email: sp.email || 'customer@ruteku.id',
-            phone: sp.phone || '081234567890',
-          },
-          itemDetails: [
-            {
-              id: scheduleId,
-              price: parseInt(total) || 100000,
-              quantity: 1,
-              name: `Tiket Bus ${bus} (${cls}) ${from} – ${to}`.slice(0, 50),
-            },
-          ],
+          bookingId: activeBooking?.id,
+          publicToken: activeBooking?.publicToken,
         }),
       })
 
@@ -247,8 +213,8 @@ function PaymentContent({
       }
 
       setQrisData(data)
-    } catch {
-      setQrisError('Terjadi kendala koneksi saat membuat QR Code.')
+    } catch (err: any) {
+      setQrisError(err?.message || 'Terjadi kendala koneksi saat membuat QR Code.')
     } finally {
       setQrisLoading(false)
     }
@@ -266,40 +232,11 @@ function PaymentContent({
       }
     } catch {}
 
-    const dynamicCode = `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-
-    // Securely persist booking strictly associated with authenticated user (Anti-IDOR)
-    if (user?.id) {
-      try {
-        await fetch('/api/bookings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bookingCode: dynamicCode,
-            userId: user.id,
-            scheduleId,
-            from,
-            to,
-            date: `${dateStr} · ${dep}`,
-            dep,
-            arr,
-            bus,
-            cls,
-            seats: seatsParam,
-            passengers: passengerNames,
-            contactName: user.name || 'Penumpang RuteKu',
-            contactEmail: user.email || sp.email || 'customer@ruteku.id',
-            contactPhone: user.phone || sp.phone || '081234567890',
-            totalAmount: parseInt(total) || 250000,
-            paymentMethod: selectedMethod === 'qris' ? 'QRIS' : 'VIRTUAL_ACCOUNT',
-            status: 'PAID',
-          }),
-        })
-      } catch (e) {}
-    }
+    const dynamicCode = currentBooking?.code || `RK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+    const publicToken = currentBooking?.publicToken || ''
 
     // Trigger asynchronous official E-Ticket Email dispatch
-    const targetEmail = user?.email || sp.email
+    const targetEmail = sp.email
     if (targetEmail) {
       try {
         fetch('/api/email/eticket', {
@@ -328,74 +265,8 @@ function PaymentContent({
         dateStr
       )}&passengersData=${encodeURIComponent(rawPassengers)}&email=${encodeURIComponent(
         sp.email ?? ''
-      )}&phone=${encodeURIComponent(sp.phone ?? '')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&code=${dynamicCode}`
+      )}&phone=${encodeURIComponent(sp.phone ?? '')}&total=${total}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&code=${dynamicCode}&publicToken=${publicToken}`
     )
-  }
-
-  const handlePayWithMidtrans = async () => {
-    setMidtransLoading(true)
-
-    try {
-      const res = await fetch('/api/payment/midtrans/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: `RUTEKU-${scheduleId}-${Date.now().toString().slice(-6)}`,
-          grossAmount: parseInt(total) || 100000,
-          customerDetails: {
-            first_name: passengerNames ? passengerNames.split(',')[0].trim() : 'Penumpang RuteKu',
-            email: sp.email || 'customer@ruteku.id',
-            phone: ewalletPhone || sp.phone || user?.phone || '081234567890',
-          },
-          itemDetails: [
-            {
-              id: scheduleId,
-              price: parseInt(total) || 100000,
-              quantity: 1,
-              name: `Tiket Bus ${bus} (${cls}) ${from} - ${to}`.slice(0, 50),
-            },
-          ],
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.token) {
-        setMidtransLoading(false)
-        setMidtransError(data.error || 'Gagal menghubungkan ke gateway pembayaran. Silakan coba sesaat lagi.')
-        return
-      }
-
-      if (data.token) {
-        if (typeof window !== 'undefined' && window.snap) {
-          window.snap.pay(data.token, {
-            onSuccess: function () {
-              setMidtransLoading(false)
-              navigateToEticket()
-            },
-            onPending: function () {
-              setMidtransLoading(false)
-              navigateToEticket()
-            },
-            onError: function () {
-              setMidtransLoading(false)
-              setMidtransError('Pembayaran dibatalkan atau tidak berhasil diproses.')
-            },
-            onClose: function () {
-              setMidtransLoading(false)
-            },
-          })
-        } else if (data.redirect_url) {
-          window.location.href = data.redirect_url
-        } else {
-          setMidtransLoading(false)
-          setMidtransError('Gateway pembayaran Midtrans tidak dapat dimuat. Pastikan koneksi internet aktif.')
-        }
-      }
-    } catch {
-      setMidtransLoading(false)
-      setMidtransError('Terjadi kendala koneksi saat menghubungi server pembayaran.')
-    }
   }
 
   return (
@@ -412,18 +283,6 @@ function PaymentContent({
             Selesaikan sebelum timer habis agar kursi {seatsParam} tidak dilepas.
           </p>
         </div>
-
-
-        {/* Error Banner jika terjadi kendala gateway */}
-        {midtransError && (
-          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
-            <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <strong className="font-bold text-red-950 dark:text-red-100">Kendala Pembayaran</strong>
-              <p className="text-red-800 dark:text-red-300/90">{midtransError}</p>
-            </div>
-          </div>
-        )}
 
         {/* Amber Alert Banner */}
         <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-[#FEF6EE] dark:bg-[#2A1805]/80 border border-[#F9DBAF] dark:border-[#7A3E08] text-[#93370D] dark:text-[#FDB022] flex items-start gap-3 shadow-2xs">
@@ -451,8 +310,7 @@ function PaymentContent({
                   return (
                     <div
                       key={m.id}
-                      onClick={() => setSelectedMethod(m.id)}
-                      className={`flex items-start justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      className={`flex items-start justify-between p-3.5 rounded-xl border transition-all ${
                         isSel
                           ? 'border-primary bg-primary-tint/40 shadow-xs ring-1 ring-primary/30'
                           : 'border-borderCol hover:border-primary/40 bg-white'
@@ -648,327 +506,6 @@ function PaymentContent({
               </div>
             )}
 
-            {selectedMethod === 'va' && (
-              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h2 className="text-base font-bold text-ink flex items-center gap-2">
-                    <Building2 size={18} className="text-primary" />
-                    <span>Transfer ke Virtual Account</span>
-                  </h2>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info/10 text-info border border-info/30 text-xs font-semibold">
-                    <Info size={13} />
-                    <span>Menunggu transfer</span>
-                  </span>
-                </div>
-
-                {/* Bank Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-ink mb-2">Pilih Bank</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {VA_BANKS.map(b => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => setSelectedBank(b.id)}
-                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
-                          selectedBank === b.id
-                            ? 'border-primary bg-primary-tint/50 text-primary ring-1 ring-primary/40'
-                            : 'border-borderCol bg-white text-ink hover:border-primary/40'
-                        }`}
-                      >
-                        {b.name.split(' ')[0]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Virtual Account Box */}
-                <div className="p-4 bg-surface border border-borderCol rounded-xl space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
-                          {currentVaBank.name.toUpperCase()}
-                        </span>
-                        {activeVaNumber ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[10px] font-bold">
-                            <Check size={10} />
-                            <span>Nomor Terbit</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold">
-                            Placeholder
-                          </span>
-                        )}
-                      </div>
-
-                      {activeVaNumber ? (
-                        <span className="text-xl sm:text-2xl font-mono font-bold text-ink tracking-wider select-all">
-                          {activeVaNumber}
-                        </span>
-                      ) : (
-                        <div className="space-y-0.5">
-                          <span className="text-xl sm:text-2xl font-mono font-bold text-muted/60 tracking-wider">
-                            {currentVaBank.prefix} •••• •••• ••••
-                          </span>
-                          <p className="text-[11px] text-muted">
-                            Nomor rekening virtual otomatis ({currentVaBank.example})
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                      {!activeVaNumber ? (
-                        <button
-                          type="button"
-                          onClick={() => handleGenerateVa(selectedBank)}
-                          className="px-3.5 py-2 bg-primary hover:bg-primary-dark text-white rounded-input text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                        >
-                          <RefreshCw size={13} />
-                          <span>Buat Nomor VA</span>
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => copyVA(activeVaNumber)}
-                            className="px-3.5 py-2 border border-borderCol bg-white hover:border-primary hover:text-primary rounded-input text-xs font-bold text-ink flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                          >
-                            {copied ? (
-                              <>
-                                <Check size={14} className="text-success" />
-                                <span className="text-success">Tersalin!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy size={14} />
-                                <span>Salin nomor</span>
-                              </>
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleGenerateVa(selectedBank)}
-                            title="Buat ulang nomor VA"
-                            className="p-2 border border-borderCol bg-white hover:border-primary hover:text-primary rounded-input text-muted transition-all cursor-pointer"
-                          >
-                            <RefreshCw size={14} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Amount to pay */}
-                <div className="flex items-center justify-between py-2 border-b border-borderCol/60">
-                  <span className="text-xs sm:text-sm text-muted">Jumlah yang harus dibayar (pas)</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-ink">
-                    Rp {parseInt(total).toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                {/* Action Area */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    disabled={midtransLoading}
-                    onClick={handlePayWithMidtrans}
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                  >
-                    {midtransLoading ? (
-                      <>
-                        <RefreshCw size={16} className="animate-spin" />
-                        <span>Memproses Pembayaran...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} />
-                        <span>Bayar Sekarang</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedMethod === 'ewallet' && (
-              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h2 className="text-base font-bold text-ink flex items-center gap-2">
-                    <Smartphone size={18} className="text-primary" />
-                    <span>Pembayaran E-Wallet</span>
-                  </h2>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-info/10 text-info border border-info/30 text-xs font-semibold">
-                    <Info size={13} />
-                    <span>Menunggu konfirmasi</span>
-                  </span>
-                </div>
-
-                {/* E-Wallet Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {EWALLET_LIST.map(w => (
-                    <button
-                      key={w.id}
-                      type="button"
-                      onClick={() => setSelectedEwallet(w.id)}
-                      className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                        selectedEwallet === w.id
-                          ? 'border-primary bg-primary-tint/50 text-primary ring-1 ring-primary/40'
-                          : 'border-borderCol bg-white text-ink hover:border-primary/40'
-                      }`}
-                    >
-                      <span className={`w-3 h-3 rounded-full ${w.color}`} />
-                      <span>{w.name}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Phone Number Field */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">
-                      Nomor Handphone Terdaftar ({EWALLET_LIST.find(w => w.id === selectedEwallet)?.name ?? 'E-Wallet'})
-                    </label>
-                    <input
-                      type="tel"
-                      value={ewalletPhone}
-                      onChange={e => setEwalletPhone(e.target.value)}
-                      className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
-                      placeholder="Contoh: 0812-3456-7890"
-                    />
-                    <p className="text-[11px] text-muted mt-1 leading-relaxed">
-                      Notifikasi konfirmasi pembayaran akan dikirimkan ke aplikasi e-wallet Anda.
-                    </p>
-                  </div>
-
-                  {/* Placeholder Info Box */}
-                  <div className="p-3 bg-surface border border-dashed border-borderCol rounded-xl flex items-center justify-between text-xs">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted">ID Akun Pembayaran</span>
-                      <p className="font-mono text-muted/80">•••• •••• •••• (Placeholder)</p>
-                    </div>
-                    <span className="text-[10px] font-semibold text-muted bg-white dark:bg-card px-2 py-0.5 rounded border border-borderCol">
-                      Verifikasi Otomatis
-                    </span>
-                  </div>
-                </div>
-
-                {/* Amount to pay */}
-                <div className="flex items-center justify-between py-2 border-b border-borderCol/60">
-                  <span className="text-xs sm:text-sm text-muted">Jumlah yang harus dibayar (pas)</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-ink">
-                    Rp {parseInt(total).toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                {/* Action Area */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    disabled={midtransLoading}
-                    onClick={handlePayWithMidtrans}
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                  >
-                    {midtransLoading ? (
-                      <>
-                        <RefreshCw size={16} className="animate-spin" />
-                        <span>Memproses Pembayaran...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} />
-                        <span>Bayar Sekarang</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedMethod === 'card' && (
-              <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs space-y-3.5 sm:space-y-5">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h2 className="text-base font-bold text-ink flex items-center gap-2">
-                    <CreditCard size={18} className="text-primary" />
-                    <span>Kartu Kredit / Debit</span>
-                  </h2>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success border border-success/30 text-xs font-semibold">
-                    <ShieldCheck size={13} />
-                    <span>Enkripsi 256-bit Aman</span>
-                  </span>
-                </div>
-
-                {/* Card Inputs */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-ink mb-1">Nomor Kartu Kredit / Debit</label>
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={e => setCardNumber(e.target.value)}
-                      placeholder="Contoh: 4000 1234 5678 9010"
-                      className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-bold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-bold text-ink mb-1">Masa Berlaku</label>
-                      <input
-                        type="text"
-                        value={cardExp}
-                        onChange={e => setCardExp(e.target.value)}
-                        placeholder="MM/YY (Contoh: 12/28)"
-                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-ink mb-1">CVV</label>
-                      <input
-                        type="password"
-                        maxLength={4}
-                        value={cardCvv}
-                        onChange={e => setCardCvv(e.target.value)}
-                        placeholder="Contoh: 123"
-                        className="w-full h-11 px-3.5 border border-borderCol rounded-input text-sm font-mono font-semibold text-ink bg-surface outline-none focus:border-primary focus:bg-white transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Amount to pay */}
-                <div className="flex items-center justify-between py-2 border-b border-borderCol/60">
-                  <span className="text-xs sm:text-sm text-muted">Jumlah yang harus dibayar (pas)</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-ink">
-                    Rp {parseInt(total).toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                {/* Action Area */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    disabled={midtransLoading}
-                    onClick={handlePayWithMidtrans}
-                    className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                  >
-                    {midtransLoading ? (
-                      <>
-                        <RefreshCw size={16} className="animate-spin" />
-                        <span>Memproses Pembayaran...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} />
-                        <span>Bayar Sekarang</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Bottom Actions */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <button
@@ -980,24 +517,7 @@ function PaymentContent({
                 <span>Kembali ke review</span>
               </button>
 
-              <button
-                type="button"
-                disabled={midtransLoading}
-                onClick={handlePayWithMidtrans}
-                className="w-full sm:w-auto px-7 py-3 sm:py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-input transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {midtransLoading ? (
-                  <>
-                    <RefreshCw size={15} className="animate-spin" />
-                    <span>Memproses...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={16} />
-                    <span>Bayar Sekarang</span>
-                  </>
-                )}
-              </button>
+              
             </div>
           </div>
 
@@ -1033,6 +553,11 @@ function PaymentContent({
                 <h3 className="font-black text-ink text-base">
                   {from} → {to}
                 </h3>
+                {sp.dur && (
+                  <p className="text-[11px] text-muted font-medium mt-0.5">
+                    {sp.dur}
+                  </p>
+                )}
                 <p className="text-xs text-muted mt-1">
                   {dateStr} · {dep} – {arr}
                 </p>

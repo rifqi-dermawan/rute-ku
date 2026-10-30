@@ -1,67 +1,72 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
+import crypto from 'crypto'
+import {
+  holdSeatAtomic,
+  releaseSeatHold,
+  getScheduleSeatsWithAvailability,
+} from '@/lib/seat-management'
 
-export async function holdSeat({
+/**
+ * Mengambil atau menerbitkan hold_token tamu dalam cookie httpOnly
+ */
+export async function getOrCreateHoldToken(): Promise<string> {
+  const cookieStore = await cookies()
+  let token = cookieStore.get('ruteku_hold_token')?.value
+
+  if (!token) {
+    token = crypto.randomUUID()
+    cookieStore.set('ruteku_hold_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24, // 24 jam
+    })
+  }
+
+  return token
+}
+
+/**
+ * Server Action: Menahan kursi bus secara atomik bersyarat
+ */
+export async function holdSeatAction({
   scheduleId,
-  seatId,
-  sessionId,
+  seatNumber,
+  holdToken: customHoldToken,
 }: {
   scheduleId: string
-  seatId: string
-  sessionId: string
+  seatNumber: string
+  holdToken?: string
 }) {
-  const now = new Date()
-  const holdDurationMs = 10 * 60 * 1000 // 10 menit
+  const holdToken = customHoldToken || (await getOrCreateHoldToken())
+  return await holdSeatAtomic({ scheduleId, seatNumber, holdToken })
+}
 
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Bersihkan hold yang sudah expired di kursi tersebut jika ada
-      await tx.seatHold.deleteMany({
-        where: {
-          seatId,
-          expiresAt: { lt: now },
-        },
-      })
+/**
+ * Server Action: Melepas penahanan kursi
+ */
+export async function releaseSeatAction({
+  scheduleId,
+  seatNumber,
+  holdToken: customHoldToken,
+}: {
+  scheduleId: string
+  seatNumber: string
+  holdToken?: string
+}) {
+  const holdToken = customHoldToken || (await getOrCreateHoldToken())
+  const success = await releaseSeatHold({ scheduleId, seatNumber, holdToken })
+  return { success }
+}
 
-      // 2. Cek apakah kursi sudah dibeli permanen
-      const isBooked = await tx.bookingSeat.findFirst({
-        where: {
-          seatId,
-          booking: { status: 'PAID' },
-        },
-      })
-      if (isBooked) throw new Error('SEAT_BOOKED')
-
-      // 3. Cek apakah sedang ditahan oleh sesi lain
-      const existingHold = await tx.seatHold.findUnique({
-        where: { scheduleId_seatId: { scheduleId, seatId } },
-      })
-
-      if (existingHold && existingHold.sessionId !== sessionId) {
-        throw new Error('SEAT_TAKEN') // Kursi direbut orang lain
-      }
-
-      // 4. Upsert SeatHold
-      const expiresAt = new Date(now.getTime() + holdDurationMs)
-      return await tx.seatHold.upsert({
-        where: { scheduleId_seatId: { scheduleId, seatId } },
-        update: { expiresAt },
-        create: {
-          scheduleId,
-          seatId,
-          sessionId,
-          expiresAt,
-        },
-      })
-    })
-
-    return { success: true, data: result }
-  } catch (error: any) {
-    if (error.message === 'SEAT_TAKEN') {
-      return { success: false, code: 'SEAT_TAKEN' }
-    }
-    return { success: false, code: 'ERROR', message: error.message }
-  }
+/**
+ * Server Action: Ambil data ketersediaan kursi jadwal
+ */
+export async function fetchScheduleSeatsAction(scheduleId: string) {
+  const holdToken = await getOrCreateHoldToken()
+  const seats = await getScheduleSeatsWithAvailability(scheduleId, holdToken)
+  return { seats, holdToken }
 }

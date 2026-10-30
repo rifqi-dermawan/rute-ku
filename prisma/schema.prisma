@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -8,171 +9,111 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+// ==========================================
+// ENUMS
+// ==========================================
+
 enum BusClass {
   EXECUTIVE_2_2
   SLEEPER_2_1
+
+  @@map("bus_class")
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HOLD
+  BOOKED
+  BLOCKED
+
+  @@map("seat_status")
+}
+
+enum ScheduleStatus {
+  ACTIVE
+  CANCELLED_BY_OPERATOR
+
+  @@map("schedule_status")
 }
 
 enum BookingStatus {
   PENDING_PAYMENT
-  PAID
+  CONFIRMED
   CANCELLED
   EXPIRED
+
+  @@map("booking_status")
 }
 
-enum PaymentMethod {
-  VIRTUAL_ACCOUNT
-  QRIS
-  E_WALLET
-  CREDIT_CARD
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  EXPIRED
+
+  @@map("payment_status")
 }
 
-model User {
-  id             String           @id @default(uuid())
-  email          String           @unique
-  phone          String?
-  name           String
-  role           String           @default("USER")
-  createdAt      DateTime         @default(now())
-  bookings       Booking[]
-  savedPassports SavedPassenger[]
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  REJECTED
+
+  @@map("refund_status")
 }
 
-// Fitur "Isi otomatis dari penumpang tersimpan"
-model SavedPassenger {
-  id        String   @id @default(uuid())
-  userId    String
-  fullName  String
-  idCardNo  String   @db.VarChar(16) // Validasi 16 digit KTP
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// ==========================================
+// 1. OPERATORS
+// ==========================================
+model Operator {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  name         String
+  contactPhone String?   @map("contact_phone")
+  contactEmail String?   @map("contact_email")
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  buses        Bus[]
+
+  @@map("operators")
 }
 
+// ==========================================
+// 2. BUSES
+// ==========================================
 model Bus {
-  id          String     @id @default(uuid())
-  name        String
-  busClass    BusClass
-  totalSeats  Int
-  facilities  Json       // Array string seperti ["AC", "Colokan", "Bagasi 20 kg"]
-  schedules   Schedule[]
-}
+  id         String     @id @default(uuid())
+  operatorId String     @map("operator_id")
+  name       String
+  busClass   BusClass   @map("bus_class")
+  totalSeats Int        @map("total_seats")
+  facilities Json
+  createdAt  DateTime   @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt  DateTime   @updatedAt @db.Timestamptz(3) @map("updated_at")
 
-model Schedule {
-  id              String         @id @default(uuid())
-  busId           String
-  originCity      String
-  destinationCity String
-  departureTime   DateTime
-  arrivalTime     DateTime
-  price           Decimal        @db.Decimal(10, 2)
-  isFull          Boolean        @default(false)
-  createdAt       DateTime       @default(now())
+  operator   Operator   @relation(fields: [operatorId], references: [id], onDelete: Restrict)
+  schedules  Schedule[]
 
-  bus             Bus            @relation(fields: [busId], references: [id])
-  seats           Seat[]
-  seatHolds       SeatHold[]
-  bookings        Booking[]
-  scheduleStops   ScheduleStop[]
-
-  @@index([originCity, destinationCity, departureTime])
-}
-
-model Seat {
-  id           String        @id @default(uuid())
-  scheduleId   String
-  seatNumber   String        // Contoh: "5A", "5B"
-  isBlocked    Boolean       @default(false) // Untuk status "Tidak dijual/Tidak tersedia"
-
-  schedule     Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  seatHolds    SeatHold[]
-  bookingSeats BookingSeat[]
-
-  @@unique([scheduleId, seatNumber])
-}
-
-// Tabel kritikal untuk menangani Timer 10 Menit & Edge Case
-model SeatHold {
-  id            String    @id @default(uuid())
-  scheduleId    String
-  seatId        String
-  sessionId     String    // Mengikat ke sesi browser pengguna agar tidak bentrok
-  userId        String?
-  expiresAt     DateTime  // Waktu kadaluarsa (now + 10 menit)
-  extendedCount Int       @default(0) // Untuk membatasi perpanjangan hanya 1x
-  createdAt     DateTime  @default(now())
-
-  schedule      Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  seat          Seat      @relation(fields: [seatId], references: [id], onDelete: Cascade)
-
-  @@unique([scheduleId, seatId]) // Memastikan 1 kursi hanya ditahan oleh 1 sesi pada satu waktu
-  @@index([sessionId])
-  @@index([expiresAt])
-}
-
-model Booking {
-  id            String         @id @default(uuid())
-  bookingCode   String         @unique // Format UI: "RK-7Q4M2X"
-  userId        String?
-  scheduleId    String
-  status        BookingStatus  @default(PENDING_PAYMENT)
-  
-  // Kontak Pemesan untuk pengiriman e-tiket
-  contactName   String
-  contactEmail  String
-  contactPhone  String
-
-  // Rincian Harga & Pembayaran
-  totalAmount   Decimal        @db.Decimal(10, 2)
-  paymentMethod PaymentMethod?
-  vaNumber      String?
-  paidAt        DateTime?
-  cancelledAt   DateTime?
-  refundAmount  Decimal?       @db.Decimal(10, 2) // Info refund saat dibatalkan
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  user          User?          @relation(fields: [userId], references: [id])
-  schedule      Schedule       @relation(fields: [scheduleId], references: [id])
-  bookingSeats  BookingSeat[]
-  passengers    Passenger[]
-}
-
-model BookingSeat {
-  id        String   @id @default(uuid())
-  bookingId String
-  seatId    String
-
-  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  seat      Seat     @relation(fields: [seatId], references: [id])
-
-  @@unique([bookingId, seatId])
-}
-
-// Satu formulir identitas per kursi
-model Passenger {
-  id         String   @id @default(uuid())
-  bookingId  String
-  fullName   String
-  idCardNo   String   @db.VarChar(16) // Validasi KTP 16 digit
-  seatNumber String   
-
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  @@unique([operatorId, name])
+  @@index([operatorId])
+  @@map("buses")
 }
 
 // ==========================================
-// FITUR PELENGKAP RUTE & STANDAR GTFS
+// 3. CITIES
 // ==========================================
-
 model City {
-  id           String   @id @default(uuid())
-  code         String   @unique // Kode wilayah resmi (Kemendagri/BPS)
-  name         String   // Title Case (contoh: "Kota Bandung")
-  provinceCode String   @map("province_code")
-  provinceName String   @map("province_name")
+  id           String    @id @default(uuid())
+  code         String    @unique
+  name         String
+  provinceCode String    @map("province_code")
+  provinceName String    @map("province_name")
   lat          Float?
   lng          Float?
-  isHub        Boolean  @default(false) @map("is_hub")
-  createdAt    DateTime @default(now()) @map("created_at")
+  isHub        Boolean   @default(false) @map("is_hub")
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
 
   terminals         Terminal[]
   originRoutes      Route[]    @relation("OriginCity")
@@ -182,51 +123,226 @@ model City {
   @@map("cities")
 }
 
+// ==========================================
+// 4. ROUTES
+// ==========================================
 model Route {
-  id                  String   @id @default(uuid())
-  originCityId        String   @map("origin_city_id")
-  destinationCityId   String   @map("destination_city_id")
-  distanceKm          Int      @map("distance_km")
-  osrmDurationMinutes Int      @map("osrm_duration_minutes")
-  provider            String   // 'osrm' atau 'ors'
-  computedAt          DateTime @default(now()) @map("computed_at")
+  id                  String    @id @default(uuid())
+  originCityId        String    @map("origin_city_id")
+  destinationCityId   String    @map("destination_city_id")
+  distanceKm          Int       @map("distance_km")
+  osrmDurationMinutes Int       @map("osrm_duration_minutes")
+  provider            String    @default("osrm")
+  computedAt          DateTime? @db.Timestamptz(3) @map("computed_at")
+  createdAt           DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
 
-  originCity      City @relation("OriginCity", fields: [originCityId], references: [id], onDelete: Cascade)
-  destinationCity City @relation("DestinationCity", fields: [destinationCityId], references: [id], onDelete: Cascade)
+  originCity          City      @relation("OriginCity", fields: [originCityId], references: [id], onDelete: Restrict)
+  destinationCity     City      @relation("DestinationCity", fields: [destinationCityId], references: [id], onDelete: Restrict)
+  schedules           Schedule[]
 
   @@unique([originCityId, destinationCityId])
   @@map("routes")
 }
 
+// ==========================================
+// 5. TERMINALS
+// ==========================================
 model Terminal {
-  id             String   @id @default(uuid())
-  cityId         String   @map("city_id")
+  id             String         @id @default(uuid())
+  cityId         String         @map("city_id")
   name           String
   lat            Float
   lng            Float
-  coordsVerified Boolean  @default(false) @map("coords_verified")
-  createdAt      DateTime @default(now()) @map("created_at")
+  coordsVerified Boolean        @default(false) @map("coords_verified")
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
 
-  city          City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  scheduleStops ScheduleStop[]
+  city           City           @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  scheduleStops  ScheduleStop[]
 
+  @@unique([cityId, name])
   @@index([cityId])
   @@map("terminals")
 }
 
-model ScheduleStop {
-  id           String   @id @default(uuid())
-  scheduleId   String   @map("schedule_id")
-  terminalId   String   @map("terminal_id")
-  stopSequence Int      @map("stop_sequence") // Integer mulai 1
-  arrivalAt    DateTime @map("arrival_at")
-  departureAt  DateTime @map("departure_at")
+// ==========================================
+// 6. SCHEDULES
+// ==========================================
+model Schedule {
+  id            String         @id @default(uuid())
+  busId         String         @map("bus_id")
+  routeId       String         @map("route_id")
+  departureTime DateTime       @db.Timestamptz(3) @map("departure_time")
+  arrivalTime   DateTime       @db.Timestamptz(3) @map("arrival_time")
+  price         Int            // Integer Rupiah
+  status        ScheduleStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
 
-  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  terminal Terminal @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+  bus           Bus            @relation(fields: [busId], references: [id], onDelete: Restrict)
+  route         Route          @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  scheduleStops ScheduleStop[]
+  seats         ScheduleSeat[]
+  bookings      Booking[]
+
+  @@unique([busId, departureTime])
+  @@index([busId])
+  @@index([routeId, departureTime])
+  @@index([departureTime])
+  @@map("schedules")
+}
+
+// ==========================================
+// 7. SCHEDULE STOPS
+// ==========================================
+model ScheduleStop {
+  id           String    @id @default(uuid())
+  scheduleId   String    @map("schedule_id")
+  terminalId   String    @map("terminal_id")
+  stopSequence Int       @map("stop_sequence")
+  arrivalAt    DateTime  @db.Timestamptz(3) @map("arrival_at")
+  departureAt  DateTime  @db.Timestamptz(3) @map("departure_at")
+
+  schedule     Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  terminal     Terminal  @relation(fields: [terminalId], references: [id], onDelete: Restrict)
 
   @@unique([scheduleId, stopSequence])
   @@index([scheduleId])
   @@index([terminalId])
   @@map("schedule_stops")
+}
+
+// ==========================================
+// 8. SCHEDULE SEATS (Opsi B - Holding & Status)
+// ==========================================
+model ScheduleSeat {
+  id            String      @id @default(uuid())
+  scheduleId    String      @map("schedule_id")
+  seatNumber    String      @map("seat_number")
+  status        SeatStatus  @default(AVAILABLE)
+  holdToken     String?     @map("hold_token")
+  holdExpiresAt DateTime?   @db.Timestamptz(3) @map("hold_expires_at")
+  bookingId     String?     @map("booking_id")
+  createdAt     DateTime    @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt     DateTime    @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  schedule      Schedule    @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  booking       Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@unique([scheduleId, seatNumber])
+  @@index([scheduleId, status])
+  @@index([status, holdExpiresAt])
+  @@index([bookingId])
+  @@map("schedule_seats")
+}
+
+// ==========================================
+// 9. BOOKINGS (Tanpa Login / Guest Model)
+// ==========================================
+model Booking {
+  id           String             @id @default(uuid())
+  code         String             @unique
+  publicToken  String             @unique @default(uuid()) @db.Uuid @map("public_token")
+  scheduleId   String             @map("schedule_id")
+  status       BookingStatus      @default(PENDING_PAYMENT)
+  contactName  String             @map("contact_name")
+  contactEmail String             @map("contact_email")
+  contactPhone String             @map("contact_phone")
+  ticketTotal  Int                @map("ticket_total") // Integer Rupiah
+  serviceFee   Int                @default(0) @map("service_fee")
+  grandTotal   Int                @map("grand_total")  // ticket_total + service_fee
+  cancelledAt  DateTime?          @db.Timestamptz(3) @map("cancelled_at")
+  createdAt    DateTime           @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt    DateTime           @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  schedule     Schedule           @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
+  seats        ScheduleSeat[]
+  passengers   BookingPassenger[]
+  payments     Payment[]
+  refund       Refund?
+
+  @@index([scheduleId])
+  @@index([contactEmail])
+  @@map("bookings")
+}
+
+// ==========================================
+// 10. BOOKING PASSENGERS (Tanpa NIK/KTP)
+// ==========================================
+model BookingPassenger {
+  id            String    @id @default(uuid())
+  bookingId     String    @map("booking_id")
+  seatNumber    String    @map("seat_number")
+  passengerType String    @default("adult") @map("passenger_type")
+  fullName      String    @map("full_name")
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+
+  booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, seatNumber])
+  @@index([bookingId])
+  @@map("booking_passengers")
+}
+
+// ==========================================
+// 11. PAYMENTS
+// ==========================================
+model Payment {
+  id                    String         @id @default(uuid())
+  bookingId             String         @map("booking_id")
+  orderId               String         @unique @map("order_id")
+  paymentMethod         String         @map("payment_method")
+  amount                Int            // Integer Rupiah
+  status                PaymentStatus  @default(PENDING)
+  vaNumber              String?        @map("va_number")
+  qrString              String?        @map("qr_string")
+  qrUrl                 String?        @map("qr_url")
+  midtransTransactionId String?        @map("midtrans_transaction_id")
+  expiryTime            DateTime?      @db.Timestamptz(3) @map("expiry_time")
+  paidAt                DateTime?      @db.Timestamptz(3) @map("paid_at")
+  createdAt             DateTime       @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt             DateTime       @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  booking               Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  paymentEvents         PaymentEvent[]
+  refunds               Refund[]
+
+  @@index([bookingId])
+  @@map("payments")
+}
+
+// ==========================================
+// 12. REFUNDS
+// ==========================================
+model Refund {
+  id               String        @id @default(uuid())
+  bookingId        String        @unique @map("booking_id")
+  paymentId        String?       @map("payment_id")
+  refundPercentage Int           @map("refund_percentage")
+  amount           Int           // Integer Rupiah
+  reason           String
+  status           RefundStatus  @default(PENDING)
+  processedAt      DateTime?     @db.Timestamptz(3) @map("processed_at")
+  createdAt        DateTime      @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt        DateTime      @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  payment          Payment?      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+// ==========================================
+// 13. PAYMENT EVENTS
+// ==========================================
+model PaymentEvent {
+  id        String    @id @default(uuid())
+  paymentId String    @map("payment_id")
+  eventType String    @map("event_type")
+  payload   Json
+  createdAt DateTime  @default(now()) @db.Timestamptz(3) @map("created_at")
+
+  payment   Payment   @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId])
+  @@map("payment_events")
 }

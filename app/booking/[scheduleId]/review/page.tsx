@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { REFUND_POLICY_RULES, REFUND_POLICY_DISCLAIMER } from '@/lib/refund-policy'
 
 interface PassengerData {
   seat: string
@@ -128,7 +129,7 @@ function ReviewContent({
         dateStr
       )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(
         phone
-      )}&total=${totalPrice}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}`
+      )}&total=${totalPrice}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&dur=${encodeURIComponent(sp.dur ?? '')}`
     )
   }
 
@@ -169,6 +170,11 @@ function ReviewContent({
                     RUTE
                   </span>
                   <span className="text-sm font-bold text-ink">{from} → {to}</span>
+                  {sp.dur && (
+                    <span className="block text-[11px] text-muted font-medium mt-0.5">
+                      {sp.dur}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <span className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
@@ -271,11 +277,17 @@ function ReviewContent({
 
             {/* 4. Card Aturan Pembatalan */}
             <div className="bg-white border border-borderCol rounded-card p-3.5 sm:p-6 shadow-2xs">
-              <h2 className="text-base font-bold text-ink mb-2 sm:mb-3">Aturan pembatalan</h2>
-              <div className="space-y-1.5 text-xs text-muted leading-relaxed">
-                <p>Lebih dari 24 jam sebelum berangkat: refund 90%</p>
-                <p>2–24 jam sebelum berangkat: refund 50%</p>
-                <p>Kurang dari 2 jam: tidak ada refund</p>
+              <h2 className="text-base font-bold text-ink mb-2 sm:mb-3">Kebijakan Pembatalan &amp; Pengembalian Dana</h2>
+              <div className="space-y-2 text-xs text-muted leading-relaxed">
+                {REFUND_POLICY_RULES.map((rule) => (
+                  <div key={rule.id} className="flex items-start gap-2">
+                    <span className="font-bold text-ink min-w-[70px]">• {rule.percentage}%:</span>
+                    <span>{rule.condition}</span>
+                  </div>
+                ))}
+                <p className="pt-2 text-[11px] text-muted italic border-t border-borderCol/60">
+                  {REFUND_POLICY_DISCLAIMER}
+                </p>
               </div>
 
               <label className="flex items-start gap-2.5 mt-3.5 sm:mt-5 cursor-pointer select-none">

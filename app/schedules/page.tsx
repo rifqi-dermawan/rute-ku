@@ -2,8 +2,10 @@
 
 import { use, useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Stepper from '@/components/Stepper'
-import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X, AlertCircle } from 'lucide-react'
+import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X, AlertCircle, MapPin, Bus } from 'lucide-react'
+import CityCombobox from '@/components/CityCombobox'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -102,18 +104,76 @@ function SchedulesContent({
     }
   }, [from, to, date, passengers])
 
+  // Database schedules integration (Tahap 5)
+  const [dbSchedules, setDbSchedules] = useState<any[] | null>(null)
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState(false)
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<{ from: string; to: string; label: string }[]>([])
+
+  useEffect(() => {
+    if (!from || !to) {
+      setDbSchedules(null)
+      return
+    }
+
+    let isMounted = true
+    setIsLoadingSchedules(true)
+    fetch(`/api/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${encodeURIComponent(passengers)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!isMounted) return
+        setIsLoadingSchedules(false)
+        if (data.success && data.data) {
+          if (Array.isArray(data.data.schedules) && data.data.schedules.length > 0) {
+            setDbSchedules(data.data.schedules.map((s: any) => ({
+              id: s.id,
+              dep: s.dep,
+              arr: s.arr,
+              dur: s.durationFormatted,
+              distanceKm: s.distanceKm,
+              bus: s.bus.name,
+              cls: s.bus.displayClass,
+              fac: s.bus.facilities,
+              left: s.availableSeats,
+              price: s.price,
+              originTerminal: s.originTerminal,
+              destinationTerminal: s.destinationTerminal
+            })))
+            setEmptyMessage(null)
+            setSuggestions([])
+          } else {
+            setDbSchedules([])
+            setEmptyMessage(data.data.message || 'Belum ada jadwal langsung untuk rute ini.')
+            setSuggestions(data.data.suggestions || [])
+          }
+        } else {
+          setDbSchedules([])
+          setEmptyMessage(data.error || 'Terjadi kesalahan saat memuat jadwal.')
+          setSuggestions([])
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsLoadingSchedules(false)
+          setDbSchedules(null)
+        }
+      })
+
+    return () => { isMounted = false }
+  }, [from, to, date, passengers])
+
+  const activeSchedules = dbSchedules !== null ? dbSchedules : SCHEDULES
+
   // Filter state
   const [timeFilter,  setTimeFilter]  = useState<'pagi' | 'siang' | 'sore' | null>(null)
   const [classFilter, setClassFilter] = useState<'exec' | 'sleep' | null>(null)
   const [sort,        setSort]        = useState('earliest')
 
   const handleTimeChange = (slot: 'pagi' | 'siang' | 'sore', checked: boolean) => {
-    // Hanya 1 jam berangkat yang bisa dicentang; jika memilih opsi lain berpindah ke yang terakhir diklik
     setTimeFilter(checked ? slot : null)
   }
 
   const handleClassChange = (cls: 'exec' | 'sleep', checked: boolean) => {
-    // Hanya 1 kelas bus yang bisa dicentang; jika memilih opsi lain berpindah ke yang terakhir diklik
     setClassFilter(checked ? cls : null)
   }
 
@@ -129,7 +189,7 @@ function SchedulesContent({
     const errs: Record<string, string> = {}
     if (!editFrom.trim()) errs['from'] = 'Kota asal wajib diisi terlebih dahulu'
     if (!editTo.trim()) errs['to'] = 'Kota tujuan wajib diisi terlebih dahulu'
-    else if (editFrom && editTo && editFrom === editTo) {
+    else if (editFrom && editTo && editFrom.trim().toLowerCase() === editTo.trim().toLowerCase()) {
       errs['to'] = 'Kota asal dan tujuan tidak boleh sama'
     }
     if (!editDate.trim()) errs['date'] = 'Tanggal berangkat wajib diisi terlebih dahulu'
@@ -152,7 +212,7 @@ function SchedulesContent({
     )
   }
 
-  const handleSelectSchedule = (s: typeof SCHEDULES[0]) => {
+  const handleSelectSchedule = (s: any) => {
     if (s.left === 0) return
 
     const isMissing = !from || !to || !date || !passengers
@@ -160,7 +220,7 @@ function SchedulesContent({
       const errs: Record<string, string> = {}
       if (!editFrom.trim()) errs['from'] = 'Kota asal wajib diisi terlebih dahulu'
       if (!editTo.trim()) errs['to'] = 'Kota tujuan wajib diisi terlebih dahulu'
-      else if (editFrom && editTo && editFrom === editTo) {
+      else if (editFrom && editTo && editFrom.trim().toLowerCase() === editTo.trim().toLowerCase()) {
         errs['to'] = 'Kota asal dan tujuan tidak boleh sama'
       }
       if (!editDate.trim()) errs['date'] = 'Tanggal berangkat wajib diisi terlebih dahulu'
@@ -177,7 +237,7 @@ function SchedulesContent({
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
-      return // BLOCKS NAVIGATION
+      return
     }
 
     router.push(
@@ -185,7 +245,7 @@ function SchedulesContent({
     )
   }
 
-  const filtered = SCHEDULES.filter(s => {
+  const filtered = activeSchedules.filter((s: any) => {
     const h = parseInt(s.dep)
     if (timeFilter === 'pagi'  && !(h >= 5  && h < 11)) return false
     if (timeFilter === 'siang' && !(h >= 11 && h < 15)) return false
@@ -193,7 +253,7 @@ function SchedulesContent({
     if (classFilter === 'exec'  && !s.cls.includes('Executive')) return false
     if (classFilter === 'sleep' && !s.cls.includes('Sleeper'))   return false
     return true
-  }).sort((a, b) => {
+  }).sort((a: any, b: any) => {
     if (sort === 'cheapest') return a.price - b.price
     if (sort === 'seats')    return b.left - a.left
     return a.dep.localeCompare(b.dep)
@@ -297,51 +357,33 @@ function SchedulesContent({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">
-                  Dari <span className="text-error">*</span>
-                </label>
-                <select
+                <CityCombobox
+                  id="edit-from"
+                  label="Dari *"
                   value={editFrom}
-                  onChange={e => {
-                    setEditFrom(e.target.value)
+                  onChange={val => {
+                    setEditFrom(val)
                     if (editErrors['from']) setEditErrors(prev => ({ ...prev, from: '' }))
                   }}
-                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
-                    editErrors['from'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
-                  }`}
-                >
-                  <option value="">Pilih kota asal</option>
-                  {CITIES.map(c => (
-                    <option key={c} value={c} disabled={c === editTo}>{c}</option>
-                  ))}
-                </select>
-                {editErrors['from'] && (
-                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['from']}</p>
-                )}
+                  placeholder="Pilih kota asal..."
+                  disabledValue={editTo}
+                  error={editErrors['from']}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink mb-1">
-                  Ke <span className="text-error">*</span>
-                </label>
-                <select
+                <CityCombobox
+                  id="edit-to"
+                  label="Ke *"
                   value={editTo}
-                  onChange={e => {
-                    setEditTo(e.target.value)
+                  onChange={val => {
+                    setEditTo(val)
                     if (editErrors['to']) setEditErrors(prev => ({ ...prev, to: '' }))
                   }}
-                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
-                    editErrors['to'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
-                  }`}
-                >
-                  <option value="">Pilih kota tujuan</option>
-                  {CITIES.map(c => (
-                    <option key={c} value={c} disabled={c === editFrom}>{c}</option>
-                  ))}
-                </select>
-                {editErrors['to'] && (
-                  <p className="text-[11px] text-error font-medium mt-1">{editErrors['to']}</p>
-                )}
+                  placeholder="Pilih kota tujuan..."
+                  disabledValue={editFrom}
+                  error={editErrors['to']}
+                />
               </div>
 
               <div>
@@ -558,79 +600,135 @@ function SchedulesContent({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {filtered.map(s => {
-              const badge  = seatBadge(s.left)
-              const isFull = s.left === 0
-              return (
-                <div
-                  key={s.id}
-                  onClick={() => {
-                    if (!isFull) {
-                      handleSelectSchedule(s)
-                    }
-                  }}
-                  className={`bg-white border border-borderCol rounded-card p-3.5 sm:p-5 transition-all ${
-                    isFull ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-5">
-                    {/* Time & Bus info */}
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-xl sm:text-2xl font-black text-ink">{s.dep}</span>
-                        <span className="text-xs sm:text-sm text-muted font-medium">→ {s.arr}</span>
-                        <span className="text-xs text-muted">· {s.dur}</span>
+          {isLoadingSchedules ? (
+            <div className="bg-white border border-borderCol rounded-2xl p-12 text-center shadow-xs">
+              <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
+              <p className="text-sm font-bold text-ink">Memuat jadwal bus resmi...</p>
+              <p className="text-xs text-muted mt-1">Mengambil data langsung dari rute database antarkota</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="bg-white border border-borderCol rounded-2xl p-6 sm:p-10 text-center shadow-xs animate-in fade-in-50 duration-200">
+              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+                <Bus className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-ink text-base">Tidak Ada Jadwal Langsung</h3>
+              <p className="text-xs text-muted max-w-md mx-auto mt-1 mb-5 leading-relaxed">
+                {emptyMessage || `Belum ada jadwal langsung untuk rute ${from} ke ${to} pada tanggal yang dipilih.`}
+              </p>
+              {suggestions.length > 0 && (
+                <div className="border-t border-borderCol/60 pt-4">
+                  <p className="text-xs font-bold text-ink mb-3">Rekomendasi Rute Populer yang Tersedia:</p>
+                  <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
+                    {suggestions.map((sug, idx) => (
+                      <Link
+                        key={idx}
+                        href={`/schedules?from=${encodeURIComponent(sug.from)}&to=${encodeURIComponent(sug.to)}&date=${date || '2026-10-30'}&passengers=${passengers || '1'}`}
+                        className="px-3.5 py-1.5 bg-surface hover:bg-primary/10 border border-borderCol hover:border-primary/40 rounded-xl text-xs font-semibold text-ink transition-colors flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <span>{sug.from}</span>
+                        <ArrowRight size={12} className="text-muted" />
+                        <span>{sug.to}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filtered.map(s => {
+                const badge  = seatBadge(s.left)
+                const isFull = s.left === 0
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      if (!isFull) {
+                        handleSelectSchedule(s)
+                      }
+                    }}
+                    className={`bg-white border border-borderCol rounded-card p-3.5 sm:p-5 transition-all ${
+                      isFull ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-5">
+                      {/* Time & Bus info */}
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-xl sm:text-2xl font-black text-ink">{s.dep}</span>
+                          <span className="text-xs sm:text-sm text-muted font-medium">→ {s.arr}</span>
+                          <span className="text-xs text-muted">
+                            · {s.distanceKm ? `${s.distanceKm} km · ${s.dur}` : s.dur}
+                          </span>
+                        </div>
+                        <p className="font-bold text-ink text-sm">
+                          {s.bus} · <span className="text-muted font-semibold">{s.cls}</span>
+                        </p>
+                        {s.originTerminal && s.destinationTerminal && (
+                          <p className="text-[11px] text-muted font-medium flex items-center gap-1.5 pt-0.5">
+                            <MapPin size={12} className="text-primary flex-shrink-0" />
+                            <span>{s.originTerminal} → {s.destinationTerminal}</span>
+                          </p>
+                        )}
+                        <p className="text-xs text-muted">{Array.isArray(s.fac) ? s.fac.join(' · ') : s.fac}</p>
+                        {isFull && <p className="text-xs text-error font-medium mt-1">Semua kursi terisi atau ditahan</p>}
                       </div>
-                      <p className="font-bold text-ink text-sm">{s.bus} · <span className="text-muted font-semibold">{s.cls}</span></p>
-                      <p className="text-xs text-muted">{s.fac.join(' · ')}</p>
-                      {isFull && <p className="text-xs text-error font-medium mt-1">Semua kursi terisi atau ditahan</p>}
-                    </div>
 
-                    {/* Price, Badge & Action button */}
-                    <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-borderCol/60 flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-2 sm:gap-2.5 flex-shrink-0">
-                      <div className="flex flex-col sm:items-end">
-                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border mb-1 self-start sm:self-auto ${badge.bg}`}>
-                          {badge.label}
-                        </span>
-                        {!isFull && (
-                          <div>
-                            <span className="text-base sm:text-lg font-black text-ink">{fmt(s.price)}</span>
-                            <span className="text-[11px] text-muted ml-1 sm:ml-0 sm:block sm:text-right">/kursi</span>
+                      {/* Price, Badge & Action button */}
+                      <div className="pt-2 sm:pt-0 border-t sm:border-t-0 border-borderCol/60 flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-2 sm:gap-2.5 flex-shrink-0">
+                        <div className="flex flex-col sm:items-end">
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border mb-1 self-start sm:self-auto ${badge.bg}`}>
+                            {badge.label}
+                          </span>
+                          {!isFull && (
+                            <div>
+                              <span className="text-base sm:text-lg font-black text-ink">{fmt(s.price)}</span>
+                              <span className="text-[11px] text-muted ml-1 sm:ml-0 sm:block sm:text-right">/kursi</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {isFull ? (
+                          <div className="flex gap-2 items-center">
+                            <button
+                              type="button"
+                              disabled
+                              suppressHydrationWarning
+                              className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed"
+                            >
+                              Penuh
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 items-center">
+                            <Link
+                              href={`/schedules/${s.id}?passengers=${passengers}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-3 py-2 text-xs font-semibold text-primary hover:bg-primary-tint/40 border border-primary/30 rounded-input transition-colors inline-flex items-center gap-1"
+                            >
+                              <MapPin size={12} />
+                              <span>Peta</span>
+                            </Link>
+                            <button
+                              type="button"
+                              suppressHydrationWarning
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSelectSchedule(s)
+                              }}
+                              className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-input transition-colors cursor-pointer shadow-xs"
+                            >
+                              Pilih
+                            </button>
                           </div>
                         )}
                       </div>
-
-                      {isFull ? (
-                        <div className="flex gap-2 items-center">
-                          <button
-                            type="button"
-                            disabled
-                            suppressHydrationWarning
-                            className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold border border-borderCol text-muted rounded-input cursor-not-allowed"
-                          >
-                            Penuh
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          suppressHydrationWarning
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleSelectSchedule(s)
-                          }}
-                          className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-input transition-colors cursor-pointer shadow-xs"
-                        >
-                          Pilih
-                        </button>
-                      )}
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

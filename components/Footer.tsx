@@ -18,13 +18,7 @@ import {
 
 export default function Footer() {
   const pathname = usePathname()
-  const isAdmin = pathname?.startsWith('/admin')
   const isSeatPage = pathname?.includes('/booking/') && pathname?.includes('/seat')
-
-  // Do not show footer on admin pages (pure admin interface)
-  if (isAdmin) {
-    return null
-  }
 
   return (
     <footer className={`bg-white border-t border-borderCol mt-auto print:hidden ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
@@ -242,23 +236,28 @@ export default function Footer() {
 
       {/* ── Bottom Legal & Copyright Bar ────────────────────────────── */}
       <div className="border-t border-borderCol bg-surface/70 footer-grey-bar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs text-muted dark:!text-black">
-          <p className="dark:!text-black">
-            © {new Date().getFullYear()} <span className="font-bold text-ink dark:!text-black">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 sm:py-5 flex flex-col gap-2.5 text-xs text-muted dark:!text-black">
+          <p className="text-[11px] text-muted/90 dark:!text-black/80 leading-relaxed text-center sm:text-left">
+            Sumber data wilayah: API Wilayah Indonesia (data terbuka). Jarak dihitung dengan OSRM, data peta © OpenStreetMap contributors. Jadwal dan harga adalah data simulasi.
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 border-t border-borderCol/40 pt-2.5">
+            <p className="dark:!text-black">
+              © {new Date().getFullYear()} <span className="font-bold text-ink dark:!text-black">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.
+            </p>
 
-          <div className="flex items-center gap-4 flex-wrap dark:!text-black">
-            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
-              Kebijakan Privasi
-            </Link>
-            <span className="dark:!text-black">·</span>
-            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
-              Syarat &amp; Ketentuan
-            </Link>
-            <span className="dark:!text-black">·</span>
-            <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
-              Pusat Panduan
-            </Link>
+            <div className="flex items-center gap-4 flex-wrap dark:!text-black">
+              <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
+                Kebijakan Privasi
+              </Link>
+              <span className="dark:!text-black">·</span>
+              <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
+                Syarat &amp; Ketentuan
+              </Link>
+              <span className="dark:!text-black">·</span>
+              <Link href="/help" className="hover:text-primary dark:!text-black dark:hover:!text-primary transition-colors">
+                Pusat Panduan
+              </Link>
+            </div>
           </div>
         </div>
       </div>

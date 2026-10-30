@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { Check, AlertCircle, ArrowLeft, UserCheck } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
 
 export type PassengerType = 'dewasa' | 'anak'
 
@@ -54,15 +53,6 @@ function PassengerContent({
   const pricePerSeat = sp.price ? parseInt(sp.price) : 125000
 
   const router = useRouter()
-  const { user, openAuthModal } = useAuth()
-
-  // Auto-fill contact details from logged-in user session
-  useEffect(() => {
-    if (user) {
-      setEmail(prev => prev || user.email || '')
-      setPhone(prev => prev || user.phone || '')
-    }
-  }, [user])
 
   // Passenger state: start completely blank per seat with default type
   const [passengers, setPassengers] = useState<Passenger[]>(() => {
@@ -149,22 +139,6 @@ function PassengerContent({
       } catch {}
     }
   }, [sp.passengersData, seatsParam])
-
-  // Sinkronisasi otomatis data pemesan saat user berhasil masuk atau mendaftar (auto-login)
-  useEffect(() => {
-    if (user) {
-      if (!email && user.email) setEmail(user.email)
-      if (!phone && user.phone) setPhone(user.phone)
-      setPassengers(prev => {
-        if (prev.length > 0 && !prev[0].name && user.name) {
-          const next = [...prev]
-          next[0] = { ...next[0], name: user.name }
-          return next
-        }
-        return prev
-      })
-    }
-  }, [user, email, phone])
 
   // Auto-save timestamp state
   const [savedTime, setSavedTime] = useState('')
@@ -310,21 +284,7 @@ function PassengerContent({
       dateStr
     )}&passengersData=${encodedPassengers}&email=${encodeURIComponent(email.trim())}&phone=${encodeURIComponent(phone.trim())}&dep=${encodeURIComponent(dep)}&arr=${encodeURIComponent(arr)}&bus=${encodeURIComponent(bus)}&cls=${encodeURIComponent(cls)}&price=${pricePerSeat}`
 
-    // Guard: Pastikan pengguna terautentikasi
-    if (!user) {
-      openAuthModal({
-        mode: 'login',
-        title: 'Masuk Akun Diperlukan',
-        description: 'Untuk menyelesaikan pemesanan dan mengirim e-tiket, silakan masuk ke akun RuteKu Anda.',
-        onSuccess: (u) => {
-          if (!email && u.email) setEmail(u.email)
-          if (!phone && u.phone) setPhone(u.phone)
-          router.push(nextUrl)
-        },
-      })
-      return
-    }
-
+    // Alur Pemesanan Tamu (Guest Booking) langsung menuju ke Review
     router.push(nextUrl)
   }
 
@@ -351,71 +311,6 @@ function PassengerContent({
             </div>
           )}
         </div>
-
-        {/* User Authentication Status Banner */}
-        {user ? (
-          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-primary-tint/60 dark:bg-primary-dark/30 border border-primary/25 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-2xs">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-ink dark:text-white truncate">
-                  Masuk sebagai <span className="text-primary">{user.name}</span>
-                </p>
-                <p className="text-[11px] text-muted dark:text-gray-300 truncate">
-                  {user.email} · {user.phone} (Kontak otomatis terisi)
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-black/30 text-success text-[11px] font-bold border border-success/30">
-                <Check size={12} strokeWidth={3} /> Akun Terverifikasi
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-3.5 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-700/60 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                !
-              </div>
-              <div>
-                <p className="text-xs font-bold text-amber-950 dark:text-amber-200">
-                  Anda belum masuk akun RuteKu
-                </p>
-                <p className="text-[11px] text-amber-800 dark:text-amber-300">
-                  Masuk atau buat akun agar pengisian data lebih cepat dan e-tiket tersimpan rapi.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                openAuthModal({
-                  mode: 'login',
-                  title: 'Masuk atau Daftar Akun RuteKu',
-                  description: 'Daftar atau masuk agar data kontak terisi otomatis dan e-tiket tersimpan.',
-                  onSuccess: (u) => {
-                    if (u.email) setEmail(u.email)
-                    if (u.phone) setPhone(u.phone)
-                    setPassengers(prev => {
-                      if (prev.length > 0 && !prev[0].name && u.name) {
-                        const next = [...prev]
-                        next[0] = { ...next[0], name: u.name }
-                        return next
-                      }
-                      return prev
-                    })
-                  },
-                })
-              }
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-            >
-              Masuk / Daftar Sekarang
-            </button>
-          </div>
-        )}
 
         {/* Validation Error Banner (Shows when submit was blocked) */}
         {hasAttemptedSubmit && Object.keys(errors).length > 0 && (
@@ -472,17 +367,6 @@ function PassengerContent({
                       <span className="px-2.5 py-0.5 rounded-md bg-primary-tint text-primary border border-primary/30 text-xs font-bold font-mono">
                         {passenger.seat}
                       </span>
-                      {user && index === 0 && !passenger.name && (
-                        <button
-                          type="button"
-                          onClick={() => updatePassenger(0, 'name', user.name)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-tint hover:bg-primary text-primary hover:text-white border border-primary/30 text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
-                          title="Isi otomatis nama Anda"
-                        >
-                          <UserCheck size={12} />
-                          <span>Gunakan nama saya ({user.name.split(' ')[0]})</span>
-                        </button>
-                      )}
                     </div>
 
                     {/* Tipe Penumpang: Dewasa atau Anak / Bayi */}

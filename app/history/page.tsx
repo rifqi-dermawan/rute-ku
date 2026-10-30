@@ -27,6 +27,30 @@ export default function HistoryPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [cancelLoading, setCancelLoading] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [cancelPreview, setCancelPreview] = useState<{
+    eligible: boolean
+    refundPercentage: number
+    refundAmount: number
+    policyText: string
+    reason: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (!cancellingId) {
+      setCancelPreview(null)
+      return
+    }
+    fetch(`/api/bookings/${encodeURIComponent(cancellingId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'preview_cancel' }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.preview) setCancelPreview(data.preview)
+      })
+      .catch(() => {})
+  }, [cancellingId])
 
   // Fetch strictly authenticated user bookings from backend API (Anti-IDOR)
   const fetchUserBookings = useCallback(async () => {
@@ -106,9 +130,9 @@ export default function HistoryPage() {
 
   // Segment user's bookings by tab
   const activeList = bookings.filter(
-    b => b.status === 'PAID' || b.status === 'PENDING_PAYMENT'
+    b => b.status === 'CONFIRMED' || b.status === 'PAID' || b.status === 'PENDING_PAYMENT'
   )
-  const completedList = bookings.filter(b => b.status === 'COMPLETED')
+  const completedList = bookings.filter(b => (b.status as string) === 'COMPLETED')
   const cancelledList = bookings.filter(b => b.status === 'CANCELLED')
 
   const currentList =
@@ -296,7 +320,7 @@ export default function HistoryPage() {
               /* Ticket List */
               <div className="space-y-4">
                 {currentList.map(booking => {
-                  const isPaid = booking.status === 'PAID'
+                  const isPaid = booking.status === 'CONFIRMED' || booking.status === 'PAID'
                   const isPending = booking.status === 'PENDING_PAYMENT'
                   const isCancelled = booking.status === 'CANCELLED'
 
@@ -449,8 +473,31 @@ export default function HistoryPage() {
             <p className="text-xs sm:text-sm text-muted leading-relaxed">
               Apakah Anda yakin ingin membatalkan booking{' '}
               <strong className="text-ink font-mono">{cancellingId}</strong>?
-              Sesuai aturan pembatalan (&gt; 24 jam sebelum berangkat), Anda berhak mendapatkan pengembalian dana 90%.
             </p>
+
+            {cancelPreview ? (
+              <div className="p-3 bg-surface rounded-xl border border-borderCol space-y-1.5 text-xs">
+                <div className="flex justify-between font-bold text-ink">
+                  <span>Status Pengembalian:</span>
+                  <span className={cancelPreview.eligible ? 'text-emerald-700' : 'text-error'}>
+                    {cancelPreview.eligible
+                      ? `${cancelPreview.refundPercentage}% Refund`
+                      : 'Tidak Dapat Dibatalkan'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-muted">
+                  <span>Estimasi Pengembalian:</span>
+                  <span className="font-bold text-ink">
+                    Rp {cancelPreview.refundAmount.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted pt-1 border-t border-borderCol/50">
+                  {cancelPreview.policyText}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted">Memuat rincian aturan pembatalan...</p>
+            )}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"

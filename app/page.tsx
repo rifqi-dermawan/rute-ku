@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle, ArrowRight, Calendar, Users } from 'lucide-react'
+import CityCombobox from '@/components/CityCombobox'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -237,60 +238,28 @@ function HomeContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-start">
             {/* Asal */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Asal <span className="text-error">*</span>
-              </label>
-              <select
+              <CityCombobox
+                id="search-from"
+                label="Asal *"
                 value={from}
-                onChange={e => handleFromChange(e.target.value)}
-                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
-                  errors['from']
-                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
-                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
-                }`}
-              >
-                <option value="">Pilih kota asal</option>
-                {CITIES.map(c => (
-                  <option key={c} value={c} disabled={c === to}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              {errors['from'] && (
-                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
-                  <AlertCircle size={13} className="flex-shrink-0" />
-                  <span>{errors['from']}</span>
-                </p>
-              )}
+                onChange={handleFromChange}
+                placeholder="Pilih kota asal..."
+                disabledValue={to}
+                error={errors['from']}
+              />
             </div>
 
             {/* Tujuan */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Tujuan <span className="text-error">*</span>
-              </label>
-              <select
+              <CityCombobox
+                id="search-to"
+                label="Tujuan *"
                 value={to}
-                onChange={e => handleToChange(e.target.value)}
-                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
-                  errors['to']
-                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
-                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
-                }`}
-              >
-                <option value="">Pilih kota tujuan</option>
-                {CITIES.map(c => (
-                  <option key={c} value={c} disabled={c === from}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              {errors['to'] && (
-                <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">
-                  <AlertCircle size={13} className="flex-shrink-0" />
-                  <span>{errors['to']}</span>
-                </p>
-              )}
+                onChange={handleToChange}
+                placeholder="Pilih kota tujuan..."
+                disabledValue={from}
+                error={errors['to']}
+              />
             </div>
 
             {/* Tanggal berangkat */}

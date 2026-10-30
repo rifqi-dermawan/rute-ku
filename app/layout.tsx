@@ -6,7 +6,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import { AuthProvider } from "@/lib/auth-context";
-import AuthModal from "@/components/AuthModal";
 
 // Font sesuai Design System RuteKu
 const jakarta = Plus_Jakarta_Sans({
@@ -79,7 +78,6 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <Footer />
           </Suspense>
-          <AuthModal />
         </AuthProvider>
       </body>
     </html>
