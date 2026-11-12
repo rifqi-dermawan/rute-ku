@@ -14,38 +14,58 @@ const POPULAR_ROUTES = [
   { from: 'Surabaya', to: 'Malang', duration: '2 jam 30 menit', schedules: 10, minPrice: 70000 },
 ]
 
-const QUICK_CONTINUES = [
-  {
-    id: 'qc-1',
-    badge: 'Pencarian Terakhir',
-    isReorder: false,
-    from: 'Jakarta',
-    to: 'Bandung',
-    dateLabel: 'Sab, 10 Okt',
-    passengersLabel: '2 Orang',
-    href: '/schedules?from=Jakarta&to=Bandung&date=2026-10-10&passengers=2',
-  },
-  {
-    id: 'qc-2',
-    badge: 'Pencarian Terakhir',
-    isReorder: false,
-    from: 'Surabaya',
-    to: 'Yogyakarta',
-    dateLabel: 'Sab, 10 Okt',
-    passengersLabel: '1 Orang',
-    href: '/schedules?from=Surabaya&to=Yogyakarta&date=2026-10-10&passengers=1',
-  },
-  {
-    id: 'qc-3',
-    badge: 'Pesan Lagi',
-    isReorder: true,
-    from: 'Jakarta',
-    to: 'Bandung',
-    dateLabel: 'Kam, 8 Okt',
-    passengersLabel: '1 Orang',
-    href: '/schedules?from=Jakarta&to=Bandung&date=2026-10-08&passengers=1',
-  },
-]
+function getTodayISO() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getTomorrowISO() {
+  const tomorrow = new Date(Date.now() + 86400000)
+  const year = tomorrow.getFullYear()
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+  const day = String(tomorrow.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getQuickContinues = () => {
+  const today = getTodayISO()
+  const tomorrow = getTomorrowISO()
+  return [
+    {
+      id: 'qc-1',
+      badge: 'Pencarian Terakhir',
+      isReorder: false,
+      from: 'Jakarta',
+      to: 'Bandung',
+      dateLabel: 'Hari ini',
+      passengersLabel: '2 Orang',
+      href: `/schedules?from=Jakarta&to=Bandung&date=${today}&passengers=2`,
+    },
+    {
+      id: 'qc-2',
+      badge: 'Pencarian Terakhir',
+      isReorder: false,
+      from: 'Surabaya',
+      to: 'Yogyakarta',
+      dateLabel: 'Besok',
+      passengersLabel: '1 Orang',
+      href: `/schedules?from=Surabaya&to=Yogyakarta&date=${tomorrow}&passengers=1`,
+    },
+    {
+      id: 'qc-3',
+      badge: 'Pesan Lagi',
+      isReorder: true,
+      from: 'Jakarta',
+      to: 'Bandung',
+      dateLabel: 'Hari ini',
+      passengersLabel: '1 Orang',
+      href: `/schedules?from=Jakarta&to=Bandung&date=${today}&passengers=1`,
+    },
+  ]
+}
 
 const HOW_STEPS = [
   { n: 1, bold: 'Pilih di denah.', rest: 'Status kursi diperbarui otomatis, jadi yang kamu lihat selalu terbaru.' },
@@ -351,7 +371,7 @@ function HomeContent() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
-          {QUICK_CONTINUES.map((item) => (
+          {getQuickContinues().map((item) => (
             <Link
               key={item.id}
               href={item.href}
@@ -412,7 +432,7 @@ function HomeContent() {
           {POPULAR_ROUTES.map(route => (
             <Link
               key={`${route.from}-${route.to}`}
-              href={`/schedules?from=${route.from}&to=${route.to}&date=2026-10-10&passengers=2`}
+              href={`/schedules?from=${route.from}&to=${route.to}&date=${getTodayISO()}&passengers=2`}
               className="bg-white border border-borderCol rounded-card p-3.5 sm:p-5 hover:border-primary hover:shadow-md transition-all group block cursor-pointer"
             >
               <h3 className="text-base font-bold text-ink group-hover:text-primary transition-colors">

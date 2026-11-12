@@ -117,6 +117,29 @@ function SeatContent({
   const [expired, setExpired] = useState(false)
   const [showTimerModal, setShowTimerModal] = useState(false)
 
+  // Sinkronisasi status kursi live dari database PostgreSQL
+  useEffect(() => {
+    fetchScheduleSeatsAction(scheduleId)
+      .then((res) => {
+        if (res && Array.isArray(res.seats) && res.seats.length > 0) {
+          const freshMap: Record<string, SeatStatus> = {}
+          for (const s of res.seats) {
+            if (s.status === 'BOOKED') {
+              freshMap[s.seatNumber] = 'booked'
+            } else if (s.status === 'BLOCKED') {
+              freshMap[s.seatNumber] = 'blocked'
+            } else if (s.status === 'HOLD') {
+              freshMap[s.seatNumber] = s.isMine ? 'available' : 'held'
+            } else {
+              freshMap[s.seatNumber] = 'available'
+            }
+          }
+          setSeatMap((prev) => ({ ...prev, ...freshMap }))
+        }
+      })
+      .catch(() => {})
+  }, [scheduleId])
+
   useEffect(() => {
     const t = setInterval(() => {
       setTimeLeft(prev => {

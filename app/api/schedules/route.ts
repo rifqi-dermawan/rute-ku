@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateBusDurationMinutes } from '@/lib/bus-config';
 
-// Suggestions when a route has no schedules
+// Suggestions when needed
 const POPULAR_SUGGESTIONS = [
   { from: 'Jakarta', to: 'Bandung', label: 'Jakarta → Bandung' },
   { from: 'Bandung', to: 'Jakarta', label: 'Bandung → Jakarta' },
@@ -68,6 +68,11 @@ async function resolveCity(input: string) {
       where: { OR: [{ code: '33.76' }, { name: { contains: 'Kota Tegal', mode: 'insensitive' } }] }
     });
   }
+  if (q === 'denpasar' || q === 'bali') {
+    return prisma.city.findFirst({
+      where: { OR: [{ code: '51.71' }, { name: { contains: 'Denpasar', mode: 'insensitive' } }] }
+    });
+  }
 
   // 1. Prioritize Hub City first if query matches
   const hubMatch = await prisma.city.findFirst({
@@ -93,6 +98,73 @@ async function resolveCity(input: string) {
       ]
     }
   });
+}
+
+function calculateDistanceKm(lat1?: number | null, lon1?: number | null, lat2?: number | null, lon2?: number | null): number {
+  if (lat1 && lon1 && lat2 && lon2) {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const straightKm = R * c;
+    return Math.max(50, Math.round(straightKm * 1.3)); // 1.3 road curvature factor
+  }
+  return 180; // default realistic intercity distance
+}
+
+function calculateTicketPrice(distanceKm: number, isSleeper: boolean = false): number {
+  const basePrice = Math.max(50000, Math.round((distanceKm * 700) / 1000) * 1000);
+  if (isSleeper) {
+    return Math.round((basePrice * 1.5) / 1000) * 1000;
+  }
+  return basePrice;
+}
+
+function generateSeatNumbers(busClass: string, totalSeats: number): string[] {
+  const seats: string[] = [];
+  if (busClass === 'SLEEPER_2_1') {
+    const cols = ['A', 'B', 'C'];
+    const rows = Math.ceil(totalSeats / cols.length);
+    for (let r = 1; r <= rows; r++) {
+      for (const c of cols) {
+        if (seats.length < totalSeats) {
+          seats.push(`${r}${c}`);
+        }
+      }
+    }
+  } else {
+    const cols = ['A', 'B', 'C', 'D'];
+    const rows = Math.ceil(totalSeats / cols.length);
+    for (let r = 1; r <= rows; r++) {
+      for (const c of cols) {
+        if (seats.length < totalSeats) {
+          seats.push(`${r}${c}`);
+        }
+      }
+    }
+  }
+  return seats;
+}
+
+async function ensureTerminal(city: any) {
+  let terminal = await prisma.terminal.findFirst({ where: { cityId: city.id } });
+  if (!terminal) {
+    const cleanName = city.name.replace(/^(Kota|Kab\.)\s+/i, '').trim();
+    terminal = await prisma.terminal.create({
+      data: {
+        cityId: city.id,
+        name: `Terminal ${cleanName}`,
+        lat: city.lat || -6.2,
+        lng: city.lng || 106.8,
+        coordsVerified: false
+      }
+    });
+  }
+  return terminal;
 }
 
 export async function GET(request: NextRequest) {
@@ -130,8 +202,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Resolve route between the two cities
-    const route = await prisma.route.findUnique({
+    // Resolve or automatically create route between the two cities
+    let route = await prisma.route.findUnique({
       where: {
         originCityId_destinationCityId: {
           originCityId: originCity.id,
@@ -141,41 +213,46 @@ export async function GET(request: NextRequest) {
     });
 
     if (!route) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          schedules: [],
-          route: null,
-          message: `Saat ini belum tersedia rute langsung dari ${originCity.name} ke ${destCity.name}. Silakan pilih rute populer yang tersedia.`,
-          suggestions: POPULAR_SUGGESTIONS
+      const distanceKm = calculateDistanceKm(originCity.lat, originCity.lng, destCity.lat, destCity.lng);
+      const osrmDurationMinutes = Math.round((distanceKm / 50) * 60);
+
+      route = await prisma.route.upsert({
+        where: {
+          originCityId_destinationCityId: {
+            originCityId: originCity.id,
+            destinationCityId: destCity.id
+          }
+        },
+        update: {},
+        create: {
+          originCityId: originCity.id,
+          destinationCityId: destCity.id,
+          distanceKm,
+          osrmDurationMinutes,
+          provider: 'dummy'
         }
       });
     }
 
     // Date filtering (WIB timezone: UTC+7)
-    let dateFilter: any = {};
-    if (dateParam) {
-      // Parse YYYY-MM-DD
-      const [year, month, day] = dateParam.split('-').map(Number);
-      if (year && month && day) {
-        // Start of day in WIB is UTC 17:00 of previous day
-        // End of day in WIB is UTC 16:59:59 of current day
-        const startOfDayUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-        const endOfDayUTC = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-        dateFilter = {
-          departureTime: {
-            gte: startOfDayUTC,
-            lte: endOfDayUTC
-          }
-        };
-      }
+    let searchDate = dateParam;
+    if (!searchDate) {
+      const nowWIB = new Date(Date.now() + 7 * 3600000);
+      searchDate = nowWIB.toISOString().split('T')[0];
     }
 
-    const schedules = await prisma.schedule.findMany({
+    const [year, month, day] = searchDate.split('-').map(Number);
+    const startOfDayUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+    const endOfDayUTC = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+
+    let schedules = await prisma.schedule.findMany({
       where: {
         routeId: route.id,
         status: 'ACTIVE',
-        ...dateFilter
+        departureTime: {
+          gte: startOfDayUTC,
+          lte: endOfDayUTC
+        }
       },
       include: {
         bus: {
@@ -193,6 +270,147 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { departureTime: 'asc' }
     });
+
+    // If no schedules exist for this route on the requested date, dynamically generate realistic dummy schedules in DB
+    if (schedules.length === 0) {
+      const originTerminal = await ensureTerminal(originCity);
+      const destTerminal = await ensureTerminal(destCity);
+
+      const allBuses = await prisma.bus.findMany({
+        include: { operator: true },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      if (allBuses.length > 0) {
+        // Schedule 6 departures per day
+        const slotConfigs = [
+          { hourUTC: 0, minuteUTC: 0, busIndex: 0 },   // 07:00 WIB - Sinar Rute Exec
+          { hourUTC: 2, minuteUTC: 30, busIndex: 2 },  // 09:30 WIB - Nusantara Kilat Exec
+          { hourUTC: 6, minuteUTC: 15, busIndex: 1 },  // 13:15 WIB - Sinar Rute Exec
+          { hourUTC: 9, minuteUTC: 30, busIndex: 3 },  // 16:30 WIB - Nusantara Kilat Exec
+          { hourUTC: 12, minuteUTC: 45, busIndex: 4 }, // 19:45 WIB - Sinar Rute Sleeper
+          { hourUTC: 14, minuteUTC: 15, busIndex: 5 }, // 21:15 WIB - Nusantara Kilat Sleeper
+        ];
+
+        const durationMinutes = Math.ceil((route.osrmDurationMinutes || 180) * 1.3);
+
+        for (const slot of slotConfigs) {
+          const bus = allBuses[slot.busIndex] || allBuses[0];
+          const depTime = new Date(Date.UTC(year, month - 1, day, slot.hourUTC, slot.minuteUTC, 0));
+          const arrTime = new Date(depTime.getTime() + durationMinutes * 60000);
+          const isSleeper = bus.busClass === 'SLEEPER_2_1';
+          const price = calculateTicketPrice(route.distanceKm, isSleeper);
+
+          try {
+            const schedule = await prisma.schedule.upsert({
+              where: {
+                busId_departureTime: {
+                  busId: bus.id,
+                  departureTime: depTime
+                }
+              },
+              update: {
+                routeId: route.id,
+                arrivalTime: arrTime,
+                price,
+                status: 'ACTIVE'
+              },
+              create: {
+                busId: bus.id,
+                routeId: route.id,
+                departureTime: depTime,
+                arrivalTime: arrTime,
+                price,
+                status: 'ACTIVE'
+              }
+            });
+
+            // Ensure stops
+            await prisma.scheduleStop.upsert({
+              where: {
+                scheduleId_stopSequence: {
+                  scheduleId: schedule.id,
+                  stopSequence: 1
+                }
+              },
+              update: {},
+              create: {
+                scheduleId: schedule.id,
+                terminalId: originTerminal.id,
+                stopSequence: 1,
+                arrivalAt: depTime,
+                departureAt: depTime
+              }
+            });
+
+            await prisma.scheduleStop.upsert({
+              where: {
+                scheduleId_stopSequence: {
+                  scheduleId: schedule.id,
+                  stopSequence: 2
+                }
+              },
+              update: {},
+              create: {
+                scheduleId: schedule.id,
+                terminalId: destTerminal.id,
+                stopSequence: 2,
+                arrivalAt: arrTime,
+                departureAt: arrTime
+              }
+            });
+
+            // Ensure seats
+            const existingSeatsCount = await prisma.scheduleSeat.count({
+              where: { scheduleId: schedule.id }
+            });
+
+            if (existingSeatsCount === 0) {
+              const seatNums = generateSeatNumbers(bus.busClass, bus.totalSeats);
+              const seatsData = seatNums.map((seatNumber) => ({
+                scheduleId: schedule.id,
+                seatNumber,
+                status: 'AVAILABLE' as const
+              }));
+
+              await prisma.scheduleSeat.createMany({
+                data: seatsData,
+                skipDuplicates: true
+              });
+            }
+          } catch (slotErr) {
+            console.warn('Slot generation skipped:', slotErr);
+          }
+        }
+
+        // Re-query newly created schedules
+        schedules = await prisma.schedule.findMany({
+          where: {
+            routeId: route.id,
+            status: 'ACTIVE',
+            departureTime: {
+              gte: startOfDayUTC,
+              lte: endOfDayUTC
+            }
+          },
+          include: {
+            bus: {
+              include: {
+                operator: true
+              }
+            },
+            scheduleStops: {
+              include: {
+                terminal: true
+              },
+              orderBy: { stopSequence: 'asc' }
+            },
+            seats: true
+          },
+          orderBy: { departureTime: 'asc' }
+        });
+      }
+    }
 
     const estimatedMinutes = estimateBusDurationMinutes(route.osrmDurationMinutes);
     const durationHours = Math.floor(estimatedMinutes / 60);
@@ -241,8 +459,8 @@ export async function GET(request: NextRequest) {
           operatorName: s.bus.operator.name,
           operatorCode: s.bus.operator.code
         },
-        originTerminal: originStop ? originStop.terminal.name : 'Terminal Asal',
-        destinationTerminal: destStop ? destStop.terminal.name : 'Terminal Tujuan',
+        originTerminal: originStop ? originStop.terminal.name : `Terminal ${originCity.name.replace(/^(Kota|Kab\.)\s+/i, '')}`,
+        destinationTerminal: destStop ? destStop.terminal.name : `Terminal ${destCity.name.replace(/^(Kota|Kab\.)\s+/i, '')}`,
         distanceKm: route.distanceKm,
         osrmDurationMinutes: route.osrmDurationMinutes,
         estimatedDurationMinutes: estimatedMinutes,
