@@ -2,14 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HelpCircle, Clock, Sun, Moon, LogIn, LogOut, Ticket, ChevronDown } from 'lucide-react'
+import { HelpCircle, Sun, Moon, LogIn, LogOut, Ticket, ChevronDown } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 
 export default function Navbar() {
   const pathname = usePathname()
-  const isBookingFlow = pathname?.includes('/booking/')
-  const isPaymentStep = pathname?.includes('/payment')
   const isAdmin = pathname?.startsWith('/admin')
 
   const { user, openAuthModal, logout } = useAuth()
@@ -69,19 +67,6 @@ export default function Navbar() {
 
   if (isAdmin) return null
 
-  const [timeLeft, setTimeLeft] = useState(108) // 01:48 for payment, or 517 for hold
-
-  useEffect(() => {
-    if (!isBookingFlow) return
-    const interval = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [isBookingFlow])
-
-  const fmtTime = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
-
   const isCariTiketActive = pathname === '/' || pathname?.startsWith('/schedules')
   const isHistoryActive = pathname?.startsWith('/history')
   const isHelpActive = pathname?.startsWith('/help')
@@ -138,21 +123,6 @@ export default function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
-          {/* Header countdown timer badge on booking screens */}
-          {isBookingFlow && (
-            isPaymentStep ? (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-[#FEF6EE] border border-[#F9DBAF] text-[#93370D] font-mono text-xs font-bold rounded-full shadow-2xs">
-                <Clock size={13} className="text-[#93370D]" />
-                <span>Segera habis {fmtTime(timeLeft)}</span>
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-primary-tint border border-primary/20 text-primary font-mono text-xs font-bold rounded-full">
-                <Clock size={13} className="text-primary" />
-                <span>Kursi ditahan {fmtTime(timeLeft)}</span>
-              </div>
-            )
-          )}
-
           {/* Tombol Masuk & Daftar / Profil User */}
           {!user ? (
             <div className="flex items-center gap-1 sm:gap-2">
