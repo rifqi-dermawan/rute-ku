@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { ArrowLeft, Clock, Bus, MapPin, ShieldCheck, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Bus, MapPin, CheckCircle2 } from 'lucide-react'
 import { estimateBusDurationMinutes } from '@/lib/bus-config'
 import ScheduleMapWrapper from '@/components/ScheduleMapWrapper'
 
@@ -220,27 +220,6 @@ export default async function ScheduleDetailPage({
             distanceKm={schedule.route.distanceKm}
             durationFormatted={durationFormatted}
           />
-
-          <div className="p-3 bg-surface rounded-xl border border-borderCol text-xs text-muted space-y-1">
-            <p className="flex items-center gap-1.5 text-ink font-semibold">
-              <ShieldCheck size={14} className="text-primary" />
-              <span>Verifikasi Titik Terminal:</span>
-            </p>
-            <ul className="list-disc list-inside space-y-0.5 text-[11px] pl-1">
-              <li>
-                Titik Asal ({originCoord.terminalName || originCoord.cityName}):{' '}
-                <strong className={originVerified ? 'text-emerald-700' : 'text-amber-700'}>
-                  {originVerified ? 'Koordinat Terverifikasi' : 'Menggunakan Koordinat Kota'}
-                </strong>
-              </li>
-              <li>
-                Titik Tujuan ({destCoord.terminalName || destCoord.cityName}):{' '}
-                <strong className={destVerified ? 'text-emerald-700' : 'text-amber-700'}>
-                  {destVerified ? 'Koordinat Terverifikasi' : 'Menggunakan Koordinat Kota'}
-                </strong>
-              </li>
-            </ul>
-          </div>
         </div>
 
         {/* Fasilitas Bus */}
