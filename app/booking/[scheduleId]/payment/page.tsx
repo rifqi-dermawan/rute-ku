@@ -764,12 +764,7 @@ function PaymentContent({
                   )}
                 </div>
 
-                {/* Instructions & Warning */}
-                <div className="pt-2 border-t border-borderCol/60 dark:border-white/10 space-y-2.5">
-                  <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] sm:text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
-                    <strong>⚠️ Perhatian Uji Coba:</strong> Ini adalah QRIS Sandbox Midtrans. <strong>JANGAN scan menggunakan aplikasi perbankan asli di ponsel</strong> (BCA, GoPay, Dana asli). Gunakan tombol hijau <strong>⚡ Simulasi Bayar Sukses</strong> untuk pengujian instan.
-                  </div>
-                </div>
+
               </div>
             )}
 
