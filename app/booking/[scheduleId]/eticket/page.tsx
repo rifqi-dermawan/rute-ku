@@ -298,20 +298,7 @@ function ETicketContent({
                 <span>Unduh / Cetak Tiket (PDF)</span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white cursor-pointer"
-                >
-                  Bagikan
-                </button>
-                <button
-                  type="button"
-                  className="py-2 px-3 border border-borderCol hover:border-primary text-ink hover:text-primary rounded-input text-xs font-bold transition-all bg-white cursor-pointer"
-                >
-                  Tambah ke kalender
-                </button>
-              </div>
+
 
               <div className="text-center pt-2">
                 <Link
