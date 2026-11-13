@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle, ArrowRight, Calendar, Users } from 'lucide-react'
+import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle, ArrowRight, Calendar, Users, RefreshCw } from 'lucide-react'
 import CityCombobox from '@/components/CityCombobox'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
@@ -85,6 +85,7 @@ function HomeContent() {
 
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
     const qFrom = searchParams.get('from')
@@ -181,6 +182,7 @@ function HomeContent() {
       return // BLOCKS NAVIGATION
     }
 
+    setIsSearching(true)
     router.push(
       `/schedules?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}&passengers=${encodeURIComponent(passengers)}`
     )
@@ -348,10 +350,24 @@ function HomeContent() {
 
             <button
               type="submit"
-              className="w-full sm:w-auto h-11 px-7 bg-primary hover:bg-primary-dark text-white font-bold rounded-input flex items-center justify-center gap-2 text-sm shadow-sm transition-all cursor-pointer"
+              disabled={isSearching}
+              className={`w-full sm:w-auto h-11 px-7 font-bold rounded-input flex items-center justify-center gap-2 text-sm shadow-sm transition-all cursor-pointer ${
+                isSearching
+                  ? 'bg-slate-900 text-white opacity-85 cursor-wait'
+                  : 'bg-primary hover:bg-primary-dark text-white active:scale-95'
+              }`}
             >
-              <Search size={16} />
-              <span>Cari jadwal</span>
+              {isSearching ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin text-white flex-shrink-0" />
+                  <span>Mencari Jadwal...</span>
+                </>
+              ) : (
+                <>
+                  <Search size={16} />
+                  <span>Cari jadwal</span>
+                </>
+              )}
             </button>
           </div>
         </form>

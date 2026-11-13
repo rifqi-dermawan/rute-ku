@@ -25,7 +25,11 @@ export default async function ScheduleDetailPage({
         include: { terminal: true },
         orderBy: { stopSequence: 'asc' },
       },
-      seats: true,
+      seats: {
+        select: {
+          status: true,
+        },
+      },
     },
   })
 

@@ -107,6 +107,8 @@ function SchedulesContent({
   // Database schedules integration (Tahap 5)
   const [dbSchedules, setDbSchedules] = useState<any[] | null>(null)
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(false)
+  const [loadingMapScheduleId, setLoadingMapScheduleId] = useState<string | null>(null)
+  const [selectingScheduleId, setSelectingScheduleId] = useState<string | null>(null)
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<{ from: string; to: string; label: string }[]>([])
 
@@ -701,24 +703,56 @@ function SchedulesContent({
                           </div>
                         ) : (
                           <div className="flex gap-2 items-center">
-                            <Link
-                              href={`/schedules/${s.id}?passengers=${passengers}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-3 py-2 text-xs font-semibold text-primary hover:bg-primary-tint/40 border border-primary/30 rounded-input transition-colors inline-flex items-center gap-1"
+                            <button
+                              type="button"
+                              disabled={loadingMapScheduleId === s.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setLoadingMapScheduleId(s.id)
+                                router.push(`/schedules/${s.id}?passengers=${passengers}`)
+                              }}
+                              className={`px-3 py-2 text-xs font-semibold rounded-input transition-all inline-flex items-center gap-1.5 ${
+                                loadingMapScheduleId === s.id
+                                  ? 'bg-slate-900 text-white border-slate-700 shadow-inner cursor-wait opacity-85'
+                                  : 'text-primary hover:bg-primary-tint/40 border border-primary/30 cursor-pointer active:scale-95'
+                              }`}
+                              title={loadingMapScheduleId === s.id ? 'Memuat peta rute...' : 'Lihat peta rute'}
                             >
-                              <MapPin size={12} />
-                              <span>Peta</span>
-                            </Link>
+                              {loadingMapScheduleId === s.id ? (
+                                <>
+                                  <RefreshCw size={12} className="animate-spin text-white flex-shrink-0" />
+                                  <span>Memuat Peta...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <MapPin size={12} className="flex-shrink-0" />
+                                  <span>Peta</span>
+                                </>
+                              )}
+                            </button>
                             <button
                               type="button"
                               suppressHydrationWarning
+                              disabled={selectingScheduleId === s.id}
                               onClick={(e) => {
                                 e.stopPropagation()
+                                setSelectingScheduleId(s.id)
                                 handleSelectSchedule(s)
                               }}
-                              className="px-5 py-2 bg-primary hover:bg-primary-dark text-white font-bold text-xs sm:text-sm rounded-input transition-colors cursor-pointer shadow-xs"
+                              className={`px-5 py-2 font-bold text-xs sm:text-sm rounded-input transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5 ${
+                                selectingScheduleId === s.id
+                                  ? 'bg-primary-dark text-white opacity-90 cursor-wait'
+                                  : 'bg-primary hover:bg-primary-dark text-white active:scale-95'
+                              }`}
                             >
-                              Pilih
+                              {selectingScheduleId === s.id ? (
+                                <>
+                                  <RefreshCw size={13} className="animate-spin text-white flex-shrink-0" />
+                                  <span>Memilih...</span>
+                                </>
+                              ) : (
+                                <span>Pilih</span>
+                              )}
                             </button>
                           </div>
                         )}
