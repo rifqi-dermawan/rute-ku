@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimateBusDurationMinutes } from '@/lib/bus-config';
 
-export const dynamic = 'force-dynamic';
 
 // Suggestions when needed
 const POPULAR_SUGGESTIONS = [
