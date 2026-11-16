@@ -147,11 +147,6 @@ export default function Footer() {
                   <span>Pusat Bantuan &amp; FAQ</span>
                 </Link>
               </li>
-              <li>
-                <Link href="/special-states" className="text-muted hover:text-primary transition-colors flex items-center gap-1">
-                  <span>Status Khusus &amp; Simulasi</span>
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -162,27 +157,27 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="/schedules?from=Jakarta&to=Bandung&date=2026-10-10&passengers=1" className="text-muted hover:text-primary transition-colors">
+                <Link href="/?from=Jakarta&to=Bandung" className="text-muted hover:text-primary transition-colors">
                   Jakarta → Bandung
                 </Link>
               </li>
               <li>
-                <Link href="/schedules?from=Surabaya&to=Yogyakarta&date=2026-10-10&passengers=1" className="text-muted hover:text-primary transition-colors">
+                <Link href="/?from=Surabaya&to=Yogyakarta" className="text-muted hover:text-primary transition-colors">
                   Surabaya → Yogyakarta
                 </Link>
               </li>
               <li>
-                <Link href="/schedules?from=Bandung&to=Yogyakarta&date=2026-10-10&passengers=1" className="text-muted hover:text-primary transition-colors">
+                <Link href="/?from=Bandung&to=Yogyakarta" className="text-muted hover:text-primary transition-colors">
                   Bandung → Yogyakarta
                 </Link>
               </li>
               <li>
-                <Link href="/schedules?from=Jakarta&to=Semarang&date=2026-10-10&passengers=1" className="text-muted hover:text-primary transition-colors">
+                <Link href="/?from=Jakarta&to=Semarang" className="text-muted hover:text-primary transition-colors">
                   Jakarta → Semarang
                 </Link>
               </li>
               <li>
-                <Link href="/schedules?from=Jakarta&to=Surabaya&date=2026-10-10&passengers=1" className="text-muted hover:text-primary transition-colors">
+                <Link href="/?from=Jakarta&to=Surabaya" className="text-muted hover:text-primary transition-colors">
                   Jakarta → Surabaya
                 </Link>
               </li>

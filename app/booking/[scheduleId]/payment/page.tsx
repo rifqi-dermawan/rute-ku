@@ -28,8 +28,8 @@ declare global {
 }
 
 const PAYMENT_METHODS = [
-  { id: 'qris', label: 'QRIS Sandbox', sub: 'Scan QRIS atau Simulasi Instan' },
-  { id: 'va', label: 'Virtual Account', sub: 'BCA, Mandiri, BNI, BRI (Midtrans Snap)' },
+  { id: 'qris', label: 'QRIS', sub: 'GoPay, OVO, Dana, BCA, & m-Banking' },
+  { id: 'va', label: 'Virtual Account', sub: 'BCA, Mandiri, BNI, BRI' },
   { id: 'ewallet', label: 'E-Wallet', sub: 'GoPay, ShopeePay, OVO, Dana' },
   { id: 'card', label: 'Kartu Kredit / Debit', sub: 'Visa, Mastercard, JCB' },
 ]
@@ -126,7 +126,6 @@ function PaymentContent({
   } | null>(null)
   const [qrisLoading, setQrisLoading] = useState(false)
   const [qrisError, setQrisError] = useState('')
-  const [qrisCopied, setQrisCopied] = useState(false)
   const [qrisStatus, setQrisStatus] = useState<'pending' | 'paid' | 'expired' | 'failed'>('pending')
   const [simulating, setSimulating] = useState(false)
 
@@ -596,10 +595,10 @@ function PaymentContent({
                   <div>
                     <h2 className="text-base font-bold text-ink dark:text-white flex items-center gap-2">
                       <QrCode size={18} className="text-primary" />
-                      <span>Pembayaran QRIS Midtrans Sandbox</span>
+                      <span>Pembayaran QRIS</span>
                     </h2>
                     <p className="text-xs text-muted dark:text-gray-400 mt-0.5">
-                      QR Code Sandbox Midtrans — dukung simulator instan atau manual
+                      Pindai kode QR menggunakan GoPay, OVO, Dana, BCA, atau m-Banking apa pun
                     </p>
                   </div>
                   <span
@@ -638,7 +637,7 @@ function PaymentContent({
                       <div>
                         <p className="text-sm font-bold text-ink dark:text-white">QR Code Belum Dibuat</p>
                         <p className="text-xs text-muted dark:text-gray-400 mt-1">
-                          Klik tombol di bawah untuk membuat QRIS dari Midtrans Sandbox.
+                          Klik tombol di bawah untuk membuat kode QRIS pembayaran.
                         </p>
                       </div>
                     </div>
@@ -647,7 +646,7 @@ function PaymentContent({
                   {qrisLoading && (
                     <div className="py-8 flex flex-col items-center gap-3">
                       <RefreshCw size={28} className="animate-spin text-primary" />
-                      <p className="text-sm text-muted">Membuat QR Code dari Midtrans...</p>
+                      <p className="text-sm text-muted">Membuat QR Code...</p>
                     </div>
                   )}
 
@@ -670,7 +669,7 @@ function PaymentContent({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={qrisData.qrUrl}
-                          alt="QRIS Midtrans Sandbox"
+                          alt="QRIS Pembayaran"
                           className="w-full h-full object-contain"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none'
@@ -684,20 +683,6 @@ function PaymentContent({
                         </span>
                         <span className="text-xs text-muted block">Jumlah pas tanpa biaya admin</span>
                       </div>
-
-                      {/* Tombol salin URL QR */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(qrisData.qrUrl)
-                          setQrisCopied(true)
-                          setTimeout(() => setQrisCopied(false), 2500)
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-borderCol dark:border-white/10 rounded-lg bg-white dark:bg-white/5 hover:border-primary hover:text-primary transition-all cursor-pointer"
-                      >
-                        {qrisCopied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                        <span>{qrisCopied ? 'URL Tersalin!' : 'Salin URL QR (untuk simulator)'}</span>
-                      </button>
 
                       {/* Polling indicator */}
                       <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted">
@@ -720,11 +705,11 @@ function PaymentContent({
                       {simulating ? (
                         <>
                           <RefreshCw size={15} className="animate-spin" />
-                          <span>Menghubungi Simulator Midtrans...</span>
+                          <span>Memverifikasi Pembayaran...</span>
                         </>
                       ) : (
                         <>
-                          <span>⚡ Simulasi Bayar Sukses (Uji Coba Sandbox)</span>
+                          <span>⚡ Simulasi Bayar Sukses</span>
                         </>
                       )}
                     </button>
@@ -750,17 +735,9 @@ function PaymentContent({
                       )}
                     </button>
                   ) : (
-                    <div className="text-center text-xs text-muted py-1">
-                      Atau salin URL QR dan buka{' '}
-                      <a
-                        href="https://simulator.sandbox.midtrans.com/v2/qris/index"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary font-semibold hover:underline"
-                      >
-                        QRIS Simulator Midtrans
-                      </a>.
-                    </div>
+                    <p className="text-center text-xs text-muted py-1">
+                      Pindai kode QR di atas menggunakan aplikasi e-wallet atau mobile banking Anda.
+                    </p>
                   )}
                 </div>
 
@@ -817,8 +794,8 @@ function PaymentContent({
                             <span>Nomor Terbit</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold">
-                            Simulasi
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold">
+                            Otomatis
                           </span>
                         )}
                       </div>
