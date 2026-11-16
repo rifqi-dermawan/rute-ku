@@ -454,6 +454,8 @@ function PassengerContent({
                         </label>
                         <input
                           type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength={16}
                           value={passenger.ktp}
                           onChange={e => updatePassenger(index, 'ktp', e.target.value)}

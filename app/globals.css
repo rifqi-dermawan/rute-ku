@@ -75,10 +75,12 @@
   }
 
   /* Input & select bawaan */
+  /* font-size: 16px mencegah iOS/Android auto-zoom saat fokus pada input */
   input, select, textarea {
     font-family: var(--font-sans);
     color: #0F2A33;
     background-color: #ffffff;
+    font-size: 16px;
   }
 
   /* Link: default tidak underline, warna primary */

@@ -192,22 +192,6 @@ function SeatContent({
     [seatMap, selected, maxSelect, scheduleId]
   )
 
-
-  /* Demo controls */
-  const simulateTaken = () => {
-    if (selected.length === 0) return
-    const tgt = selected[0]
-    setSeatMap(prev => ({ ...prev, [tgt]: 'held' }))
-    setSelected(prev => prev.filter(s => s !== tgt))
-  }
-
-  const resetDemo = () => {
-    setSeatMap({ ...INITIAL_MAP })
-    setSelected(['5A', '5B'])
-    setTimeLeft(517)
-    setExpired(false)
-  }
-
   const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`
 
   /* ─── Lanjut ke Data Penumpang (Wajib Login untuk Akses Privat) ───────── */
@@ -403,11 +387,6 @@ function SeatContent({
               </p>
             </div>
 
-            {/* Mobile Swipe Hint (Screenshot 4) */}
-            <p className="lg:hidden text-xs text-muted text-center w-full font-medium py-1">
-              Geser untuk melihat baris lainnya
-            </p>
-
             {/* Legend & Tips */}
             <div className="flex-1 w-full space-y-4">
               <div className="bg-white border border-borderCol rounded-card p-5 shadow-2xs">
@@ -555,45 +534,6 @@ function SeatContent({
                 : 'Lanjut isi data penumpang'}
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* ── Demo Controls (Bottom) ─────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 mt-4 sm:mt-8">
-        <div className="border border-dashed border-borderCol rounded-card p-3 sm:p-4 bg-white/60 flex items-center gap-3 flex-wrap text-sm">
-          <span className="font-bold text-muted text-[11px] uppercase tracking-wider">
-            KONTROL DEMO (bukan bagian UI)
-          </span>
-          <button
-            type="button"
-            onClick={simulateTaken}
-            className="px-3.5 py-1.5 border border-borderCol rounded-full text-ink hover:border-warning hover:text-warning transition-all text-xs font-semibold"
-          >
-            Simulasikan: kursi direbut
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTimeLeft(0)
-              setExpired(true)
-            }}
-            className="px-3.5 py-1.5 border border-borderCol rounded-full text-ink hover:border-error hover:text-error transition-all text-xs font-semibold"
-          >
-            Simulasikan: timer habis
-          </button>
-          <Link
-            href="/special-states"
-            className="text-xs font-bold text-primary hover:underline px-2 py-1 bg-primary-tint border border-primary/30 rounded-md"
-          >
-            Layar 10: State Khusus
-          </Link>
-          <button
-            type="button"
-            onClick={resetDemo}
-            className="text-xs font-bold text-primary hover:underline ml-auto"
-          >
-            Reset demo
-          </button>
         </div>
       </div>
 

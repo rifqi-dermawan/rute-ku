@@ -3,18 +3,23 @@ import { prisma } from '@/lib/prisma'
 import { BookingStatus, RefundStatus, SeatStatus } from '@prisma/client'
 import { calculateRefund } from '@/lib/refund-policy'
 
+/** Validasi format UUID sederhana */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
- * Helper untuk mencari booking berdasarkan id, code, atau publicToken
+ * Helper untuk mencari booking berdasarkan id, code, atau publicToken.
+ * Hanya memasukkan filter `id` / `publicToken` jika identifier valid UUID
+ * untuk menghindari error Postgres "invalid input syntax for type uuid".
  */
 async function findBookingByIdentifier(identifier: string) {
+  const isUuid = UUID_RE.test(identifier)
+  const orClauses: object[] = [{ code: identifier }]
+  if (isUuid) {
+    orClauses.push({ id: identifier })
+    orClauses.push({ publicToken: identifier })
+  }
   return await prisma.booking.findFirst({
-    where: {
-      OR: [
-        { id: identifier },
-        { code: identifier },
-        { publicToken: identifier },
-      ],
-    },
+    where: { OR: orClauses },
     include: {
       schedule: {
         include: {
