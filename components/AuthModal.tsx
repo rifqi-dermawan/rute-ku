@@ -49,12 +49,9 @@ export default function AuthModal() {
     login,
     register,
     loginWithGoogle,
-    sendOtp,
-    loginWithOtp,
   } = useAuth()
 
   const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [authMethod, setAuthMethod] = useState<'password' | 'otp'>('password')
   const [emailOrPhone, setEmailOrPhone] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -67,9 +64,6 @@ export default function AuthModal() {
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [otpStep, setOtpStep] = useState(false)
-  const [otpCode, setOtpCode] = useState('')
-  const [otpEmail, setOtpEmail] = useState('')
 
   // Sync mode with modal config when opened
   useEffect(() => {
@@ -78,8 +72,6 @@ export default function AuthModal() {
       setError(null)
       setSuccessMessage(null)
       setRegConfirmPassword('')
-      setOtpStep(false)
-      setOtpCode('')
     }
   }, [isAuthModalOpen, authModalConfig])
 
@@ -91,47 +83,6 @@ export default function AuthModal() {
     e.preventDefault()
     setError(null)
     setSuccessMessage(null)
-
-    if (authMethod === 'otp') {
-      if (!otpStep) {
-        if (!otpEmail || !otpEmail.includes('@')) {
-          setError('Silakan masukkan alamat email yang valid untuk pengiriman OTP.')
-          return
-        }
-        setIsLoading(true)
-        const res = await sendOtp(otpEmail)
-        setIsLoading(false)
-        if (res.success) {
-          setOtpStep(true)
-          setSuccessMessage(res.message || 'Kode verifikasi telah dikirim ke email Anda.')
-        } else {
-          setError(res.error || 'Gagal mengirim kode verifikasi.')
-        }
-        return
-      }
-
-      if (!otpCode || otpCode.length < 4) {
-        setError('Silakan masukkan 6 digit kode verifikasi.')
-        return
-      }
-
-      setIsLoading(true)
-      const res = await loginWithOtp(otpEmail, otpCode)
-      setIsLoading(false)
-
-      if (res.success && res.user) {
-        closeAuthModal()
-        if (authModalConfig?.onSuccess) {
-          authModalConfig.onSuccess(res.user)
-        }
-        if (authModalConfig?.redirectUrl && typeof window !== 'undefined') {
-          window.location.href = authModalConfig.redirectUrl
-        }
-      } else {
-        setError(res.error || 'Kode verifikasi salah atau kedaluwarsa.')
-      }
-      return
-    }
 
     if (!emailOrPhone.trim()) {
       setError('Silakan masukkan email atau nomor HP Anda.')
@@ -329,126 +280,45 @@ export default function AuthModal() {
           {/* Form Masuk */}
           {mode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-3">
-              {/* Opsi Tab Login: Password vs OTP Email */}
-              <div className="flex gap-2 text-[11px] font-semibold text-muted">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('password')
-                    setError(null)
-                  }}
-                  className={`pb-0.5 border-b-2 transition-all ${authMethod === 'password'
-                      ? 'border-primary text-primary font-bold'
-                      : 'border-transparent hover:text-ink'
-                    }`}
-                >
-                  Kata Sandi
-                </button>
-                <span>·</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMethod('otp')
-                    setError(null)
-                  }}
-                  className={`pb-0.5 border-b-2 transition-all ${authMethod === 'otp'
-                      ? 'border-primary text-primary font-bold'
-                      : 'border-transparent hover:text-ink'
-                    }`}
-                >
-                  Kode OTP Email
-                </button>
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Email atau Nomor HP
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={emailOrPhone}
+                    onChange={(e) => setEmailOrPhone(e.target.value)}
+                    placeholder="nama@email.com atau 0812xxxx"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                  <UserIcon size={16} className="absolute left-3 top-3 text-muted" />
+                </div>
               </div>
 
-              {authMethod === 'password' ? (
-                <>
-                  <div>
-                    <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                      Email atau Nomor HP
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        required
-                        value={emailOrPhone}
-                        onChange={(e) => setEmailOrPhone(e.target.value)}
-                        placeholder="nama@email.com atau 0812xxxx"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                      <UserIcon size={16} className="absolute left-3 top-3 text-muted" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                      Kata Sandi
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Masukkan kata sandi akun"
-                        className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                      <Lock size={16} className="absolute left-3 top-3 text-muted" />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted hover:text-ink"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {!otpStep ? (
-                    <div>
-                      <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                        Alamat Email untuk Kode OTP
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          required
-                          value={otpEmail}
-                          onChange={(e) => setOtpEmail(e.target.value)}
-                          placeholder="nama@email.com"
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
-                        <Mail size={16} className="absolute left-3 top-3 text-muted" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                        Masukkan 6 Digit Kode OTP
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        required
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                        placeholder="123456"
-                        className="w-full py-3 text-center tracking-widest font-mono text-xl font-bold rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-ink dark:text-white focus:outline-hidden focus:border-primary"
-                      />
-                      <p className="text-[11px] text-muted text-center mt-1">
-                        Terkirim ke <strong>{otpEmail}</strong>.{' '}
-                        <button
-                          type="button"
-                          onClick={() => setOtpStep(false)}
-                          className="text-primary font-bold hover:underline"
-                        >
-                          Ganti email
-                        </button>
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Kata Sandi
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi akun"
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                  <Lock size={16} className="absolute left-3 top-3 text-muted" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted hover:text-ink"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
 
               <button
                 type="submit"
@@ -462,13 +332,7 @@ export default function AuthModal() {
                   </>
                 ) : (
                   <>
-                    <span>
-                      {authMethod === 'otp'
-                        ? otpStep
-                          ? 'Verifikasi & Masuk'
-                          : 'Kirim Kode Verifikasi'
-                        : 'Masuk Sekarang'}
-                    </span>
+                    <span>Masuk Sekarang</span>
                     <ArrowRight size={15} />
                   </>
                 )}
