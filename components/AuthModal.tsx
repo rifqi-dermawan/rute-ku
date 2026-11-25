@@ -143,13 +143,20 @@ export default function AuthModal() {
     setIsLoading(false)
 
     if (res.success) {
-      setSuccessMessage('Pendaftaran berhasil! Akun Anda telah siap.')
+      setSuccessMessage('Pendaftaran berhasil! Silakan masuk dengan akun Anda.')
       setTimeout(() => {
         setMode('login')
-        setEmailOrPhone(regEmail)
-        setPassword(regPassword)
+        setEmailOrPhone('')
+        setPassword('')
+        setShowPassword(false)
+        setName('')
+        setRegEmail('')
+        setRegPhone('')
+        setRegPassword('')
+        setRegConfirmPassword('')
+        setShowConfirmPassword(false)
         setSuccessMessage(null)
-      }, 1000)
+      }, 1500)
     } else {
       setError(res.error || 'Gagal mendaftar akun.')
     }
