@@ -7,7 +7,6 @@ import {
   Lock,
   Mail,
   User as UserIcon,
-  Phone,
   Eye,
   EyeOff,
   Clock,
@@ -120,10 +119,6 @@ export default function AuthModal() {
       setError('Alamat email tidak valid.')
       return
     }
-    if (!regPhone.trim()) {
-      setError('Nomor HP wajib diisi.')
-      return
-    }
     if (regPassword.length < 6) {
       setError('Kata sandi minimal 6 karakter.')
       return
@@ -137,7 +132,6 @@ export default function AuthModal() {
     const res = await register({
       name,
       email: regEmail,
-      phone: regPhone,
       password: regPassword,
     })
     setIsLoading(false)
@@ -151,7 +145,6 @@ export default function AuthModal() {
         setShowPassword(false)
         setName('')
         setRegEmail('')
-        setRegPhone('')
         setRegPassword('')
         setRegConfirmPassword('')
         setShowConfirmPassword(false)
@@ -381,23 +374,6 @@ export default function AuthModal() {
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
                   />
                   <Mail size={16} className="absolute left-3 top-3 text-muted" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                  Nomor Handphone / WhatsApp
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    required
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="0812xxxxxxxx"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
-                  />
-                  <Phone size={16} className="absolute left-3 top-3 text-muted" />
                 </div>
               </div>
 
