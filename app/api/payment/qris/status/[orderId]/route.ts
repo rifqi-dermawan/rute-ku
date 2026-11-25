@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { unstable_rethrow } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import {
   applyPaymentStatus,
@@ -89,6 +90,7 @@ export async function GET(
       statusCode: data.status_code ?? null,
     })
   } catch (error: any) {
+    unstable_rethrow(error)
     return NextResponse.json(
       { error: error?.message || 'Gagal memeriksa status transaksi payment' },
       { status: 500 }

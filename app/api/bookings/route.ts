@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { unstable_rethrow } from 'next/navigation'
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { BookingStatus, SeatStatus } from '@prisma/client'
@@ -21,13 +22,14 @@ async function resolveHoldToken(req: NextRequest): Promise<string> {
  * Tanpa login paksa / tanpa dependensi tabel users.
  */
 export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl
+  const publicToken = searchParams.get('publicToken')
+  const code = searchParams.get('code')?.trim().toUpperCase()
+  const email = searchParams.get('email')?.trim().toLowerCase()
+  const cookieStore = await cookies()
+  const holdToken = searchParams.get('holdToken') || cookieStore.get('ruteku_hold_token')?.value
+
   try {
-    const { searchParams } = req.nextUrl
-    const publicToken = searchParams.get('publicToken')
-    const code = searchParams.get('code')?.trim().toUpperCase()
-    const email = searchParams.get('email')?.trim().toLowerCase()
-    const cookieStore = await cookies()
-    const holdToken = searchParams.get('holdToken') || cookieStore.get('ruteku_hold_token')?.value
 
     if (publicToken) {
       const booking = await prisma.booking.findUnique({
@@ -98,6 +100,7 @@ export async function GET(req: NextRequest) {
       bookings,
     })
   } catch (error: any) {
+    unstable_rethrow(error)
     return NextResponse.json(
       { success: false, error: error?.message || 'Gagal memuat booking.' },
       { status: 500 }

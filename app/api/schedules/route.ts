@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unstable_rethrow } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { estimateBusDurationMinutes } from '@/lib/bus-config';
 
@@ -186,11 +187,12 @@ async function ensureTerminal(city: any) {
 }
 
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const originParam = searchParams.get('origin') || searchParams.get('from') || '';
+  const destParam = searchParams.get('destination') || searchParams.get('to') || '';
+  const dateParam = searchParams.get('date') || '';
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const originParam = searchParams.get('origin') || searchParams.get('from') || '';
-    const destParam = searchParams.get('destination') || searchParams.get('to') || '';
-    const dateParam = searchParams.get('date') || '';
 
     if (!originParam || !destParam) {
       return NextResponse.json(
@@ -544,6 +546,7 @@ export async function GET(request: NextRequest) {
     searchCache.set(cacheKey, { data: responsePayload, timestamp: Date.now() });
     return NextResponse.json(responsePayload);
   } catch (error: any) {
+    unstable_rethrow(error);
     console.error('Error fetching schedules:', error);
     return NextResponse.json(
       { success: false, error: 'Terjadi kesalahan saat memuat jadwal' },

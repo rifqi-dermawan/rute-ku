@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { unstable_rethrow } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { BookingStatus, RefundStatus, SeatStatus } from '@prisma/client'
 import { calculateRefund } from '@/lib/refund-policy'
@@ -57,6 +58,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, booking })
   } catch (error: any) {
+    unstable_rethrow(error)
     return NextResponse.json(
       { success: false, error: error?.message || 'Gagal memuat booking.' },
       { status: 500 }

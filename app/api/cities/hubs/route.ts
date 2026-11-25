@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { unstable_rethrow } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
@@ -48,6 +49,7 @@ export async function GET() {
       data: hubs
     });
   } catch (error: any) {
+    unstable_rethrow(error);
     console.error('Error fetching hub cities:', error);
     return NextResponse.json(
       { success: false, error: 'Gagal mengambil data kota hub' },
