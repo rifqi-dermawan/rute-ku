@@ -55,7 +55,6 @@ export default function AuthModal() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [regEmail, setRegEmail] = useState('')
-  const [regPhone, setRegPhone] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [regConfirmPassword, setRegConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)

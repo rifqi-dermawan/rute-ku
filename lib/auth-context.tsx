@@ -31,7 +31,7 @@ interface AuthContextType {
   user: AuthUser | null
   isLoading: boolean
   login: (emailOrPhone: string, password?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
-  register: (data: { name: string; email: string; phone: string; password?: string }) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
+  register: (data: { name: string; email: string; phone?: string; password?: string }) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
   logout: () => void
   isAuthModalOpen: boolean
   authModalConfig: AuthModalConfig | null
@@ -159,11 +159,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const register = useCallback(async (data: { name: string; email: string; phone: string; password?: string }): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+  const register = useCallback(async (data: { name: string; email: string; phone?: string; password?: string }): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
     setIsLoading(true)
     try {
       const normalizedEmail = data.email.trim().toLowerCase()
-      const normalizedPhone = data.phone.trim()
+      const normalizedPhone = data.phone ? data.phone.trim() : ''
 
       let customUsers: (AuthUser & { password?: string })[] = []
       try {
@@ -172,10 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {}
 
       const exists = customUsers.some(
-        u => u.email.toLowerCase() === normalizedEmail || u.phone === normalizedPhone
+        u => u.email.toLowerCase() === normalizedEmail
       )
       if (exists) {
-        return { success: false, error: 'Email atau nomor HP ini sudah terdaftar. Silakan Masuk.' }
+        return { success: false, error: 'Email ini sudah terdaftar. Silakan Masuk.' }
       }
 
       const newUser: AuthUser & { password?: string } = {
