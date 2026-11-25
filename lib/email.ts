@@ -1,10 +1,18 @@
 /**
- * RuteKu E-Ticket Email Delivery Service
- *
- * Menggunakan Resend REST API (gratis & resmi) untuk pengiriman email nyata.
- * Jika RESEND_API_KEY belum dikonfigurasi di .env, sistem secara otomatis
- * berjalan dalam mode 'Simulation' yang aman dan tidak membuat error.
+ * RuteKu Email Service — menggunakan Gmail SMTP via Nodemailer
+ * Isi GMAIL_USER dan GMAIL_APP_PASSWORD di .env
  */
+import nodemailer from 'nodemailer'
+
+function createTransport() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  })
+}
 
 export interface SendEticketParams {
   to: string
@@ -110,47 +118,28 @@ export async function sendEticketEmail(params: SendEticketParams): Promise<{
 </html>
 `
 
-  // Jika belum ada RESEND_API_KEY, jalankan simulasi pengiriman yang aman
-  if (!apiKey) {
-    console.log(`[RuteKu Email Simulation] Mengirimkan e-tiket ke: ${params.to}`)
-    console.log(`[RuteKu Email Simulation] Kode Booking: ${params.bookingCode} | Kursi: ${params.seats}`)
+  // Jika belum ada Gmail config, jalankan simulasi
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log(`[RuteKu Email Simulation] E-tiket ke: ${params.to} | Kode: ${params.bookingCode}`)
     return {
       success: true,
       simulated: true,
-      message: `Simulasi pengiriman e-tiket ke ${params.to} berhasil. Tambahkan RESEND_API_KEY di file .env untuk mengirim email nyata.`,
+      message: `Simulasi e-tiket ke ${params.to}. Tambahkan GMAIL_USER & GMAIL_APP_PASSWORD di .env.`,
     }
   }
 
-  // Jika RESEND_API_KEY tersedia, panggil Resend REST API langsung
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'RuteKu E-Ticket <onboarding@resend.dev>', // Default Resend test domain
-        to: [params.to],
-        subject: `E-Tiket Bus RuteKu: ${params.from} ke ${params.toCity} [${params.bookingCode}]`,
-        html: emailHtml,
-      }),
+    const transporter = createTransport()
+    const info = await transporter.sendMail({
+      from: `"RuteKu E-Ticket" <${process.env.GMAIL_USER}>`,
+      to: params.to,
+      subject: `E-Tiket Bus RuteKu: ${params.from} ke ${params.toCity} [${params.bookingCode}]`,
+      html: emailHtml,
     })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      console.error('[Resend Error]', data)
-      return {
-        success: false,
-        message: data.message || 'Gagal mengirim email melalui Resend.',
-      }
-    }
-
     return {
       success: true,
-      id: data.id,
-      message: `E-tiket asli berhasil dikirimkan ke ${params.to} via Resend.`,
+      id: info.messageId,
+      message: `E-tiket berhasil dikirimkan ke ${params.to}.`,
     }
   } catch (err: any) {
     console.error('[Email Dispatch Error]', err)
@@ -162,7 +151,7 @@ export async function sendEticketEmail(params: SendEticketParams): Promise<{
 }
 
 /**
- * Mengirimkan kode OTP verifikasi via Resend REST API ke email pengguna
+ * Mengirimkan kode OTP verifikasi via Gmail SMTP
  */
 export async function sendOtpEmail({
   to,
@@ -177,8 +166,6 @@ export async function sendOtpEmail({
   simulated?: boolean
   error?: string
 }> {
-  const apiKey = process.env.RESEND_API_KEY
-
   const emailHtml = `
 <!DOCTYPE html>
 <html lang="id">
@@ -206,11 +193,11 @@ export async function sendOtpEmail({
     </div>
     <div class="content">
       <p class="desc">
-        Halo! Anda menerima email ini karena ada permintaan masuk atau verifikasi pemesanan tiket bus di RuteKu. Gunakan kode verifikasi (OTP) berikut untuk melanjutkan:
+        Halo! Gunakan kode verifikasi (OTP) berikut untuk masuk ke akun RuteKu Anda:
       </p>
       <div class="otp-box">${otp}</div>
       <div class="warning">
-        <strong>Penting:</strong> Kode verifikasi ini hanya berlaku selama <strong>10 menit</strong>. Jangan pernah membagikan kode rahasia ini kepada siapapun demi keamanan akun Anda.
+        <strong>Penting:</strong> Kode ini hanya berlaku selama <strong>10 menit</strong>. Jangan bagikan kode ini kepada siapapun.
       </div>
     </div>
     <div class="footer">
@@ -222,44 +209,26 @@ export async function sendOtpEmail({
 </html>
 `
 
-  if (!apiKey) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.log(`[RuteKu OTP Simulation] Kode OTP untuk ${to}: ${otp}`)
     return {
       success: true,
       simulated: true,
-      message: `Kode verifikasi ${otp} disimulasikan untuk ${to}.`,
+      message: `Kode verifikasi ${otp} disimulasikan untuk ${to}. Tambahkan GMAIL_USER & GMAIL_APP_PASSWORD di .env.`,
     }
   }
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'RuteKu Verifikasi <onboarding@resend.dev>',
-        to: [to],
-        subject: `Kode Verifikasi RuteKu: ${otp}`,
-        html: emailHtml,
-      }),
+    const transporter = createTransport()
+    const info = await transporter.sendMail({
+      from: `"RuteKu Verifikasi" <${process.env.GMAIL_USER}>`,
+      to,
+      subject: `Kode Verifikasi RuteKu: ${otp}`,
+      html: emailHtml,
     })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      console.warn('[Resend OTP Warning]', data)
-      return {
-        success: false,
-        message: data.message || 'Gagal mengirim kode OTP via Resend.',
-        error: data.message,
-      }
-    }
-
     return {
       success: true,
-      id: data.id,
+      id: info.messageId,
       message: `Kode verifikasi berhasil dikirimkan ke ${to}.`,
     }
   } catch (err: any) {

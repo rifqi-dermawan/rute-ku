@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendOtpEmail } from '@/lib/email'
 import { saveOtp } from '@/lib/otp-store'
 
+export const runtime = 'nodejs'
+
 /**
  * POST /api/auth/send-otp
  * Mengirimkan kode 6 digit OTP verifikasi ke email pengguna via Resend API

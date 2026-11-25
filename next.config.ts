@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
+  serverExternalPackages: ['nodemailer'],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
