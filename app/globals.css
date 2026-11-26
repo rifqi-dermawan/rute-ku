@@ -384,6 +384,46 @@ body.dark .text-\[\#7A271A\],
   color: #FEDF89 !important;
 }
 
+/* ─── Kontras Teks Gelap pada Kartu Terang di Halaman Bantuan (Mode Gelap) ─── */
+[data-theme="dark"] .help-dark-text,
+[data-theme="dark"] .help-dark-text h1,
+[data-theme="dark"] .help-dark-text h2,
+[data-theme="dark"] .help-dark-text h3,
+[data-theme="dark"] .help-dark-text p,
+[data-theme="dark"] .help-dark-text strong,
+[data-theme="dark"] .help-dark-text ul,
+[data-theme="dark"] .help-dark-text li,
+[data-theme="dark"] .help-dark-text .text-ink,
+body[data-theme="dark"] .help-dark-text,
+body[data-theme="dark"] .help-dark-text h1,
+body[data-theme="dark"] .help-dark-text h2,
+body[data-theme="dark"] .help-dark-text h3,
+body[data-theme="dark"] .help-dark-text p,
+body[data-theme="dark"] .help-dark-text strong,
+body[data-theme="dark"] .help-dark-text ul,
+body[data-theme="dark"] .help-dark-text li,
+body[data-theme="dark"] .help-dark-text .text-ink,
+body.dark .help-dark-text,
+body.dark .help-dark-text h1,
+body.dark .help-dark-text h2,
+body.dark .help-dark-text h3,
+body.dark .help-dark-text p,
+body.dark .help-dark-text strong,
+body.dark .help-dark-text ul,
+body.dark .help-dark-text li,
+body.dark .help-dark-text .text-ink,
+.dark .help-dark-text,
+.dark .help-dark-text h1,
+.dark .help-dark-text h2,
+.dark .help-dark-text h3,
+.dark .help-dark-text p,
+.dark .help-dark-text strong,
+.dark .help-dark-text ul,
+.dark .help-dark-text li,
+.dark .help-dark-text .text-ink {
+  color: #0F2A33 !important;
+}
+
 /* ─── Kontras Teks Hitam pada Background Putih Footer di Mode Gelap ─── */
 [data-theme="dark"] .footer-grey-bar,
 body[data-theme="dark"] .footer-grey-bar,

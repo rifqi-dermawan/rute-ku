@@ -85,7 +85,7 @@ export default function HelpPage() {
             </div>
 
             {/* Dipilih */}
-            <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/30 bg-primary-tint/40">
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/30 bg-primary-tint/50">
               <div className="w-8 h-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
                 <Check size={14} strokeWidth={3} />
               </div>
@@ -95,7 +95,7 @@ export default function HelpPage() {
             </div>
 
             {/* Ditahan */}
-            <div className="flex items-start gap-3 p-3 rounded-xl border border-[#EDADD6] bg-[#FDF2FA]/60 dark:border-[#7A275A] dark:bg-[#2E1324]/70">
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-[#EDADD6] bg-[#FDF2FA] help-dark-text">
               <div className="w-8 h-8 rounded-lg bg-[#FDF2FA] border border-[#EDADD6] text-[#C11574] flex items-center justify-center flex-shrink-0">
                 <Clock size={14} />
               </div>
@@ -127,7 +127,7 @@ export default function HelpPage() {
         </div>
 
         {/* Section 2: Aturan Tahan Kursi 10 Menit */}
-        <div className="bg-[#EBF5F6] dark:bg-[#11363F] border border-primary/20 rounded-card p-3.5 sm:p-6 text-ink space-y-2.5 sm:space-y-3">
+        <div className="bg-[#EBF5F6] border border-primary/20 rounded-card p-3.5 sm:p-6 text-ink help-dark-text space-y-2.5 sm:space-y-3">
           <h2 className="text-base font-bold text-ink">Aturan tahan kursi 10 menit</h2>
           <ul className="space-y-2 text-xs sm:text-sm text-ink leading-relaxed list-disc list-inside">
             <li>Begitu kamu memilih kursi, kursi itu ditahan 10 menit. Orang lain tidak bisa mengambilnya.</li>
