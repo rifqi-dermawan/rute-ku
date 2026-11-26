@@ -259,7 +259,7 @@ function HomeContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-start">
             {/* Asal */}
-            <div>
+            <div className="min-w-0 w-full">
               <CityCombobox
                 id="search-from"
                 label="Asal *"
@@ -272,7 +272,7 @@ function HomeContent() {
             </div>
 
             {/* Tujuan */}
-            <div>
+            <div className="min-w-0 w-full">
               <CityCombobox
                 id="search-to"
                 label="Tujuan *"
@@ -285,7 +285,7 @@ function HomeContent() {
             </div>
 
             {/* Tanggal berangkat */}
-            <div>
+            <div className="min-w-0 w-full">
               <label className="block text-xs font-bold text-ink mb-1.5">
                 Tanggal berangkat <span className="text-error">*</span>
               </label>
@@ -294,7 +294,7 @@ function HomeContent() {
                 value={date}
                 min={new Date().toISOString().split('T')[0]}
                 onChange={e => handleDateChange(e.target.value)}
-                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`flex items-center w-full max-w-full min-w-0 h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer appearance-none ${
                   errors['date']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
@@ -309,14 +309,14 @@ function HomeContent() {
             </div>
 
             {/* Penumpang */}
-            <div>
+            <div className="min-w-0 w-full">
               <label className="block text-xs font-bold text-ink mb-1.5">
                 Penumpang <span className="text-error">*</span>
               </label>
               <select
                 value={passengers}
                 onChange={e => handlePassengersChange(e.target.value)}
-                className={`w-full h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
+                className={`w-full max-w-full min-w-0 h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer ${
                   errors['passengers']
                     ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
                     : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'

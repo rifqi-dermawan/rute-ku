@@ -358,7 +358,7 @@ function SchedulesContent({
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              <div>
+              <div className="min-w-0 w-full">
                 <CityCombobox
                   id="edit-from"
                   label="Dari *"
@@ -373,7 +373,7 @@ function SchedulesContent({
                 />
               </div>
 
-              <div>
+              <div className="min-w-0 w-full">
                 <CityCombobox
                   id="edit-to"
                   label="Ke *"
@@ -388,7 +388,7 @@ function SchedulesContent({
                 />
               </div>
 
-              <div>
+              <div className="min-w-0 w-full">
                 <label className="block text-xs font-bold text-ink mb-1">
                   Tanggal <span className="text-error">*</span>
                 </label>
@@ -400,7 +400,7 @@ function SchedulesContent({
                     setEditDate(e.target.value)
                     if (editErrors['date']) setEditErrors(prev => ({ ...prev, date: '' }))
                   }}
-                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                  className={`flex items-center w-full max-w-full min-w-0 h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all appearance-none ${
                     editErrors['date'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
                   }`}
                 />
@@ -409,7 +409,7 @@ function SchedulesContent({
                 )}
               </div>
 
-              <div>
+              <div className="min-w-0 w-full">
                 <label className="block text-xs font-bold text-ink mb-1">
                   Penumpang <span className="text-error">*</span>
                 </label>
@@ -419,7 +419,7 @@ function SchedulesContent({
                     setEditPassengers(e.target.value)
                     if (editErrors['passengers']) setEditErrors(prev => ({ ...prev, passengers: '' }))
                   }}
-                  className={`w-full h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
+                  className={`w-full max-w-full min-w-0 h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all ${
                     editErrors['passengers'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
                   }`}
                 >
