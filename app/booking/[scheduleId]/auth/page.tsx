@@ -314,6 +314,8 @@ export default function BookingAuthPage({
                   setMode('login')
                   setErrorMessage('')
                   setSuccessInfo('')
+                  setShowPassword(false)
+                  setShowConfirmPassword(false)
                 }}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === 'login'
@@ -329,6 +331,8 @@ export default function BookingAuthPage({
                   setMode('register')
                   setErrorMessage('')
                   setSuccessInfo('')
+                  setShowPassword(false)
+                  setShowConfirmPassword(false)
                 }}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === 'register'
@@ -396,7 +400,7 @@ export default function BookingAuthPage({
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-3 text-muted hover:text-ink"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
                 </div>
@@ -426,7 +430,7 @@ export default function BookingAuthPage({
               <form onSubmit={handleRegisterSubmit} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
-                    Nama Lengkap Sesuai KTP
+                    Nama Lengkap
                   </label>
                   <div className="relative">
                     <input
@@ -443,7 +447,7 @@ export default function BookingAuthPage({
 
                 <div>
                   <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
-                    Alamat Email (Pengiriman E-Tiket)
+                    Alamat Email
                   </label>
                   <div className="relative">
                     <input
@@ -477,7 +481,7 @@ export default function BookingAuthPage({
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-3 text-muted hover:text-ink"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
                 </div>
@@ -501,7 +505,7 @@ export default function BookingAuthPage({
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3.5 top-3 text-muted hover:text-ink"
                     >
-                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
                 </div>

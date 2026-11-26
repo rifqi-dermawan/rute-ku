@@ -71,6 +71,8 @@ export default function AuthModal() {
       setError(null)
       setSuccessMessage(null)
       setRegConfirmPassword('')
+      setShowPassword(false)
+      setShowConfirmPassword(false)
     }
   }, [isAuthModalOpen, authModalConfig])
 
@@ -247,6 +249,8 @@ export default function AuthModal() {
                 setMode('login')
                 setError(null)
                 setSuccessMessage(null)
+                setShowPassword(false)
+                setShowConfirmPassword(false)
               }}
               className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${mode === 'login'
                   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
@@ -261,6 +265,8 @@ export default function AuthModal() {
                 setMode('register')
                 setError(null)
                 setSuccessMessage(null)
+                setShowPassword(false)
+                setShowConfirmPassword(false)
               }}
               className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${mode === 'register'
                   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
@@ -342,7 +348,7 @@ export default function AuthModal() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted hover:text-ink"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                 </div>
               </div>
@@ -372,7 +378,7 @@ export default function AuthModal() {
             <form onSubmit={handleRegisterSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                  Nama Lengkap Sesuai KTP
+                  Nama Lengkap
                 </label>
                 <div className="relative">
                   <input
@@ -389,7 +395,7 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                  Alamat Email (Pengiriman E-Tiket)
+                  Alamat Email
                 </label>
                 <div className="relative">
                   <input
@@ -423,7 +429,7 @@ export default function AuthModal() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted hover:text-ink"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                 </div>
               </div>
@@ -447,7 +453,7 @@ export default function AuthModal() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-3 text-muted hover:text-ink"
                   >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                 </div>
               </div>
