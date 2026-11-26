@@ -51,6 +51,7 @@ export default function AuthModal() {
   } = useAuth()
 
   const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [loginName, setLoginName] = useState('')
   const [emailOrPhone, setEmailOrPhone] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -82,13 +83,21 @@ export default function AuthModal() {
     setError(null)
     setSuccessMessage(null)
 
-    if (!emailOrPhone.trim()) {
-      setError('Silakan masukkan email atau nomor HP Anda.')
+    if (!loginName.trim()) {
+      setError('Nama lengkap wajib diisi.')
+      return
+    }
+    if (!emailOrPhone.trim() || !emailOrPhone.includes('@')) {
+      setError('Alamat email tidak valid.')
+      return
+    }
+    if (!password.trim()) {
+      setError('Kata sandi wajib diisi.')
       return
     }
 
     setIsLoading(true)
-    const res = await login(emailOrPhone, password)
+    const res = await login(emailOrPhone, password, loginName)
     setIsLoading(false)
 
     if (res.success) {
@@ -139,6 +148,7 @@ export default function AuthModal() {
       setSuccessMessage('Pendaftaran berhasil! Silakan masuk dengan akun Anda.')
       setTimeout(() => {
         setMode('login')
+        setLoginName('')
         setEmailOrPhone('')
         setPassword('')
         setShowPassword(false)
@@ -281,18 +291,35 @@ export default function AuthModal() {
             <form onSubmit={handleLoginSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
-                  Email atau Nomor HP
+                  Nama Lengkap
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     required
-                    value={emailOrPhone}
-                    onChange={(e) => setEmailOrPhone(e.target.value)}
-                    placeholder="nama@email.com atau 0812xxxx"
+                    value={loginName}
+                    onChange={(e) => setLoginName(e.target.value)}
+                    placeholder="Contoh: Budi Santoso"
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                   <UserIcon size={16} className="absolute left-3 top-3 text-muted" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1">
+                  Alamat Email
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={emailOrPhone}
+                    onChange={(e) => setEmailOrPhone(e.target.value)}
+                    placeholder="nama@email.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                  <Mail size={16} className="absolute left-3 top-3 text-muted" />
                 </div>
               </div>
 
@@ -303,6 +330,7 @@ export default function AuthModal() {
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Masukkan kata sandi akun"

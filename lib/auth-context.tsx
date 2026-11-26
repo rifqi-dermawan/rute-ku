@@ -30,7 +30,7 @@ export interface AuthModalConfig {
 interface AuthContextType {
   user: AuthUser | null
   isLoading: boolean
-  login: (emailOrPhone: string, password?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
+  login: (emailOrPhone: string, password?: string, name?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
   register: (data: { name: string; email: string; phone?: string; password?: string }) => Promise<{ success: boolean; user?: AuthUser; error?: string }>
   logout: () => void
   isAuthModalOpen: boolean
@@ -107,20 +107,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const login = useCallback(async (emailOrPhone: string, _password?: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+  const login = useCallback(async (emailOrPhone: string, _password?: string, name?: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
     setIsLoading(true)
     try {
       await new Promise(r => setTimeout(r, 300))
 
       const normalized = emailOrPhone.trim().toLowerCase()
+      const cleanName = name?.trim()
 
       // 1. Check demo users
       const demoMatch = DEMO_USERS.find(
         u => u.email.toLowerCase() === normalized || u.phone === normalized || u.name.toLowerCase() === normalized
       )
       if (demoMatch) {
-        saveUserSession(demoMatch)
-        return { success: true, user: demoMatch }
+        const sessionUser = cleanName ? { ...demoMatch, name: cleanName } : demoMatch
+        saveUserSession(sessionUser)
+        return { success: true, user: sessionUser }
       }
 
       // 2. Check registered users in localStorage
@@ -138,14 +140,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { success: false, error: 'Kata sandi yang Anda masukkan salah.' }
         }
         const { password: _, ...userData } = customMatch
-        saveUserSession(userData)
-        return { success: true, user: userData }
+        const sessionUser = cleanName ? { ...userData, name: cleanName } : userData
+        saveUserSession(sessionUser)
+        return { success: true, user: sessionUser }
       }
 
       // 3. Fallback: jika belum terdaftar, buat akun instan
       const newInstantUser: AuthUser = {
         id: `usr-${Date.now()}`,
-        name: normalized.includes('@') ? normalized.split('@')[0] : 'Pengguna RuteKu',
+        name: cleanName || (normalized.includes('@') ? normalized.split('@')[0] : 'Pengguna RuteKu'),
         email: normalized.includes('@') ? normalized : `${normalized}@ruteku.id`,
         phone: !normalized.includes('@') ? normalized : '081234567890',
         role: 'USER',
