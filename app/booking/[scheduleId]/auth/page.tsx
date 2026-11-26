@@ -108,7 +108,6 @@ export default function BookingAuthPage({
 
   // Manual Auth States (Login / Register without OTP)
   const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [loginName, setLoginName] = useState('')
   const [emailOrPhone, setEmailOrPhone] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -126,10 +125,6 @@ export default function BookingAuthPage({
     setErrorMessage('')
     setSuccessInfo('')
 
-    if (!loginName.trim()) {
-      setErrorMessage('Nama lengkap wajib diisi.')
-      return
-    }
     if (!emailOrPhone.trim() || !emailOrPhone.includes('@')) {
       setErrorMessage('Alamat email tidak valid.')
       return
@@ -141,7 +136,7 @@ export default function BookingAuthPage({
 
     setLoading(true)
     try {
-      const res = await login(emailOrPhone, password, loginName)
+      const res = await login(emailOrPhone, password)
       if (res.success) {
         router.push(targetPassengerUrl)
       } else {
@@ -188,7 +183,6 @@ export default function BookingAuthPage({
         setSuccessInfo('Pendaftaran berhasil! Silakan masuk dengan akun Anda.')
         setTimeout(() => {
           setMode('login')
-          setLoginName('')
           setEmailOrPhone('')
           setPassword('')
           setShowPassword(false)
@@ -347,23 +341,6 @@ export default function BookingAuthPage({
             {/* Form Masuk */}
             {mode === 'login' && (
               <form onSubmit={handleLoginSubmit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
-                    Nama Lengkap
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={loginName}
-                      onChange={e => setLoginName(e.target.value)}
-                      placeholder="Contoh: Budi Santoso"
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
-                    />
-                    <UserIcon size={16} className="absolute left-3.5 top-3 text-muted" />
-                  </div>
-                </div>
-
                 <div>
                   <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
                     Alamat Email
