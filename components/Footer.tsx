@@ -23,7 +23,7 @@ export default function Footer() {
   return (
     <footer className={`bg-white border-t border-borderCol mt-auto print:hidden ${isSeatPage ? 'pb-24 lg:pb-0' : ''}`}>
       {/* ── Top Highlights / Trust Bar ─────────────────────────────── */}
-      <div className="border-b border-borderCol/70 bg-surface/50 footer-grey-bar">
+      <div className="border-b border-borderCol/70 bg-white footer-grey-bar">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
             <div className="flex items-start gap-3.5">
@@ -230,7 +230,7 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom Legal & Copyright Bar ────────────────────────────── */}
-      <div className="border-t border-borderCol bg-surface/70 footer-grey-bar">
+      <div className="border-t border-borderCol bg-white footer-grey-bar">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs text-muted dark:!text-black">
           <p className="dark:!text-black">
             © {new Date().getFullYear()} <span className="font-bold text-ink dark:!text-black">RuteKu</span> (PT RuteKu Transportasi Indonesia). Seluruh hak cipta dilindungi.

@@ -384,7 +384,14 @@ body.dark .text-\[\#7A271A\],
   color: #FEDF89 !important;
 }
 
-/* ─── Kontras Teks Hitam pada Background Grey di Mode Gelap ─── */
+/* ─── Kontras Teks Hitam pada Background Putih Footer di Mode Gelap ─── */
+[data-theme="dark"] .footer-grey-bar,
+body[data-theme="dark"] .footer-grey-bar,
+body.dark .footer-grey-bar,
+.dark .footer-grey-bar {
+  background-color: #ffffff !important;
+}
+
 [data-theme="dark"] .footer-grey-bar,
 [data-theme="dark"] .footer-grey-bar h1,
 [data-theme="dark"] .footer-grey-bar h2,
