@@ -81,25 +81,6 @@
     color: #0F2A33;
     background-color: #ffffff;
     font-size: 16px;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  /* Mencegah input[type="date"] meluber keluar batas container pada mobile (iOS/Android) */
-  input[type="date"] {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  input[type="date"]::-webkit-date-and-time-value {
-    text-align: left;
   }
 
   /* Link: default tidak underline, warna primary */

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Search, ArrowLeftRight, Clock, RotateCcw, AlertCircle, ArrowRight, Calendar, Users, RefreshCw } from 'lucide-react'
 import CityCombobox from '@/components/CityCombobox'
+import DateInput from '@/components/DateInput'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -289,16 +290,15 @@ function HomeContent() {
               <label className="block text-xs font-bold text-ink mb-1.5">
                 Tanggal berangkat <span className="text-error">*</span>
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={date}
                 min={new Date().toISOString().split('T')[0]}
-                onChange={e => handleDateChange(e.target.value)}
-                className={`flex items-center w-full max-w-full min-w-0 h-11 sm:h-12 px-3.5 border rounded-input bg-white text-ink font-semibold text-sm outline-none transition-all cursor-pointer appearance-none ${
-                  errors['date']
-                    ? 'border-error bg-red-50/20 ring-1 ring-error focus:ring-error'
-                    : 'border-borderCol focus:border-primary focus:ring-1 focus:ring-primary'
-                }`}
+                onChange={handleDateChange}
+                hasError={Boolean(errors['date'])}
+                placeholder="Pilih tanggal berangkat"
+                ariaLabel="Tanggal berangkat"
+                mobileBoxClassName="h-11 px-3.5 rounded-input bg-white"
+                desktopClassName="h-11 sm:h-12 px-3.5 rounded-input bg-white"
               />
               {errors['date'] && (
                 <p className="mt-1 text-xs text-error font-medium flex items-center gap-1">

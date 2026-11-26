@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { ArrowRight, SlidersHorizontal, Search, RefreshCw, X, AlertCircle, MapPin, Bus } from 'lucide-react'
 import CityCombobox from '@/components/CityCombobox'
+import DateInput from '@/components/DateInput'
 
 const CITIES = ['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang', 'Semarang', 'Solo', 'Denpasar']
 
@@ -392,17 +393,18 @@ function SchedulesContent({
                 <label className="block text-xs font-bold text-ink mb-1">
                   Tanggal <span className="text-error">*</span>
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={editDate}
                   min={new Date().toISOString().split('T')[0]}
-                  onChange={e => {
-                    setEditDate(e.target.value)
+                  onChange={val => {
+                    setEditDate(val)
                     if (editErrors['date']) setEditErrors(prev => ({ ...prev, date: '' }))
                   }}
-                  className={`flex items-center w-full max-w-full min-w-0 h-10 px-3 border rounded-xl bg-surface text-ink text-sm font-semibold outline-none transition-all appearance-none ${
-                    editErrors['date'] ? 'border-error ring-1 ring-error' : 'border-borderCol focus:border-primary'
-                  }`}
+                  hasError={Boolean(editErrors['date'])}
+                  placeholder="Pilih tanggal"
+                  ariaLabel="Tanggal berangkat"
+                  mobileBoxClassName="h-10 px-3 rounded-xl bg-surface"
+                  desktopClassName="h-10 px-3 rounded-xl bg-surface"
                 />
                 {editErrors['date'] && (
                   <p className="text-[11px] text-error font-medium mt-1">{editErrors['date']}</p>
