@@ -9,6 +9,10 @@ import {
   ShieldCheck,
   Clock,
   Mail,
+  Lock,
+  User as UserIcon,
+  Eye,
+  EyeOff,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
@@ -62,7 +66,7 @@ export default function BookingAuthPage({
   const { scheduleId } = use(params)
   const sp = use(searchParams)
   const router = useRouter()
-  const { user, loginWithGoogle, sendOtp, loginWithOtp, openAuthModal } = useAuth()
+  const { user, login, register, loginWithGoogle } = useAuth()
 
   const seats = sp.seats ? sp.seats.split(',') : ['5A']
   const from = sp.from || 'Jakarta'
@@ -102,72 +106,94 @@ export default function BookingAuthPage({
     }
   }, [user, router, targetPassengerUrl])
 
-  // Email OTP States
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [step, setStep] = useState<'input_email' | 'input_otp'>('input_email')
+  // Manual Auth States (Login / Register without OTP)
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [emailOrPhone, setEmailOrPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [regEmail, setRegEmail] = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [regConfirmPassword, setRegConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successInfo, setSuccessInfo] = useState('')
-  const [resendCooldown, setResendCooldown] = useState(0)
 
-  // Cooldown countdown for resending OTP
-  useEffect(() => {
-    if (resendCooldown <= 0) return
-    const interval = setInterval(() => {
-      setResendCooldown(prev => prev - 1)
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [resendCooldown])
-
-  // Handle Send OTP
-  const handleSendOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setErrorMessage('')
     setSuccessInfo('')
 
-    if (!email.trim() || !email.includes('@') || !email.includes('.')) {
-      setErrorMessage('Silakan masukkan alamat email yang valid (contoh: nama@gmail.com).')
+    if (!emailOrPhone.trim()) {
+      setErrorMessage('Silakan masukkan email atau nomor HP Anda.')
       return
     }
 
     setLoading(true)
     try {
-      const res = await sendOtp(email.trim())
+      const res = await login(emailOrPhone, password)
       if (res.success) {
-        setStep('input_otp')
-        setSuccessInfo(res.message || `Kode verifikasi telah dikirim ke ${email}`)
-        setResendCooldown(60)
+        router.push(targetPassengerUrl)
       } else {
-        setErrorMessage(res.error || 'Gagal mengirim kode verifikasi.')
+        setErrorMessage(res.error || 'Gagal masuk akun. Silakan periksa kembali data Anda.')
       }
     } catch {
-      setErrorMessage('Terjadi kendala jaringan saat mengirim kode verifikasi.')
+      setErrorMessage('Terjadi kesalahan jaringan saat memproses login.')
     } finally {
       setLoading(false)
     }
   }
 
-  // Handle Verify OTP
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage('')
+    setSuccessInfo('')
 
-    if (!otp.trim() || otp.trim().length < 4) {
-      setErrorMessage('Masukkan 6 digit kode verifikasi yang dikirim ke email.')
+    if (!name.trim()) {
+      setErrorMessage('Nama lengkap wajib diisi.')
+      return
+    }
+    if (!regEmail.trim() || !regEmail.includes('@')) {
+      setErrorMessage('Alamat email tidak valid.')
+      return
+    }
+    if (regPassword.length < 6) {
+      setErrorMessage('Kata sandi minimal 6 karakter.')
+      return
+    }
+    if (regPassword !== regConfirmPassword) {
+      setErrorMessage('Konfirmasi kata sandi tidak cocok.')
       return
     }
 
     setLoading(true)
     try {
-      const res = await loginWithOtp(email.trim(), otp.trim())
-      if (res.success && res.user) {
-        router.push(targetPassengerUrl)
+      const res = await register({
+        name,
+        email: regEmail,
+        password: regPassword,
+      })
+
+      if (res.success) {
+        setSuccessInfo('Pendaftaran berhasil! Silakan masuk dengan akun Anda.')
+        setTimeout(() => {
+          setMode('login')
+          setEmailOrPhone('')
+          setPassword('')
+          setShowPassword(false)
+          setName('')
+          setRegEmail('')
+          setRegPassword('')
+          setRegConfirmPassword('')
+          setShowConfirmPassword(false)
+          setSuccessInfo('')
+        }, 1200)
       } else {
-        setErrorMessage(res.error || 'Kode verifikasi salah atau telah kedaluwarsa.')
+        setErrorMessage(res.error || 'Gagal mendaftar akun.')
       }
     } catch {
-      setErrorMessage('Terjadi kesalahan jaringan saat memvalidasi kode.')
+      setErrorMessage('Terjadi kendala jaringan saat mendaftar.')
     } finally {
       setLoading(false)
     }
@@ -229,7 +255,7 @@ export default function BookingAuthPage({
               <ShieldCheck size={26} />
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-ink dark:text-white tracking-tight">
-              Masuk untuk Melanjutkan
+              {mode === 'login' ? 'Masuk untuk Melanjutkan' : 'Daftar Akun Baru'}
             </h1>
             <p className="text-xs sm:text-sm text-muted dark:text-gray-400 mt-1 max-w-sm mx-auto">
               E-tiket dan riwayat pemesanan Anda tersimpan secara privat dan aman di akun Anda.
@@ -266,79 +292,189 @@ export default function BookingAuthPage({
             <div className="relative flex items-center justify-center my-4">
               <div className="border-t border-borderCol/80 dark:border-white/10 w-full" />
               <span className="bg-white dark:bg-[#102434] px-3 text-[11px] font-semibold text-muted dark:text-gray-400 absolute">
-                atau gunakan verifikasi email
+                atau gunakan email &amp; kata sandi
               </span>
             </div>
 
-            {/* Email OTP Form */}
-            {step === 'input_email' ? (
-              <form onSubmit={handleSendOtp} className="space-y-3">
+            {/* Tab Switcher: Masuk vs Daftar */}
+            <div className="flex bg-surface dark:bg-white/5 p-1 rounded-xl border border-borderCol/60 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login')
+                  setErrorMessage('')
+                  setSuccessInfo('')
+                }}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  mode === 'login'
+                    ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
+                    : 'text-muted dark:text-gray-400 hover:text-ink'
+                }`}
+              >
+                Masuk
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('register')
+                  setErrorMessage('')
+                  setSuccessInfo('')
+                }}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  mode === 'register'
+                    ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-2xs'
+                    : 'text-muted dark:text-gray-400 hover:text-ink'
+                }`}
+              >
+                Daftar
+              </button>
+            </div>
+
+            {/* Form Masuk */}
+            {mode === 'login' && (
+              <form onSubmit={handleLoginSubmit} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
-                    Alamat Email Pemesan
+                    Email atau Nomor HP
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={emailOrPhone}
+                      onChange={e => setEmailOrPhone(e.target.value)}
+                      placeholder="nama@email.com atau 0812xxxx"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
+                    />
+                    <UserIcon size={16} className="absolute left-3.5 top-3 text-muted" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
+                    Kata Sandi
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Masukkan kata sandi akun"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
+                    />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-muted" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3 text-muted hover:text-ink"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw size={15} className="animate-spin" />
+                      <span>Memproses...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Masuk &amp; Lanjutkan</span>
+                      <ArrowRight size={15} />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* Form Daftar */}
+            {mode === 'register' && (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
+                    Nama Lengkap Sesuai KTP
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      placeholder="Contoh: Budi Santoso"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
+                    />
+                    <UserIcon size={16} className="absolute left-3.5 top-3 text-muted" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
+                    Alamat Email (Pengiriman E-Tiket)
                   </label>
                   <div className="relative">
                     <input
                       type="email"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={regEmail}
+                      onChange={e => setRegEmail(e.target.value)}
                       placeholder="nama@email.com"
                       className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
                     />
                     <Mail size={16} className="absolute left-3.5 top-3 text-muted" />
                   </div>
-                  <p className="text-[11px] text-muted mt-1">
-                    Kami akan mengirimkan 6 digit kode verifikasi untuk memvalidasi pemesanan Anda.
-                  </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {loading ? (
-                    <>
-                      <RefreshCw size={15} className="animate-spin" />
-                      <span>Mengirim Kode...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Kirim Kode Verifikasi</span>
-                      <ArrowRight size={15} />
-                    </>
-                  )}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
-                    Masukkan 6 Digit Kode Verifikasi
+                    Kata Sandi Baru (Min. 6 Karakter)
                   </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
-                    className="w-full py-3 text-center tracking-widest font-mono text-xl font-bold rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-ink dark:text-white focus:outline-hidden focus:border-primary"
-                  />
-                  <div className="flex items-center justify-between text-[11px] text-muted mt-1.5">
-                    <span>Terkirim ke: <strong>{email}</strong></span>
-                    {resendCooldown > 0 ? (
-                      <span className="text-muted">Kirim ulang ({resendCooldown}s)</span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleSendOtp()}
-                        className="text-primary font-bold hover:underline"
-                      >
-                        Kirim Ulang
-                      </button>
-                    )}
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={regPassword}
+                      onChange={e => setRegPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
+                    />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-muted" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3 text-muted hover:text-ink"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink dark:text-gray-200 mb-1.5">
+                    Konfirmasi Kata Sandi
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={regConfirmPassword}
+                      onChange={e => setRegConfirmPassword(e.target.value)}
+                      placeholder="Ulangi kata sandi"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderCol dark:border-white/10 bg-white dark:bg-white/5 text-xs sm:text-sm text-ink dark:text-white placeholder:text-muted focus:outline-hidden focus:border-primary"
+                    />
+                    <Lock size={16} className="absolute left-3.5 top-3 text-muted" />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3.5 top-3 text-muted hover:text-ink"
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
 
@@ -350,42 +486,17 @@ export default function BookingAuthPage({
                   {loading ? (
                     <>
                       <RefreshCw size={15} className="animate-spin" />
-                      <span>Memvalidasi...</span>
+                      <span>Mendaftarkan...</span>
                     </>
                   ) : (
                     <>
-                      <span>Verifikasi & Lanjutkan</span>
+                      <span>Daftar Akun Sekarang</span>
                       <ArrowRight size={15} />
                     </>
                   )}
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStep('input_email')}
-                  className="w-full text-center text-xs text-muted hover:text-ink font-semibold py-1"
-                >
-                  Gunakan email lain
-                </button>
               </form>
             )}
-
-            {/* Alternatif: Masuk dengan Sandi / Daftar */}
-            <div className="pt-3 border-t border-borderCol/60 dark:border-white/10 flex items-center justify-between text-xs">
-              <span className="text-muted">Punya kata sandi akun?</span>
-              <button
-                type="button"
-                onClick={() =>
-                  openAuthModal({
-                    mode: 'login',
-                    redirectUrl: targetPassengerUrl,
-                  })
-                }
-                className="text-primary font-bold hover:underline cursor-pointer"
-              >
-                Masuk dengan Kata Sandi
-              </button>
-            </div>
           </div>
         </div>
 
@@ -405,4 +516,3 @@ export default function BookingAuthPage({
     </div>
   )
 }
-
